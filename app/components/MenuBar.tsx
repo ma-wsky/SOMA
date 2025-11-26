@@ -5,8 +5,6 @@ import { router } from "expo-router";
 //import {SafeAreaView} from 'react-native-safe-area-context';
 //npx expo install react-native-safe-area-context
 
-
-
 export default function MenuBar(){
     return(
         <SafeAreaView style={styles.container}>
@@ -27,8 +25,8 @@ export default function MenuBar(){
                 <Text>Benutzer</Text>
             </TouchableOpacity>
         </SafeAreaView>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -48,4 +46,4 @@ const styles = StyleSheet.create({
         height: 24,
         marginBottom: 2
     }
-})
+});
