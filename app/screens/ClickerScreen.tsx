@@ -1,6 +1,6 @@
 import { Text, View, Button } from 'react-native';
 import { useState } from 'react';
-import {useLocalSearchParams} from "expo-router";
+import {useLocalSearchParams, router} from "expo-router";
 
 export default function Clicker() {
     const [count, setCount] = useState(0);
@@ -20,6 +20,9 @@ export default function Clicker() {
                 <View style={{flex: 1}}>
                     <Button title="Reset" onPress={()=> setCount(0)} />
                 </View>
+            </View>
+            <View>
+                <Button title="Weiter" onPress={()=> router.push("/screens/HomeScreen")}/>
             </View>
         </View>
     );
