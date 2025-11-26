@@ -16,16 +16,4 @@ export default function Home(){
         </View>
 
     );
-    /*(
-        <View style={{
-            flex:1,
-            justifyContent: 'center',
-            alignItems: 'center'}}>
-            <View style={{marginBottom: 20, borderWidth: 2, borderColor: 'grey'}}>
-            </View>
-
-        </View>
-    );
-
-     */
 }
