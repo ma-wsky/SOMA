@@ -11,19 +11,19 @@ export default function MenuBar(){
     return(
         <SafeAreaView style={styles.container}>
             <TouchableOpacity style={styles.button} onPress={()=>{router.push("/screens/HomeScreen")}}>
-                <Image source={require("./assets/icons/Home.png")} style={styles.icon} />
+                <Image source={require("../assets/icons/Home.png")} style={styles.icon} />
                 <Text>Startseite</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={()=>{router.push("/screens/WorkoutScreen")}}>
-                <Image source={require("./assets/icons/Home.png")} style={styles.icon} />
+                <Image source={require("../assets/icons/Home.png")} style={styles.icon} />
                 <Text>Training</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={()=>{router.push("/screens/StatisticScreen")}}>
-                <Image source={require("./assets/icons/Home.png")} style={styles.icon} />
+                <Image source={require("../assets/icons/Home.png")} style={styles.icon} />
                 <Text>Statistik</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={()=>{router.push("/screens/UserScreen")}}>
-                <Image source={require("./assets/icons/Home.png")} style={styles.icon} />
+                <Image source={require("../assets/icons/Home.png")} style={styles.icon} />
                 <Text>Benutzer</Text>
             </TouchableOpacity>
         </SafeAreaView>
