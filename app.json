@@ -43,6 +43,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c2152bc1-d414-4a73-a71f-1ffb7e30a65d"
+      }
+    },
+    "owner": "hrw-mobilecomputing"
   }
 }
