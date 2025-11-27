@@ -25,10 +25,7 @@ export default function UserScreen() {
                 <Text style={styles.text}>Email</Text>
                 <TextInput style={styles.inputContainer} placeholder="E-mail" value={email} onChangeText={setEmail}/>
             </View>
-            <View style={{
-                    borderBottomColor: 'gray',
-                    borderBottomWidth: 1,
-                    marginVertical: "5%",}}/>
+            <View style={styles.line}/>
             <View style={styles.container}>
                 <Text style={styles.text}>Geburtstag</Text>
                 <TextInput style={styles.inputContainer} placeholder="dd.mm.yyyy" value={birthdate} onChangeText={setBirthdate}/>
@@ -67,5 +64,10 @@ const styles = StyleSheet.create({
         alignItems: "baseline",
         flexDirection: "column"
     },
+    line: {
+        borderBottomColor: 'gray',
+        borderBottomWidth: 1,
+        marginVertical: "5%",
+    }
 
 })

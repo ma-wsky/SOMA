@@ -1,10 +1,67 @@
-import { View,Text, TouchableOpacity,StyleSheet } from "react-native";
+import { Image,SafeAreaView,View,Text,TextInput,Button,FlatList, TouchableOpacity,StyleSheet } from "react-native";
+import { useState } from 'react';
 import {useRouter, router} from "expo-router";
+import ExerciseItem from "../components/ExerciseItem";
 
 
+//Attributes: Stats??
+//Tags -> Enum?
+const EXAMPLEEXERCISE = [
+    {id:"1", name: "Squat", image: "./assets/image/Squat.png", tags:["Großer Brustmuskel","Trizeps","Vorderer Schultermuskel"], guide:"Lorem Ipsum...", favorite: false},
+    {id:"2", name: "Pushup", image: "./assets/image/Squat.png", tags:["Großer Brustmuskel","Trizeps","Vorderer Schultermuskel"], guide:"Lorem Ipsum...", favorite: false},
+    {id:"3", name: "Lat Pulldown (Cable)", image: "./assets/image/Squat.png", tags:["Großer Brustmuskel","Trizeps","Vorderer Schultermuskel"], guide:"Lorem Ipsum...", favorite: false},
+    {id:"4", name: "Crunch", image: "./assets/image/Squat.png", tags:["Großer Brustmuskel","Trizeps","Vorderer Schultermuskel"], guide:"Lorem Ipsum...", favorite: true},
+];
 export default function StatisticScreen() {
+    //case insensitiv ?
+    const [filter, setFilter] = useState("");
+
+    const filteredWorkout = EXAMPLEEXERCISE.filter(exercise => {
+        return exercise.name.toLowerCase().includes(filter.toLowerCase());
+    });
+
+
     return (
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', borderColor: 'blue', borderWidth: 2}}>
-        </View>
+        <SafeAreaView style={{flex: 1}}>
+            <Text>Übungsstatistik</Text>
+
+            <TextInput placeholder={"Training suchen..."}
+                                                   placeholderTextColor='white'
+                                                   value={filter}
+                                                   onChangeText={setFilter}
+                                                   style={styles.search}/>
+
+            //Filter with tags
+            <Text>Filter | Tag1 | Tag2 | etc.</Text>
+
+            <View style={{flexDirection: "row"}}>
+                <Image source={require("../assets/icons/Heart.png")} />
+                <View style={styles.line}/>
+            </View>
+
+            <FlatList data={filteredWorkout} keyExtractor={(item) => item.id}
+                      renderItem={({ item }) => (<ExerciseItem workout={item}/>)}/>
+
+            <View style={styles.line}/>
+
+            <FlatList data={filteredWorkout} keyExtractor={(item) => item.id}
+                      renderItem={({ item }) => (<ExerciseItem workout={item}/>)}/>
+
+        </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    search:{
+        padding:10,
+        color: 'white',
+        fontSize:20,
+        backgroundColor:'black',
+        margin:10
+    },
+    line: {
+        borderBottomColor: 'gray',
+        borderBottomWidth: 1,
+        marginVertical: "5%",
+    }
+})
