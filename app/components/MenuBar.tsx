@@ -1,8 +1,7 @@
-import { SafeAreaView,Text, TouchableOpacity,StyleSheet,Image } from "react-native";
+import { Text, TouchableOpacity,StyleSheet,Image } from "react-native";
 import { router } from "expo-router";
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-//Funktioniert Meh..
-//import {SafeAreaView} from 'react-native-safe-area-context';
 //npx expo install react-native-safe-area-context
 
 export default function MenuBar(){
@@ -33,10 +32,12 @@ const styles = StyleSheet.create({
         height: 60,
         backgroundColor: "#000000",
         flexDirection: "row",
-        justifyContent: "space-evenly",
         alignItems: "center",
+        justifyContent: "space-evenly",
     },
     button:{
+        width: 70,
+        height: 50,
         backgroundColor: "purple",
         alignItems: "center",
         justifyContent: "center",

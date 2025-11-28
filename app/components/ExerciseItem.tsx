@@ -6,7 +6,7 @@ import { Image,View,StyleSheet,Text, Button } from "react-native";
 export default function ExerciseItem({exercise}: any) {
     return (
         <View style={styles.container}>
-            <Image source={require(exercise.image)}/>
+            <Image source={exercise.image} style={styles.image}/>
             <View>
                 <Text style={styles.title}>{exercise.name}</Text>
                 <Text style={styles.text}>{exercise.name}</Text>
@@ -14,6 +14,7 @@ export default function ExerciseItem({exercise}: any) {
         </View>
     );
 }
+//"../assets/icons/Home.png" -> exercise.name
 
 const styles = StyleSheet.create({
     container: {
@@ -21,17 +22,23 @@ const styles = StyleSheet.create({
         backgroundColor: "black",
         marginVertical: 5,
         marginHorizontal: 10,
-        borderRadius: 5,
+        borderRadius: 10,
         flexDirection: "row",
-        justifyContent: "space-between",
+        justifyContent: "flex-start",
         alignItems: "center",
     },
     title: {
+        marginHorizontal: 5,
         fontSize: 18,
         color: "white",
     },
     text: {
+        marginHorizontal: 5,
         fontSize: 10,
         color: "white",
+    },
+    image:{
+        width: 77,
+        height: 77,
     }
 })

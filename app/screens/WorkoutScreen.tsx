@@ -1,7 +1,8 @@
-import { SafeAreaView,Text,TextInput,Button, TouchableOpacity,StyleSheet, FlatList } from "react-native";
+import { Text,TextInput,Button, TouchableOpacity,StyleSheet, FlatList } from "react-native";
 import {useRouter, router} from "expo-router";
 import {useState} from "react";
 import WorkoutItem from "../components/WorkoutItem";
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 
 const EXAMPLEWORKOUTS = [
