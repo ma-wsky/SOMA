@@ -6,7 +6,7 @@ import MenuBar from "./components/MenuBar";
 export default function Layout() {
     const path = usePathname();
 
-    const showMenu = !path.includes("/screens/LoginScreen");
+    const showMenu = !path.includes("/screens/LoginScreen") && !path.includes("/screens/RegisterScreen");
 
     return (
         <>

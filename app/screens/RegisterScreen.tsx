@@ -2,9 +2,7 @@ import {useRouter} from "expo-router";
 import {Text, View, Button, TextInput,TouchableOpacity,StyleSheet,Image } from 'react-native';
 import {useState} from "react";
 
-
-
-export default function LoginScreen(){
+export default function RegisterScreen() {
     console.log("App executed");
 
     const router = useRouter();
@@ -13,9 +11,17 @@ export default function LoginScreen(){
     const [password, setPassword] = useState("");
     const [eye, setEye] = useState(false);
 
+
     return(
         <View style={styles.container}>
-            <Text style={styles.title}>Anmelden</Text>
+            <Text style={styles.title}>Willkommen bei</Text>
+            <Text style={styles.appname}>APPNAME !</Text>
+            <Text></Text>
+            <Text></Text>
+
+            <Text style={styles.title2}>Konto erstellen</Text>
+            <Text style={styles.title3}>Mit Email registrieren</Text>
+
             <Text style={styles.text}>Email</Text>
             <TextInput style={styles.emailInput} placeholder="email@domain.com" value={email} onChangeText={setEmail}/>
             <Text style={styles.text}>Passwort</Text>
@@ -26,17 +32,9 @@ export default function LoginScreen(){
                 </TouchableOpacity>
             </View>
 
-            <Button title="Einloggen" onPress={() => router.push(`/screens/ClickerScreen?name=${email}`)} disabled={email.trim() === ""}></Button>
 
+            <Button title="Registrieren" onPress={() => router.push(`/screens/ClickerScreen?name=${email}`)} disabled={email.trim() === ""}></Button>
 
-            <View style={{flexDirection:"row",justifyContent:"space-around",alignItems: "center"}}>
-                <View style={styles.line}/>
-                <Text>Oder</Text>
-                <View style={styles.line}/>
-            </View>
-
-
-            <Button title="Konto erstellen" onPress={() => router.push("/screens/RegisterScreen")}></Button>
 
         </View>
     );
@@ -58,9 +56,23 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: 'grey'
     },
+    appname: {
+        fontSize: 45,
+        fontWeight: "bold",
+        alignSelf: "center",
+    },
     title: {
         fontSize: 40,
-        fontWeight: "bold",
+        fontWeight: "condensedBold",
+        alignSelf: "center",
+    },
+    title2: {
+        fontSize: 24,
+        alignSelf: "center",
+
+    },
+    title3: {
+        fontSize: 20,
         alignSelf: "center",
     },
     text:{
@@ -72,11 +84,5 @@ const styles = StyleSheet.create({
         height: 24,
         marginBottom: 2
     },
-    line: {
-        flex: 1,
-        borderBottomColor: 'gray',
-        borderBottomWidth: 1,
-        marginVertical: "5%",
-        marginHorizontal:5
-    }
+
 })
