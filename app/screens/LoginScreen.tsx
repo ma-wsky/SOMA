@@ -26,7 +26,7 @@ export default function LoginScreen(){
                 </TouchableOpacity>
             </View>
 
-            <Button title="Einloggen" onPress={() => router.push(`/screens/ClickerScreen?name=${email}`)} disabled={email.trim() === ""}></Button>
+            <Button title="Einloggen" onPress={() => router.push("../(tabs)/HomeScreenProxy")}></Button>
 
 
             <View style={{flexDirection:"row",justifyContent:"space-around",alignItems: "center"}}>
