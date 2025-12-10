@@ -24,7 +24,7 @@ export default function LoginScreen(){
                     <Ionicons
                         name="person-outline"
                         size={28}
-                        color="black"
+                        color="#555"
                         style={styles.icon}
                     />
                     <TextInput
