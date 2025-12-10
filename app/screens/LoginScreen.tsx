@@ -119,11 +119,17 @@ export default function LoginScreen(){
                 >
                     <Text style={styles.text}>Konto erstellen</Text>
                 </Pressable>
+
+                <Pressable
+                    onPress={() => router.push("/(tabs)/HomeScreenProxy")}
+                    style={({ pressed }) => [
+                        styles.admin,
+                        {backgroundColor: pressed ? "green" : "red"}
+                    ]}
+                >
+                    <Text style={styles.text}>DEV to Homescreen without login</Text>
+                </Pressable>
             </View>
-
-
-
-
         </View>
     );
 }
@@ -177,5 +183,11 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 10,
         alignItems: "center",
+    },
+    admin: {
+        paddingVertical: 8,
+        borderRadius: 10,
+        alignItems: "center",
+        marginTop: 100,
     }
 })
