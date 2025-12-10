@@ -22,7 +22,7 @@ export default function RegisterScreen() {
             router.replace("/(tabs)/HomeScreenProxy");
 
         } catch (error: any) {
-            //console.error("Login Fehler:", error.code);
+            console.error("Register error:", error.code);
 
             switch (error.code) {
                 case "auth/missing-email":
