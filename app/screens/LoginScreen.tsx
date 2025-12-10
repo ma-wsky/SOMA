@@ -1,8 +1,10 @@
 import {useRouter} from "expo-router";
-import {Text, View, Pressable, TextInput,TouchableOpacity,StyleSheet } from 'react-native';
+import {Text, View, Pressable, TextInput,TouchableOpacity,StyleSheet, Alert } from 'react-native';
 import {useState} from "react";
 import { Colors } from "../theme"
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebaseConfig";
 
 
 
@@ -14,6 +16,36 @@ export default function LoginScreen(){
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [hidden, setHidden] = useState(true);
+
+    const handleLogin = async () => {
+        try{
+            await signInWithEmailAndPassword(auth, email.trim(), password.trim());
+            Alert.alert("Geschafft!", "Login erfolgreich.");
+            router.push("/(tabs)/HomeScreenProxy");
+        }catch (error: any){
+            console.error("Login error:", error.code);
+
+            switch (error.code) {
+                case "auth/invalid-credential":
+                    Alert.alert("Fehler", "Das Passwort oder die E-Mail sind nicht korrekt.");
+                    break;
+                case "auth/missing-password":
+                    Alert.alert("Fehler", "Bitte Passwort eingeben.");
+                    break;
+                case "auth/invalid-email":
+                    Alert.alert("Fehler", "Bitte gib eine gültige E-Mail-Adresse ein.");
+                    break;
+                case "auth/user-disabled":
+                    Alert.alert("Fehler", "Dieser Account wurde deaktiviert.");
+                    break;
+                case "auth/too-many-requests":
+                    Alert.alert("Fehler", "Zu viele Versuche. Bitte versuche es später erneut.");
+                    break;
+                default:
+                    Alert.alert("Fehler", "Ein unbekannter Fehler ist aufgetreten.");
+            }
+        }
+    }
 
     return(
         <View style={styles.container}>
@@ -63,7 +95,7 @@ export default function LoginScreen(){
 
             <View>
                 <Pressable
-                    onPress={() => router.push("/(tabs)/HomeScreenProxy")}
+                    onPress={handleLogin}
                     style={({ pressed }) => [
                         styles.button,
                         {backgroundColor: pressed ? Colors.secondary : Colors.primary}
