@@ -1,3 +1,12 @@
+import { Redirect } from "expo-router";
+
+export default function Index() {
+    return <Redirect href="/screens/LoginScreen" />;
+}
+
+
+
+/*
 import React, { useEffect, useState } from "react";
 import { View, Text, Button } from "react-native";
 import { db } from "./firebaseConfig";
@@ -37,3 +46,4 @@ export default function Index() {
         </View>
     );
 }
+*/
