@@ -1,6 +1,8 @@
 import {useRouter} from "expo-router";
-import {Text, View, Button, TextInput,TouchableOpacity,StyleSheet,Image } from 'react-native';
+import {Text, View, Pressable, TextInput,TouchableOpacity,StyleSheet } from 'react-native';
 import {useState} from "react";
+import { Colors } from "../theme"
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 
 
@@ -11,32 +13,84 @@ export default function LoginScreen(){
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [eye, setEye] = useState(false);
+    const [hidden, setHidden] = useState(true);
 
     return(
         <View style={styles.container}>
             <Text style={styles.title}>Anmelden</Text>
-            <Text style={styles.text}>Email</Text>
-            <TextInput style={styles.emailInput} placeholder="email@domain.com" value={email} onChangeText={setEmail}/>
-            <Text style={styles.text}>Passwort</Text>
-            <View style={{flexDirection: 'row', justifyContent:"flex-start", alignItems: "center"}}>
-                <TextInput style={styles.pasInput} placeholder="********" value={password} onChangeText={setPassword} secureTextEntry={!eye}/>
-                <TouchableOpacity style={{flex:0.2}} onPress={()=>{if(!eye){setEye(true);}else{setEye(false);}}}>
-                    <Image source={require("../assets/icons/EyeOff.png")} style={styles.icon} />
-                </TouchableOpacity>
+
+            <View style={styles.inputs}>
+                <View style={styles.inputRow}>
+                    <Ionicons
+                        name="person-outline"
+                        size={28}
+                        color="black"
+                        style={styles.icon}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="E-Mail"
+                        value={email}
+                        onChangeText={setEmail}
+                    />
+                </View>
+
+                <View style={styles.inputRow}>
+                    <Ionicons
+                        name="lock-closed-outline"
+                        size={28}
+                        color="#555"
+                        style={styles.icon}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Passwort"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry={hidden}/>
+
+                    <TouchableOpacity onPress={() => setHidden(!hidden)}>
+                        <Ionicons
+                            name={hidden ? "eye-outline" : "eye-off-outline"}
+                            size={24}
+                            color="#555"
+                            style={styles.eyeIcon}
+                        />
+                    </TouchableOpacity>
+                </View>
             </View>
 
-            <Button title="Einloggen" onPress={() => router.push(`/screens/ClickerScreen?name=${email}`)} disabled={email.trim() === ""}></Button>
 
+            <View>
+                <Pressable
+                    onPress={() => router.push("/(tabs)/HomeScreenProxy")}
+                    style={({ pressed }) => [
+                        styles.button,
+                        {backgroundColor: pressed ? Colors.secondary : Colors.primary}
+                    ]}
+                >
+                    <Text style={styles.text}>Einloggen</Text>
+                </Pressable>
 
-            <View style={{flexDirection:"row",justifyContent:"space-around",alignItems: "center"}}>
-                <View style={styles.line}/>
-                <Text>Oder</Text>
-                <View style={styles.line}/>
+                <View style={{flexDirection:"row",justifyContent:"space-around",alignItems: "center"}}>
+                    <View style={styles.line}/>
+                    <Text>Oder</Text>
+                    <View style={styles.line}/>
+                </View>
+
+                <Pressable
+                    onPress={() => router.push("/screens/RegisterScreen")}
+                    style={({ pressed }) => [
+                        styles.button,
+                        {backgroundColor: pressed ? Colors.secondary : Colors.primary}
+                    ]}
+                >
+                    <Text style={styles.text}>Konto erstellen</Text>
+                </Pressable>
             </View>
 
 
-            <Button title="Konto erstellen" onPress={() => router.push("/screens/RegisterScreen")}></Button>
+
 
         </View>
     );
@@ -46,31 +100,39 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: "center",
+        marginHorizontal: 40,
     },
-    pasInput:{
-        flex:0.8,
-        marginBottom: 20,
-        borderWidth: 2,
-        borderColor: 'grey'
+    inputs: {
+        marginBottom: 30,
     },
-    emailInput:{
-        marginBottom: 20,
-        borderWidth: 2,
-        borderColor: 'grey'
+    input: {
+        flex: 1,
+        height: 40,
+    },
+    inputRow:{
+        flexDirection: "row",
+        alignItems: "center", // Icon vertikal zentrieren
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 10,
+        paddingHorizontal: 10,
+        marginVertical: 5,
     },
     title: {
         fontSize: 40,
         fontWeight: "bold",
         alignSelf: "center",
+        marginBottom: 30,
     },
     text:{
-        fontSize: 24,
-        justifyContent: "flex-start",
+        color: "white",
+        fontSize: 16,
     },
     icon:{
-        width: 24,
-        height: 24,
-        marginBottom: 2
+        marginRight: 10,
+    },
+    eyeIcon: {
+        marginLeft: 8,
     },
     line: {
         flex: 1,
@@ -78,5 +140,10 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         marginVertical: "5%",
         marginHorizontal:5
+    },
+    button: {
+        paddingVertical: 8,
+        borderRadius: 10,
+        alignItems: "center",
     }
 })
