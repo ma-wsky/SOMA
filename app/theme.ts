@@ -1,6 +1,7 @@
 // theme.ts
 export const Colors = {
     primary: "#AB8FFF",
+    secondary: "#8A70CC",
     background: "#121212",
     iconActive: "#fff",
     iconInactive: "#333",
