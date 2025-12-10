@@ -1,8 +1,10 @@
 import {useRouter} from "expo-router";
-import {Text, View, Pressable, TextInput,TouchableOpacity,StyleSheet } from 'react-native';
+import {Text, View, Pressable, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import {useState} from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {Colors} from "../theme";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebaseConfig";
 
 export default function RegisterScreen() {
     console.log("App executed");
@@ -13,6 +15,36 @@ export default function RegisterScreen() {
     const [password, setPassword] = useState("");
     const [hidden, setHidden] = useState(true);
 
+    const handleRegister = async () => {
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+            Alert.alert("Geschafft!", "Registrierung erfolgreich.");
+            router.replace("/(tabs)/HomeScreenProxy");
+
+        } catch (error: any) {
+            //console.error("Login Fehler:", error.code);
+
+            switch (error.code) {
+                case "auth/missing-email":
+                    Alert.alert("Fehler", "Bitte E-Mail eingeben.");
+                    break;
+                case "auth/missing-password":
+                    Alert.alert("Fehler", "Bitte Passwort eingeben.");
+                    break;
+                case "auth/invalid-email":
+                    Alert.alert("Fehler", "Bitte eine gültige E-Mail-Adresse eingeben.");
+                    break;
+                case "auth/email-already-in-use":
+                    Alert.alert("Fehler", "Email ist bereits an ein Konto gebunden.");
+                    break;
+                case "auth/weak-password":
+                    Alert.alert("Fehler", "Passwort nicht stark genug.");
+                    break;
+                default:
+                    Alert.alert("Fehler", "Ein unbekannter Fehler ist aufgetreten.");
+            }
+        }
+    };
 
     return(
 
@@ -62,7 +94,7 @@ export default function RegisterScreen() {
             </View>
 
             <Pressable
-                onPress={() => router.push("/(tabs)/HomeScreenProxy")}
+                onPress={handleRegister}
                 style={({ pressed }) => [
                     styles.button,
                     {backgroundColor: pressed ? Colors.secondary : Colors.primary}
