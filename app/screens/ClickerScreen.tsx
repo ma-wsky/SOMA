@@ -1,5 +1,5 @@
 import { Text, View, Button } from 'react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {useLocalSearchParams, router} from "expo-router";
 import { db } from "../firebaseConfig";
 import { collection, query, where, getDocs, addDoc, updateDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
@@ -15,6 +15,26 @@ export default function Clicker() {
         await addOrUpdateButtonPressByName(nameStr, newCount);
     }
 
+    const resetButton = async () => {
+        const newCount = 0;
+        setCount(0);
+        await addOrUpdateButtonPressByName(nameStr, newCount);
+    }
+
+    useEffect(() => {
+        const q = query(collection(db, "ButtonPress"), where("name", "==", nameStr));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            if (!snapshot.empty){
+                setCount(snapshot.docs[0].data().clicks);
+            }else{
+                setCount(0);
+            }
+        });
+        return () => unsubscribe();
+    }, [nameStr]);
+
+    //TODO: read clicks from firebase and show in label
+
     return (
         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', borderColor: 'blue', borderWidth: 2}}>
             <View style={{justifyContent: 'center', alignItems: 'center', borderColor: 'green', borderWidth: 2, padding: 20}}>
@@ -27,7 +47,7 @@ export default function Clicker() {
                 </View>
 
                 <View style={{flex: 1}}>
-                    <Button title="Reset" onPress={()=> setCount(0)} />
+                    <Button title="Reset" onPress={resetButton} />
                 </View>
             </View>
             <View>
@@ -60,4 +80,14 @@ async function addOrUpdateButtonPressByName(name: string, clicks: number){
         });
         console.log(`ButtonPress for ${name} edited`);
     }
+}
+
+async function getButtonPressCount(name: string){
+    const ref = collection(db, "ButtonPress");
+    const q = query(ref, where("name", "==", name));
+    const querySnapshot = await getDocs(q);
+
+    return querySnapshot.docs.map(doc => ({
+        clicks: doc.data().clicks,
+    }));
 }
