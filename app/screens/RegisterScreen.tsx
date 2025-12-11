@@ -1,21 +1,25 @@
 import {useRouter} from "expo-router";
-import {Text, View, Pressable, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import {useState} from "react";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import {Colors} from "../theme";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { Text, View, Pressable, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { useState } from "react";
 import { auth } from "../firebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Colors } from "../theme";
+import { authStyles as styles } from "../styles/authStyles";
+import LoadingOverlay from "../components/LoadingOverlay";
+
 
 export default function RegisterScreen() {
-    console.log("App executed");
 
     const router = useRouter();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [hidden, setHidden] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     const handleRegister = async () => {
+        setLoading(true);
         try {
             await createUserWithEmailAndPassword(auth, email, password);
             Alert.alert("Geschafft!", "Registrierung erfolgreich.");
@@ -43,16 +47,24 @@ export default function RegisterScreen() {
                 default:
                     Alert.alert("Fehler", "Ein unbekannter Fehler ist aufgetreten.");
             }
+        }finally {
+            setLoading(false);
         }
     };
 
     return(
-
         <View style={styles.container}>
-            <Text style={styles.title}>Willkommen bei</Text>
-            <Text style={styles.appname}>APPNAME!</Text>
 
+            {/* Title */}
+            <View style={styles.titleWrapper}>
+                <Text style={styles.title}>Willkommen bei</Text>
+                <Text style={styles.appname}>APPNAME!</Text>
+            </View>
+
+            {/* Inputs */}
             <View style={styles.inputs}>
+
+                {/* E-Mail */}
                 <View style={styles.inputRow}>
                     <Ionicons
                         name="person-outline"
@@ -68,6 +80,7 @@ export default function RegisterScreen() {
                     />
                 </View>
 
+                {/* Password */}
                 <View style={styles.inputRow}>
                     <Ionicons
                         name="lock-closed-outline"
@@ -93,72 +106,43 @@ export default function RegisterScreen() {
                 </View>
             </View>
 
-            <Pressable
-                onPress={handleRegister}
-                style={({ pressed }) => [
-                    styles.button,
-                    {backgroundColor: pressed ? Colors.secondary : Colors.primary}
-                ]}
-            >
-                <Text style={styles.text}>Registrieren</Text>
-            </Pressable>
+            {/* Register */}
+            <View style={styles.buttonWrapper}>
+                <Pressable
+                    onPress={handleRegister}
+                    style={({ pressed }) => [
+                        styles.button,
+                        {backgroundColor: pressed ? Colors.secondary : Colors.primary}
+                    ]}
+                >
+                    <Text style={styles.buttonText}>Registrieren</Text>
+                </Pressable>
+            </View>
+
+            {/* Bereits ein Konto */}
+            <View style={{marginTop: 40,}}>
+                <View style={{flexDirection:"row",justifyContent:"space-around",alignItems: "center"}}>
+                    <View style={styles.line}/>
+                    <Text style={styles.smallText}>Bereits ein Konto?</Text>
+                    <View style={styles.line}/>
+                </View>
+
+                {/* to LoginScreen */}
+                <Pressable
+                    onPress={() => router.replace("/screens/LoginScreen")}
+                    style={({ pressed }) => [
+                        styles.secondaryBotton,
+                        {backgroundColor: pressed ? "#eee" : 'transparent'},
+                        {borderColor: pressed ? Colors.secondary : Colors.primary}
+                    ]}
+                >
+                    <Text style={styles.secondaryButtonText}>Einloggen</Text>
+                </Pressable>
+            </View>
+
+            {/* Loading Overlay */}
+            <LoadingOverlay visible={loading} />
+
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: "center",
-        marginHorizontal: 40,
-    },
-    inputs: {
-        marginBottom: 30,
-    },
-    input: {
-        flex: 1,
-        height: 40,
-    },
-    inputRow:{
-        flexDirection: "row",
-        alignItems: "center", // Icon vertikal zentrieren
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 10,
-        paddingHorizontal: 10,
-        marginVertical: 5,
-    },
-    title: {
-        fontSize: 40,
-        fontWeight: "condensedBold",
-        alignSelf: "center",
-    },
-    appname: {
-        fontSize: 45,
-        fontWeight: "bold",
-        alignSelf: "center",
-        marginBottom: 30,
-    },
-    text:{
-        color: "white",
-        fontSize: 16,
-    },
-    icon:{
-        marginRight: 10,
-    },
-    eyeIcon: {
-        marginLeft: 8,
-    },
-    line: {
-        flex: 1,
-        borderBottomColor: 'gray',
-        borderBottomWidth: 1,
-        marginVertical: "5%",
-        marginHorizontal:5
-    },
-    button: {
-        paddingVertical: 8,
-        borderRadius: 10,
-        alignItems: "center",
-    }
-})
