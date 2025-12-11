@@ -1,27 +1,29 @@
-import {useRouter} from "expo-router";
-import {Text, View, Pressable, TextInput,TouchableOpacity,StyleSheet, Alert } from 'react-native';
+import { useRouter } from "expo-router";
+import { Text, View, Pressable, TextInput,TouchableOpacity, Alert } from 'react-native';
 import {useState} from "react";
-import { Colors } from "../theme"
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig";
-
+import { signInWithEmailAndPassword } from "firebase/auth";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Colors } from "../theme"
+import { authStyles as styles } from "../styles/authStyles";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 
 export default function LoginScreen(){
-    console.log("App executed");
 
     const router = useRouter();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [hidden, setHidden] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     const handleLogin = async () => {
+        setLoading(true);
         try{
             await signInWithEmailAndPassword(auth, email.trim(), password.trim());
             Alert.alert("Geschafft!", "Login erfolgreich.");
-            router.push("/(tabs)/HomeScreenProxy");
+            router.replace("/(tabs)/HomeScreenProxy");
         }catch (error: any){
             console.error("Login error:", error.code);
 
@@ -44,14 +46,24 @@ export default function LoginScreen(){
                 default:
                     Alert.alert("Fehler", "Ein unbekannter Fehler ist aufgetreten.");
             }
+        }finally {
+            setLoading(false);
         }
     }
 
     return(
         <View style={styles.container}>
-            <Text style={styles.title}>Anmelden</Text>
 
+            {/* Title */}
+            <View style={styles.titleWrapper}>
+                <Text style={styles.title}>Willkommen bei</Text>
+                <Text style={styles.appname}>APPNAME!</Text>
+            </View>
+
+            {/* Inputs */}
             <View style={styles.inputs}>
+
+                {/* E-Mail */}
                 <View style={styles.inputRow}>
                     <Ionicons
                         name="person-outline"
@@ -67,6 +79,7 @@ export default function LoginScreen(){
                     />
                 </View>
 
+                {/* Password */}
                 <View style={styles.inputRow}>
                     <Ionicons
                         name="lock-closed-outline"
@@ -92,102 +105,44 @@ export default function LoginScreen(){
                 </View>
             </View>
 
-
-            <View>
+            {/* Login */}
+            <View style={styles.buttonWrapper}>
                 <Pressable
                     onPress={handleLogin}
                     style={({ pressed }) => [
                         styles.button,
-                        {backgroundColor: pressed ? Colors.secondary : Colors.primary}
+                        {backgroundColor: pressed ? Colors.secondary : Colors.primary},
+                        {borderColor: pressed ? Colors.secondary : Colors.primary}
                     ]}
                 >
-                    <Text style={styles.text}>Einloggen</Text>
+                    <Text style={styles.buttonText}>Einloggen</Text>
                 </Pressable>
+            </View>
 
+            {/* Noch kein Konto */}
+            <View style={{marginTop: 40,}}>
                 <View style={{flexDirection:"row",justifyContent:"space-around",alignItems: "center"}}>
                     <View style={styles.line}/>
-                    <Text>Oder</Text>
+                    <Text style={styles.smallText}>Noch kein Konto?</Text>
                     <View style={styles.line}/>
                 </View>
 
+                {/* to RegisterScreen */}
                 <Pressable
-                    onPress={() => router.push("/screens/RegisterScreen")}
+                    onPress={() => router.replace("/screens/RegisterScreen")}
                     style={({ pressed }) => [
-                        styles.button,
-                        {backgroundColor: pressed ? Colors.secondary : Colors.primary}
+                        styles.secondaryBotton,
+                        {backgroundColor: pressed ? "#eee" : 'transparent'},
+                        {borderColor: pressed ? Colors.secondary : Colors.primary}
                     ]}
                 >
-                    <Text style={styles.text}>Konto erstellen</Text>
-                </Pressable>
-
-                <Pressable
-                    onPress={() => router.push("/(tabs)/HomeScreenProxy")}
-                    style={({ pressed }) => [
-                        styles.admin,
-                        {backgroundColor: pressed ? "green" : "red"}
-                    ]}
-                >
-                    <Text style={styles.text}>DEV to Homescreen without login</Text>
+                    <Text style={styles.secondaryButtonText}>Konto erstellen</Text>
                 </Pressable>
             </View>
+
+            {/* Loading Overlay */}
+            <LoadingOverlay visible={loading} />
+
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: "center",
-        marginHorizontal: 40,
-    },
-    inputs: {
-        marginBottom: 30,
-    },
-    input: {
-        flex: 1,
-        height: 40,
-    },
-    inputRow:{
-        flexDirection: "row",
-        alignItems: "center", // Icon vertikal zentrieren
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 10,
-        paddingHorizontal: 10,
-        marginVertical: 5,
-    },
-    title: {
-        fontSize: 40,
-        fontWeight: "bold",
-        alignSelf: "center",
-        marginBottom: 30,
-    },
-    text:{
-        color: "white",
-        fontSize: 16,
-    },
-    icon:{
-        marginRight: 10,
-    },
-    eyeIcon: {
-        marginLeft: 8,
-    },
-    line: {
-        flex: 1,
-        borderBottomColor: 'gray',
-        borderBottomWidth: 1,
-        marginVertical: "5%",
-        marginHorizontal:5
-    },
-    button: {
-        paddingVertical: 8,
-        borderRadius: 10,
-        alignItems: "center",
-    },
-    admin: {
-        paddingVertical: 8,
-        borderRadius: 10,
-        alignItems: "center",
-        marginTop: 100,
-    }
-})
