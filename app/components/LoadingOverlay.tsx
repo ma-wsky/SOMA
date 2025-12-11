@@ -1,6 +1,6 @@
 import React from "react";
 import { View, ActivityIndicator, StyleSheet, Modal } from "react-native";
-import { Colors } from "../theme";
+import { Colors } from "../styles/theme";
 
 type LoadingOverlayProps = {
     visible: boolean;

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { auth } from "../firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Colors } from "../theme";
+import { Colors } from "../styles/theme";
 import { authStyles as styles } from "../styles/authStyles";
 import LoadingOverlay from "../components/LoadingOverlay";
 

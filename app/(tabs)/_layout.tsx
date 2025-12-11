@@ -4,7 +4,7 @@ import React from "react";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View } from "react-native";
 import { StyleSheet } from "react-native";
-import { Colors } from "../theme";
+import { Colors } from "../styles/theme";
 
 export default function TabLayout() {
     const iconMap: Record<string, string> = {

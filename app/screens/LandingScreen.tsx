@@ -3,8 +3,7 @@ import { Text, View, Pressable, Alert } from 'react-native';
 import {useEffect, useState} from "react";
 import { auth } from "../firebaseConfig";
 import { signInAnonymously } from "firebase/auth";
-
-import { Colors } from "../theme"
+import { Colors } from "../styles/theme";
 import { authStyles as styles } from "../styles/authStyles";
 import LoadingOverlay from "../components/LoadingOverlay";
 
