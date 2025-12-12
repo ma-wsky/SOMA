@@ -1,0 +1,78 @@
+import { StyleSheet } from 'react-native';
+import { Colors } from "./theme";
+
+export const userStyles = StyleSheet.create({
+    layout:{
+        marginTop: 20,
+        flex: 1,
+        gap: 25,
+        backgroundColor: Colors.background,
+    },
+    buttonWrapper: {
+        marginTop: 20,
+        marginLeft: 250,
+        marginRight: 20,
+    },
+    button: {
+        paddingVertical: 8,
+        borderRadius: 10,
+        alignItems: "center",
+        borderWidth: 2,
+        borderColor: Colors.primary,
+    },
+    buttonText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    text: {
+        fontSize: 18,
+        fontWeight: "bold",
+    },
+    field: {
+        fontSize: 18,
+        marginLeft: 20,
+    },
+    fieldWrapper: {
+        flexDirection: "row",
+        borderWidth: 2,
+        borderRadius: 20,
+        borderColor: Colors.primary,
+        width: 250,
+    },
+    wrapper: {
+        alignItems: "flex-start",
+        marginLeft: 30,
+    },
+    container: {
+        marginTop: 30,
+        flex: 1,
+        backgroundColor: Colors.background,
+    },
+    userContainer: {
+        flex: 1,
+        backgroundColor: Colors.background,
+    },
+    line: {
+        borderBottomColor: 'gray',
+        borderBottomWidth: 1,
+        marginVertical: "5%",
+        marginHorizontal: 20,
+    },
+    circle: {
+        height: 130,
+        width: 130,
+        borderRadius: 100,
+        backgroundColor: Colors.secondary,
+    },
+    circleWrapper: {
+        marginTop: 40,
+        alignItems: "center",
+    },
+    icon:{
+        marginRight: 10,
+    },
+    input: {
+        flex: 1,
+    },
+})

@@ -1,8 +1,9 @@
 import {useRouter} from "expo-router";
 import { Text, View, Pressable, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useState } from "react";
-import { auth } from "../firebaseConfig";
+import { db, auth } from "../firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "../styles/theme";
 import { authStyles as styles } from "../styles/authStyles";
@@ -21,7 +22,20 @@ export default function RegisterScreen() {
     const handleRegister = async () => {
         setLoading(true);
         try {
-            await createUserWithEmailAndPassword(auth, email, password);
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            await setDoc(doc(db, "users", user.uid), {
+                name: "",
+                email: user.email,
+                birthdate: "",
+                height: null,
+                weight: null,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            })
+
+            console.log("User registered and document created.");
             Alert.alert("Geschafft!", "Registrierung erfolgreich.");
             router.replace("/(tabs)/HomeScreenProxy");
 

@@ -1,73 +1,136 @@
-import { View,Text,TextInput,Button, TouchableOpacity,StyleSheet } from "react-native";
-import { useState } from 'react';
-import {useRouter, router} from "expo-router";
+import { useRouter } from "expo-router";
+import { View, Text, Pressable } from "react-native";
+import { useState, useEffect } from 'react';
+import { auth, db } from "../firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
+import { Colors } from "../styles/theme"
+import { userStyles as styles } from "../styles/userStyles";
 
 
 export default function UserScreen() {
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [birthdate, setBirthdate] = useState('dd/MM/yyyy');
-    const [weight, setWeight] = useState<number>(0); //<number> notwendig??
-    const [height, setHeight] = useState(0);
+
+    const router = useRouter();
+
+    const [loading, setLoading] = useState(false);
+    const [currentName, setCurrentName] = useState<string>("");
+    const [currentMail, setCurrentMail] = useState<string>("");
+    const [currentBirthdate, setCurrentBirthdate] = useState<string>("");
+    const [currentWeight, setCurrentWeight] = useState<string>("");
+    const [currentHeight, setCurrentHeight] = useState<string>("");
 
 
-
-    return (
-        <View style={styles.layout}>
-            <View style={styles.header}>
-                <Button title={"Zurück"} color="purple" onPress={()=>router.back()}/>
-                <Text style={styles.text}>Benutzer</Text>
-                <Button title={"Speichern"} color="purple" onPress={()=>router.back()}/>
-            </View>
-            <View style={styles.container}>
-                <Text style={styles.text}>Name</Text>
-                <TextInput style={styles.inputContainer} placeholder="Benutzername" value={name} onChangeText={setName}/>
-                <Text style={styles.text}>Email</Text>
-                <TextInput style={styles.inputContainer} placeholder="E-mail" value={email} onChangeText={setEmail}/>
-            </View>
-            <View style={styles.line}/>
-            <View style={styles.container}>
-                <Text style={styles.text}>Geburtstag</Text>
-                <TextInput style={styles.inputContainer} placeholder="dd.mm.yyyy" value={birthdate} onChangeText={setBirthdate}/>
-                <Text style={styles.text}>Gewicht (in kg)</Text>
-                <TextInput style={styles.inputContainer} placeholder="0" keyboardType="numeric" value={weight.toString()} onChangeText={text => setWeight(Number(text))}/>
-                <Text style={styles.text}>Größe (in cm)</Text>
-                <TextInput style={styles.inputContainer} placeholder="0.00" keyboardType="numeric" value={height.toString()} onChangeText={text => setHeight(Number(text))}/>
-                </View>
-
-        </View>
-
-);
-}
-
-
-const styles = StyleSheet.create({
-    layout:{
-        flex: 1,
-        alignItems: "stretch",
-    },
-    header: {
-        height: '10%',
-        alignItems: "center",
-        justifyContent: "space-between",
-        flexDirection: "row"
-    },
-    inputContainer: {
-        alignItems: "stretch",
-        borderWidth: 1,
-    },
-    text: {
-        alignItems: "stretch",
-        justifyContent: "center",
-    },
-    container: {
-        alignItems: "baseline",
-        flexDirection: "column"
-    },
-    line: {
-        borderBottomColor: 'gray',
-        borderBottomWidth: 1,
-        marginVertical: "5%",
+    const handleEdit = async () => {
+        router.replace("/screens/EditUserScreen");
     }
 
-})
+    useEffect(() => {
+        const loadUserData = async () => {
+            setLoading(true);
+            const user = auth.currentUser;
+            if (!user) {
+                console.error("Kein User angemeldet.");
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const ref = doc(db, "users", user.uid);
+                const snapshot = await getDoc(ref);
+
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    setCurrentName(data.name || "Noch kein Name gesetzt");
+                    setCurrentMail(data.email || "Noch keine E-Mail gesetzt");
+                    setCurrentBirthdate(data.birthdate || "Noch kein Datum gesetzt");
+                    setCurrentWeight(data.weight || "Noch kein Gewicht gesetzt");
+                    setCurrentHeight(data.height || "Noch keine Größe gesetzt");
+                }
+            } catch (e) {
+                console.error("Fehler beim Laden:", e);
+            }
+
+            setLoading(false);
+        };
+
+        loadUserData();
+    }, []);
+
+    return (
+        <View style={styles.userContainer}>
+
+            <View style={styles.buttonWrapper}>
+                <Pressable
+                    onPress={handleEdit}
+                    style={({ pressed }) => [
+                        styles.button,
+                        {backgroundColor: pressed ? Colors.secondary : Colors.primary},
+                        {borderColor: pressed ? Colors.secondary : Colors.primary}
+                    ]}
+                >
+                    <Text style={styles.buttonText}>Bearbeiten</Text>
+                </Pressable>
+            </View>
+
+            <View style={styles.circleWrapper}>
+                <View style={styles.circle}></View>
+            </View>
+
+            <View style={styles.layout}>
+
+                <View style={styles.wrapper}>
+                    <Text style={styles.text}>Name</Text>
+
+                    <View style={{flexDirection: "row",}}>
+                        <View style={styles.fieldWrapper}>
+                            <Text style={styles.field}>{currentName}</Text>
+                        </View>
+                    </View>
+
+                </View>
+
+                <View style={styles.wrapper}>
+                    <Text style={styles.text}>E-Mail</Text>
+
+                    <View style={{flexDirection: "row",}}>
+                        <View style={styles.fieldWrapper}>
+                            <Text style={styles.field}>{currentMail}</Text>
+                        </View>
+                    </View>
+                </View>
+
+                <View style={styles.line}/>
+
+                <View style={styles.wrapper}>
+                    <Text style={styles.text}>Geburtsdatum</Text>
+
+                    <View style={{flexDirection: "row",}}>
+                        <View style={styles.fieldWrapper}>
+                            <Text style={styles.field}>{currentBirthdate}</Text>
+                        </View>
+                    </View>
+                </View>
+
+                <View style={styles.wrapper}>
+                    <Text style={styles.text}>Gewicht</Text>
+
+                    <View style={{flexDirection: "row",}}>
+                        <View style={styles.fieldWrapper}>
+                            <Text style={styles.field}>{currentWeight} Kg</Text>
+                        </View>
+                    </View>
+                </View>
+
+                <View style={styles.wrapper}>
+                    <Text style={styles.text}>Größe</Text>
+
+                    <View style={{flexDirection: "row",}}>
+                        <View style={styles.fieldWrapper}>
+                            <Text style={styles.field}>{currentHeight} cm</Text>
+                        </View>
+                    </View>
+                </View>
+
+            </View>
+        </View>
+    );
+}
