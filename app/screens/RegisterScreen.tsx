@@ -2,7 +2,7 @@ import {useRouter} from "expo-router";
 import { Text, View, Pressable, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useState } from "react";
 import { db, auth } from "../firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "../styles/theme";
@@ -22,8 +22,20 @@ export default function RegisterScreen() {
     const handleRegister = async () => {
         setLoading(true);
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
+
+            const user = auth.currentUser;
+
+            if (!user) {
+                Alert.alert("Fehler", "Kein Benutzer vorhanden.");
+                return;
+            }
+
+            if (user.isAnonymous){
+                const credential = EmailAuthProvider.credential(email, password);
+                await linkWithCredential(user, credential);
+            } else{
+                await createUserWithEmailAndPassword(auth, email, password);
+            }
 
             await setDoc(doc(db, "users", user.uid), {
                 name: "",

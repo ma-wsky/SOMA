@@ -2,7 +2,10 @@ import { StyleSheet } from 'react-native';
 import { Colors } from "./theme";
 
 export const userStyles = StyleSheet.create({
-    layout:{
+    scrollView: {
+        backgroundColor: Colors.background,
+    },
+    layout: {
         marginTop: 20,
         flex: 1,
         gap: 25,

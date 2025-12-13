@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView,StyleSheet, Pressable, Alert } from "react-native";
+import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView, Pressable, Alert } from "react-native";
 import { useState, useEffect } from 'react';
 import { auth, db } from "../firebaseConfig";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
