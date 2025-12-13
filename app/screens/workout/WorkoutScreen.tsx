@@ -1,19 +1,20 @@
-import { Text,TextInput,Button, TouchableOpacity,StyleSheet, FlatList } from "react-native";
-import {useRouter, router} from "expo-router";
+import { Text,TextInput, FlatList, View, Pressable } from "react-native";
+import {useRouter} from "expo-router";
 import {useState} from "react";
 import WorkoutItem from "../../components/WorkoutItem";
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { workoutStyles as styles } from "../../styles/workoutStyles";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 
 const EXAMPLEWORKOUTS = [
     {id:"1", name: "Push"},
-    {id:"2", name: "Beine"},
-    {id:"3", name: "Arme"},
-    {id:"4", name: "Rücken"},
+    {id:"2", name: "Pull"},
+    {id:"3", name: "Legs"},
 ];
 
 export default function WorkoutScreen() {
     //case insensitiv ?
+    const router = useRouter();
     const [filter, setFilter] = useState("");
 
     const filteredWorkout = EXAMPLEWORKOUTS.filter(workout => {
@@ -22,28 +23,59 @@ export default function WorkoutScreen() {
 
 
     return (
-        <SafeAreaView style={{flex: 1}}>
-            <Button color='purple' title="Leeres Training starten" onPress={()=>{console.log("push Screen WorkoutActivEditScreen")}}/>
+        <View style={styles.container}>
 
+            {/* EmptyWorkout Button */}
+            <View style={{marginHorizontal: 20,}}>
+                <Pressable
+                    onPress={() => {router.push("/screens/workout/ActiveWorkoutScreen")}}
+                    style={({ pressed }) => [
+                        styles.bigButton,
+                        {backgroundColor: pressed ? "#333" : "#000"},
+                    ]}
+                >
+                    <View style={styles.bigButtonTextWrapper}>
+                        <Text style={styles.buttonText}>Leeres Training starten</Text>
+                        <Ionicons
+                            name={"add-outline"}
+                            size={24}
+                            color="#fff"
+                        />
+                    </View>
+                </Pressable>
+            </View>
+
+            {/* Search Bar */}
             <TextInput placeholder={"Training suchen..."}
                        placeholderTextColor='white'
                        value={filter}
                        onChangeText={setFilter}
                        style={styles.search}/>
+
+            {/* Saved Workouts List */}
             <FlatList data={filteredWorkout} keyExtractor={(item) => item.id}
                       renderItem={({ item }) => (<WorkoutItem workout={item}/>)}/>
 
-            <Button color='purple' title="Training erstellen" onPress={()=> router.push("/screens/workout/WorkoutEditScreen")}/>
-        </SafeAreaView>
+            {/* create Workout Button */}
+            <View style={{marginHorizontal: 20,}}>
+                <Pressable
+                    onPress={() => {router.push("/screens/workout/EditWorkoutScreen")}}
+                    style={({ pressed }) => [
+                        styles.bigButton,
+                        {backgroundColor: pressed ? "#333" : "#000"},
+                    ]}
+                >
+                    <View style={styles.bigButtonTextWrapper}>
+                        <Text style={styles.buttonText}>Training erstellen</Text>
+                        <Ionicons
+                            name={"add-outline"}
+                            size={24}
+                            color="#fff"
+                        />
+                    </View>
+
+                </Pressable>
+            </View>
+        </View>
     );
 }
-
-const styles = StyleSheet.create({
-    search:{
-        padding:10,
-        color: 'white',
-        fontSize:20,
-        backgroundColor:'black',
-        margin:10
-    },
-})
