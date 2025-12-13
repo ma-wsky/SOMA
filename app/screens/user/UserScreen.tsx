@@ -1,11 +1,11 @@
 import { useRouter } from "expo-router";
 import { View, Text, Pressable, ScrollView, Alert } from "react-native";
 import { useState, useEffect } from 'react';
-import { auth, db } from "../firebaseConfig";
+import { auth, db } from "../../firebaseConfig";
 import { signOut, deleteUser } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { Colors } from "../styles/theme"
-import { userStyles as styles } from "../styles/userStyles";
+import { Colors } from "../../styles/theme"
+import { userStyles as styles } from "../../styles/userStyles";
 
 
 export default function UserScreen() {
@@ -23,9 +23,9 @@ export default function UserScreen() {
 
     const handleEdit = async () => {
         if (anon){
-            router.push("/screens/RegisterScreen");
+            router.push("/screens/auth/RegisterScreen");
         }else{
-            router.replace("/screens/EditUserScreen");
+            router.replace("/screens/user/EditUserScreen");
         }
     }
 
@@ -65,7 +65,7 @@ export default function UserScreen() {
             }
 
             Alert.alert("Abmelden", "Erfolgreich abgemeldet");
-            router.replace("../screens/LandingScreen");
+            router.replace("../screens/auth/LandingScreen");
 
         }catch (error: any){
             console.error("Logout fehlgeschlagen:", error);

@@ -1,11 +1,11 @@
 import { useRouter } from "expo-router";
 import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView, Pressable, Alert } from "react-native";
 import { useState, useEffect } from 'react';
-import { auth, db } from "../firebaseConfig";
+import { auth, db } from "../../firebaseConfig";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { Colors } from "../styles/theme";
-import { userStyles as styles } from "../styles/userStyles";
-import LoadingOverlay from "../components/LoadingOverlay";
+import { Colors } from "../../styles/theme";
+import { userStyles as styles } from "../../styles/userStyles";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 
 export default function EditUserScreen() {

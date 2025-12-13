@@ -1,11 +1,11 @@
 import { useRouter } from "expo-router";
 import { Text, View, Pressable, Alert } from 'react-native';
 import {useEffect, useState} from "react";
-import { auth } from "../firebaseConfig";
+import { auth } from "../../firebaseConfig";
 import { signInAnonymously } from "firebase/auth";
-import { Colors } from "../styles/theme";
-import { authStyles as styles } from "../styles/authStyles";
-import LoadingOverlay from "../components/LoadingOverlay";
+import { Colors } from "../../styles/theme";
+import { authStyles as styles } from "../../styles/authStyles";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 
 export default function LoginScreen(){
@@ -46,7 +46,7 @@ export default function LoginScreen(){
             <View style={styles.buttonWrapper}>
                 {/* Register */}
                 <Pressable
-                    onPress={() => router.replace("/screens/RegisterScreen")}
+                    onPress={() => router.replace("/screens/auth/RegisterScreen")}
                     style={({ pressed }) => [
                         styles.button,
                         {backgroundColor: pressed ? Colors.secondary : Colors.primary}
@@ -83,7 +83,7 @@ export default function LoginScreen(){
 
                 {/* to LoginScreen */}
                 <Pressable
-                    onPress={() => router.replace("/screens/LoginScreen")}
+                    onPress={() => router.replace("/screens/auth/LoginScreen")}
                     style={({ pressed }) => [
                         styles.secondaryBotton,
                         {backgroundColor: pressed ? "#eee" : 'transparent'},

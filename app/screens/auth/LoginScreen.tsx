@@ -1,12 +1,12 @@
 import { useRouter } from "expo-router";
 import { Text, View, Pressable, TextInput,TouchableOpacity, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import {useState} from "react";
-import { auth } from "../firebaseConfig";
+import { auth } from "../../firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Colors } from "../styles/theme";
-import { authStyles as styles } from "../styles/authStyles";
-import LoadingOverlay from "../components/LoadingOverlay";
+import { Colors } from "../../styles/theme";
+import { authStyles as styles } from "../../styles/authStyles";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 
 export default function LoginScreen(){
@@ -134,7 +134,7 @@ export default function LoginScreen(){
 
                         {/* to RegisterScreen */}
                         <Pressable
-                            onPress={() => router.replace("/screens/RegisterScreen")}
+                            onPress={() => router.replace("/screens/auth/RegisterScreen")}
                             style={({ pressed }) => [
                                 styles.secondaryBotton,
                                 {backgroundColor: pressed ? "#eee" : 'transparent'},

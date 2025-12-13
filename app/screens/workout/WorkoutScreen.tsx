@@ -1,7 +1,7 @@
 import { Text,TextInput,Button, TouchableOpacity,StyleSheet, FlatList } from "react-native";
 import {useRouter, router} from "expo-router";
 import {useState} from "react";
-import WorkoutItem from "../components/WorkoutItem";
+import WorkoutItem from "../../components/WorkoutItem";
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 
@@ -33,7 +33,7 @@ export default function WorkoutScreen() {
             <FlatList data={filteredWorkout} keyExtractor={(item) => item.id}
                       renderItem={({ item }) => (<WorkoutItem workout={item}/>)}/>
 
-            <Button color='purple' title="Training erstellen" onPress={()=> router.push("/screens/WorkoutEditScreen")}/>
+            <Button color='purple' title="Training erstellen" onPress={()=> router.push("/screens/workout/WorkoutEditScreen")}/>
         </SafeAreaView>
     );
 }

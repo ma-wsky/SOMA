@@ -9,7 +9,7 @@ export default function WorkoutItem({workout}: any) {
             <Text style={styles.title}>{workout.name}</Text>
             <Button color='purple'
                     title="Training starten"
-                    onPress={() => {router.push("/screens/WorkoutEditScreen")}}
+                    onPress={() => {router.push("/screens/workout/WorkoutEditScreen")}}
 
             />
         </View>
