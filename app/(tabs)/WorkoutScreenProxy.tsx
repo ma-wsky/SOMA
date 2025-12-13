@@ -1,2 +1,2 @@
-import WorkoutScreen from "../screens/WorkoutScreen";
+import WorkoutScreen from "../screens/workout/WorkoutScreen";
 export default WorkoutScreen;

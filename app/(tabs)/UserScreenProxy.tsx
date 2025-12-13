@@ -1,2 +1,2 @@
-import UserScreen from "../screens/UserScreen";
+import UserScreen from "../screens/user/UserScreen";
 export default UserScreen;
