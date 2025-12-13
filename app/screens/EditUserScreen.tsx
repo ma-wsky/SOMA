@@ -1,8 +1,8 @@
 import { useRouter } from "expo-router";
-import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView,StyleSheet, Pressable, Alert } from "react-native";
+import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView, Pressable, Alert } from "react-native";
 import { useState, useEffect } from 'react';
 import { auth, db } from "../firebaseConfig";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { Colors } from "../styles/theme";
 import { userStyles as styles } from "../styles/userStyles";
 import LoadingOverlay from "../components/LoadingOverlay";
@@ -87,11 +87,12 @@ export default function EditUserScreen() {
 
         const updates: any = {};
 
-        if (inputName !== currentName) updates.name = inputName
-        if (inputMail !== currentMail) updates.email = inputMail
-        if (inputBirthdate !== currentBirthdate) updates.birthdate = inputBirthdate
-        if (inputWeight !== currentWeight) updates.weight = inputWeight
-        if (inputHeight !== currentHeight) updates.height = inputHeight
+        if (inputName !== currentName) updates.name = inputName;
+        if (inputMail !== currentMail) updates.email = inputMail;
+        if (inputBirthdate !== currentBirthdate) updates.birthdate = inputBirthdate;
+        if (inputWeight !== currentWeight) updates.weight = inputWeight;
+        if (inputHeight !== currentHeight) updates.height = inputHeight;
+        updates.updatedAt = serverTimestamp();
 
         try {
             await updateDoc(userRef, updates);
