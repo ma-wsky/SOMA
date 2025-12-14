@@ -1,44 +1,48 @@
-import { router } from "expo-router";
-import { Image,View,StyleSheet,Text, Button } from "react-native";
+import { Pressable, Text, StyleSheet } from "react-native";
+import { Colors } from "../styles/theme"
 
 
+interface Props {
+    exercise: Exercise;
+    onPress?: (exercise: Exercise) => void;
+}
 
-export default function ExerciseItem({exercise}: any) {
+type Exercise = {
+    id: string;
+    name: string;
+    muscleGroup?: string;
+    ownerId?: string | null;
+    isGlobal?: boolean;
+};
+
+export default function ExerciseItem({ exercise, onPress }: Props) {
     return (
-        <View style={styles.container}>
-            <Image source={exercise.image} style={styles.image}/>
-            <View>
-                <Text style={styles.title}>{exercise.name}</Text>
-                <Text style={styles.text}>{exercise.name}</Text>
-            </View>
-        </View>
+        <Pressable
+            onPress={() => onPress?.(exercise)}
+            style={styles.button}>
+
+            <Text style={styles.name}>{exercise.name}</Text>
+
+            <Text style={styles.muscle}>{exercise.muscleGroup}</Text>
+
+        </Pressable>
     );
 }
-//"../assets/icons/Home.png" -> exercise.name
 
 const styles = StyleSheet.create({
-    container: {
-        padding:12,
-        backgroundColor: "black",
-        marginVertical: 5,
-        marginHorizontal: 10,
+    button: {
+        padding: 12,
+        marginVertical: 4,
         borderRadius: 10,
-        flexDirection: "row",
-        justifyContent: "flex-start",
-        alignItems: "center",
+        backgroundColor: Colors.black,
     },
-    title: {
-        marginHorizontal: 5,
-        fontSize: 18,
-        color: "white",
+    name: {
+        fontSize: 20,
+        fontWeight: "600",
+        color: "#fff"
     },
-    text: {
-        marginHorizontal: 5,
-        fontSize: 10,
-        color: "white",
+    muscle: {
+        color: "#aaa",
+        marginTop: 2
     },
-    image:{
-        width: 77,
-        height: 77,
-    }
 })

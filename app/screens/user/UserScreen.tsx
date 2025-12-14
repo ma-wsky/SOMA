@@ -6,6 +6,7 @@ import { signOut, deleteUser } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { Colors } from "../../styles/theme"
 import { userStyles as styles } from "../../styles/userStyles";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 
 export default function UserScreen() {
@@ -200,6 +201,10 @@ export default function UserScreen() {
                         <Text style={styles.buttonText}>Abmelden</Text>
                     </Pressable>
                 </View>
+
+                {/* Loading Overlay */}
+                <LoadingOverlay visible={loading} />
+
             </View>
         </ScrollView>
 
