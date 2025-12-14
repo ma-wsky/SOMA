@@ -1,47 +1,55 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import {Colors} from "../styles/theme";
-import { useRouter } from "expo-router";
 
-export default function TopBar(){
-    const router = useRouter();
+interface TopBarProps {
+    leftButtonText: string,
+    titleText: string,
+    rightButtonText: string,
+    onLeftPress: () => void,
+    onRightPress: () => void,
+}
+
+export function TopBar({ leftButtonText, titleText, rightButtonText, onLeftPress, onRightPress }: TopBarProps){
 
     return(
-        <View style={{flexDirection:"row",justifyContent:"space-around",alignItems: "center"}}>
+        <View style={styles.container}>
 
             <Pressable
-                onPress={() => router.back()}
+                onPress={onLeftPress}
                 style={({ pressed }) => [
                     styles.button,
                     {backgroundColor: pressed ? Colors.secondary : Colors.primary},
                     {borderColor: pressed ? Colors.secondary : Colors.primary}
                 ]}
             >
-                <Text style={styles.buttonText}>Zurück</Text>
+                <Text style={styles.buttonText}>{leftButtonText}</Text>
             </Pressable>
 
-            <Text style={styles.text}>Benutzer</Text>
+            <Text style={styles.text}>{titleText}</Text>
 
             <Pressable
-                //onPress={handleLogin}
+                onPress={onRightPress}
                 style={({ pressed }) => [
                     styles.button,
                     {backgroundColor: pressed ? Colors.secondary : Colors.primary},
                     {borderColor: pressed ? Colors.secondary : Colors.primary}
                 ]}
             >
-                <Text style={styles.buttonText}>Speichern</Text>
+                <Text style={styles.buttonText}>{rightButtonText}</Text>
             </Pressable>
-
-
-
-
 
         </View>
     );
-};
+}
 
 const styles = StyleSheet.create({
+    container: {
+        flexDirection:"row",
+        justifyContent:"space-around",
+        alignItems: "center",
+        marginTop: 40,
+    },
     button: {
         width: 100,
         paddingVertical: 8,
@@ -56,7 +64,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     text:{
-        fontWeight: "600",
-        fontSize: 18,
+        fontWeight: "bold",
+        fontSize: 24,
     },
 });
