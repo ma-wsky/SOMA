@@ -1,6 +1,6 @@
 import { Text,TextInput, FlatList, View, Pressable } from "react-native";
-import {useRouter} from "expo-router";
-import {useState} from "react";
+import { useRouter } from "expo-router";
+import { useState } from "react";
 import WorkoutItem from "../../components/WorkoutItem";
 import { workoutStyles as styles } from "../../styles/workoutStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";

@@ -5,6 +5,7 @@ export const Colors = {
     background: "#fff",
     iconActive: "#fff",
     iconInactive: "#333",
+    black: "#000",
 };
 
 export const DarkColors = {
