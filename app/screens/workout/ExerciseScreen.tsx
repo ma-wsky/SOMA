@@ -88,7 +88,7 @@ export default function ExerciseScreen() {
                     titleText={"Übungen"}
                     rightButtonText={"Erstellen"}
                     onLeftPress={() => router.back()}
-                    onRightPress={() => createWorkout()}
+                    onRightPress={() => router.replace("./CreateExerciseScreen")}
             ></TopBar>
 
             {/* Search Bar */}
