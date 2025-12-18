@@ -87,8 +87,8 @@ export default function ExerciseScreen() {
             <TopBar leftButtonText={"Zurück"}
                     titleText={"Übungen"}
                     rightButtonText={"Erstellen"}
-                    onLeftPress={() => router.back()}
-                    onRightPress={() => router.replace("./CreateExerciseScreen")}
+                    onLeftPress={() => router.push("../..//(tabs)/HomeScreenProxy")}
+                    onRightPress={() => router.push("./CreateExerciseScreen")}
             ></TopBar>
 
             {/* Search Bar */}
@@ -117,7 +117,6 @@ export default function ExerciseScreen() {
         </View>
     );
 }
-function createWorkout(){}
 
 const styles = StyleSheet.create({
     container: {
