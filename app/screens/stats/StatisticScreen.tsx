@@ -1,4 +1,5 @@
 import { View,TextInput,StyleSheet } from "react-native";
+import { router } from "expo-router";
 import { useState } from 'react';
 import { auth, db } from "../../firebaseConfig";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
@@ -75,7 +76,12 @@ export default function StatisticScreen() {
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
-                onItemPress={toggleFavorite}
+                onItemPress={(exercise) =>
+                    router.push({
+                        pathname: "/screens/stats/SingleExerciseStatisticScreen",
+                        params: { id: exercise.id }
+                    })
+                }
             />
 
             {/* Loading Overlay */}
