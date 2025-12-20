@@ -1,69 +1,126 @@
-import { Image,View,Text,TextInput,Button,FlatList, TouchableOpacity,StyleSheet } from "react-native";
+import { View,TextInput,StyleSheet } from "react-native";
+import { router } from "expo-router";
 import { useState } from 'react';
-import {useRouter, router} from "expo-router";
-import ExerciseItem from "../../components/ExerciseItem";
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { auth, db } from "../../firebaseConfig";
+import { doc, setDoc, deleteDoc } from "firebase/firestore";
+import LoadingOverlay from "../../components/LoadingOverlay";
+import ExerciseList from "../../components/ExerciseList"
+import { useLoadExercises } from "../../hooks/useLoadExercises"
 
 
-//Attributes: Stats??
-//Tags -> Enum?
-const EXAMPLEEXERCISE = [
-    {id:"1", name: "Squat", image: require("../../assets/image/Squat.png"), tags:["Großer Brustmuskel","Trizeps","Vorderer Schultermuskel"], guide:"Lorem Ipsum...", favorite: false},
-    {id:"2", name: "Pushup", image: require("../../assets/image/Squat.png"), tags:["Großer Brustmuskel","Trizeps","Vorderer Schultermuskel"], guide:"Lorem Ipsum...", favorite: false},
-    {id:"3", name: "Lat Pulldown (Cable)", image: require("../../assets/image/Squat.png"), tags:["Großer Brustmuskel","Trizeps","Vorderer Schultermuskel"], guide:"Lorem Ipsum...", favorite: false},
-    {id:"4", name: "Crunch", image: require("../../assets/image/Squat.png"), tags:["Großer Brustmuskel","Trizeps","Vorderer Schultermuskel"], guide:"Lorem Ipsum...", favorite: true},
-];
+type Exercise = {
+    id: string;
+    name: string;
+    muscleGroup?: string;
+    equipment?: string;
+    ownerId?: string | null;
+    isGlobal?: boolean;
+    isFavorite: boolean;
+};
+
 export default function StatisticScreen() {
-    //case insensitiv ?
+
+    const { exercises, setExercises, loading } = useLoadExercises();
     const [filter, setFilter] = useState("");
 
-    const filteredWorkout = EXAMPLEEXERCISE.filter(exercise => {
-        return exercise.name.toLowerCase().includes(filter.toLowerCase());
-    });
+    async function toggleFavorite(exercise: Exercise) {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const ref = doc(
+            db,
+            "users",
+            user.uid,
+            "favorites",
+            exercise.id,
+        );
+
+        // new exercise Object in list to reload
+        setExercises(prev =>
+            prev.map(ex =>
+                ex.id === exercise.id
+                    ? { ...ex, isFavorite: !ex.isFavorite }
+                    : ex
+            )
+        );
+
+        // toggle favorite in db
+        if (exercise.isFavorite) {
+            await deleteDoc(ref);
+            exercise.isFavorite = false;
+            console.log(exercise.name+": no fav");
+        } else {
+            await setDoc(ref, {
+                createdAt: new Date(),
+            });
+            exercise.isFavorite = true;
+            console.log(exercise.name+": fav");
+        }
+
+    }
 
 
     return (
-        <SafeAreaView style={{flex:1}}>
-            <Text>Übungsstatistik</Text>
+        <View style={styles.container}>
 
-            <TextInput placeholder={"Training suchen..."}
+            {/* Search Bar */}
+            <TextInput placeholder={"Übung suchen..."}
                        placeholderTextColor='white'
                        value={filter}
                        onChangeText={setFilter}
                        style={styles.search}/>
 
-            {/* Filter with tags  & !!!!!!!!!!! //So darf man nicht kommentieren !!!!!!!!!!!!!!!!!!!!!!!!!*/}
-            <Text>Filter</Text>
+            {/* TODO: Filter with tags */}
 
-            <View style={{flexDirection: "row"}}>
-                <Image source={require("../../assets/icons/Heart.png")} />
-                <View style={styles.line} />
-            </View>
+            {/* Exercise List with favorites and regular */}
+            <ExerciseList
+                exercises={exercises}
+                filter={filter}
+                onItemPress={(exercise) =>
+                    router.push({
+                        pathname: "/screens/stats/SingleExerciseStatisticScreen",
+                        params: { id: exercise.id }
+                    })
+                }
+            />
 
-            <FlatList data={filteredWorkout} keyExtractor={(item) => item.id}
-                      renderItem={({ item }) => (<ExerciseItem exercise={item}/>)}/>
+            {/* Loading Overlay */}
+            <LoadingOverlay visible={loading} />
 
-            <View style={styles.line}/>
-
-            <FlatList data={filteredWorkout} keyExtractor={(item) => item.id}
-                      renderItem={({ item }) => (<ExerciseItem exercise={item}/>)}/>
-
-        </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        marginTop: 20,
+    },
     search:{
         padding:10,
         color: 'white',
         fontSize:20,
         backgroundColor:'black',
-        margin:10
+        margin:20,
+        borderRadius: 50,
+    },
+    divider: {
+        marginVertical: 12,
+    },
+    dividerText: {
+        fontWeight: "600",
+        color: "#666"
     },
     line: {
         flex: 1,
         borderBottomColor: 'gray',
-        borderBottomWidth: 1,
-        marginVertical: "5%",
-    }
+        borderBottomWidth: 2,
+        height: 1,
+        backgroundColor: "#ccc",
+        marginTop: 4
+    },
+    listContent: {
+        marginHorizontal: 16,
+    },
 });
