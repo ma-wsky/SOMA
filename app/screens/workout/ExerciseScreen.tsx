@@ -41,7 +41,12 @@ export default function ExerciseScreen() {
             <ExerciseList
                 exercises={filteredExercises}
                 filter={filter}
-                onItemPress={(exercise) => console.log("Gewählt:", exercise.name)}
+                onItemPress={(exercise) =>
+                    router.push({
+                        pathname: "/screens/workout/ExerciseInfoScreen",
+                        params: { name: exercise.name }
+                    })
+                }
             />
 
             <Pressable
