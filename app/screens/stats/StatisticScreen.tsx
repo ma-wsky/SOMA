@@ -69,16 +69,10 @@ export default function StatisticScreen() {
                     );
 
                 const qUser =
-                    query(collection(db, "exercises"),
-                        where("ownerId", "==", user.uid)
-                    );
+                    collection(db, "users", user.uid, "exercises");
 
-                const qFavorites = collection(
-                    db,
-                    "users",
-                    user.uid,
-                    "favorites"
-                );
+                const qFavorites =
+                    collection(db,"users", user.uid, "favorites");
 
                 const [
                     snapshotG,

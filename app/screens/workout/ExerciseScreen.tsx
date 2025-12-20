@@ -47,9 +47,7 @@ export default function ExerciseScreen() {
                 );
 
                 const qUser =
-                    query(collection(db, "exercises"),
-                    where("ownerId", "==", user.uid)
-                );
+                    collection(db, "users", user.uid, "exercises");
 
                 const snapshotG = await getDocs(qGlobal);
                 const snapshotU = await getDocs(qUser);

@@ -39,21 +39,21 @@ export default function CreateExerciseScreen() {
 
         try {
 
+            const userExerciseCollection = collection(db, "users", uid, "exercises");
+
             const q = query(
-                collection(db, "exercises"),
+                userExerciseCollection,
                 where("name", "==", inputName),
-                where("ownerId", "==", uid)
             );
             const snapshot = await getDocs(q);
 
             if(snapshot.empty){
-                await addDoc(collection(db, "exercises"), {
+                await addDoc(userExerciseCollection, {
                     isGlobal: false,
                     name: inputName,
                     muscleGroup: inputMuscles,
                     equipment: inputEquipment,
                     instructions: inputInstructions,
-                    ownerId: uid
                 })
                 router.replace("/screens/workout/ExerciseScreen");
                 Alert.alert("Gespeichert", "Deine Änderungen wurden übernommen.");
@@ -72,14 +72,17 @@ export default function CreateExerciseScreen() {
                             style: "destructive",
                             onPress: async () => {
                                 const data = snapshot.docs[0].data();
-                                const docRef = doc(db, "exercises", snapshot.docs[0].id);
+                                const docRef = doc(userExerciseCollection, snapshot.docs[0].id);
                                 const updates: any = {};
 
                                 if (inputMuscles !== data.muscleGroup && inputMuscles !== "") updates.muscleGroup = inputMuscles;
                                 if (inputEquipment !== data.equipment && inputEquipment !== "") updates.equipment = inputEquipment;
                                 if (inputInstructions !== data.instructions && inputInstructions !== "") updates.instructions = inputInstructions;
 
-                                await updateDoc(docRef, updates);
+                                if(Object.keys(updates).length > 0){
+                                    await updateDoc(docRef, updates);
+                                }
+
                                 router.replace("/screens/workout/ExerciseScreen");
                                 Alert.alert("Gespeichert", "Deine Änderungen wurden übernommen.");
                             },
