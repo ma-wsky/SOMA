@@ -7,6 +7,7 @@ export default function AdminAddExerciseScreen() {
     const [name, setName] = useState("");
     const [muscleGroup, setMuscleGroup] = useState("");
     const [equipment, setEquipment] = useState("");
+    const [instructions, setInstructions] = useState("");
 
     const addExercise = async () => {
         if (!name) {
@@ -19,13 +20,13 @@ export default function AdminAddExerciseScreen() {
                 name,
                 muscleGroup,
                 equipment,
-                isGlobal: true,   // Übung ist für alle sichtbar
-                ownerId: null,    // keine user-spezifische Zuordnung
+                instructions,
             });
             Alert.alert("Erfolg", `${name} hinzugefügt!`);
             setName("");
             setMuscleGroup("");
             setEquipment("");
+            setInstructions("");
         } catch (e) {
             console.error("Fehler beim Hinzufügen:", e);
             Alert.alert("Fehler", "Übung konnte nicht hinzugefügt werden.");
@@ -41,15 +42,21 @@ export default function AdminAddExerciseScreen() {
                 style={styles.input}
             />
             <TextInput
-                placeholder="Muskelgruppe (optional)"
+                placeholder="Muskelgruppen"
                 value={muscleGroup}
                 onChangeText={setMuscleGroup}
                 style={styles.input}
             />
             <TextInput
-                placeholder="Equipment (optional)"
+                placeholder="Ausrüstung"
                 value={equipment}
                 onChangeText={setEquipment}
+                style={styles.input}
+            />
+            <TextInput
+                placeholder="Anleitung"
+                value={instructions}
+                onChangeText={setInstructions}
                 style={styles.input}
             />
             <Button title="Hinzufügen" onPress={addExercise} />
