@@ -1,8 +1,10 @@
-import { FlatList, View, Text } from "react-native";
+import { FlatList, View, Text, StyleSheet } from "react-native";
+import { useMemo } from "react";
 import ExerciseItem from "./ExerciseItem";
 
 interface Props {
     exercises: Exercise[];
+    filter?: string,
     onItemPress?: (exercise: Exercise) => void;
 }
 
@@ -10,20 +12,68 @@ type Exercise = {
     id: string;
     name: string;
     muscleGroup?: string;
-    ownerId?: string | null;
-    isGlobal?: boolean;
+    isFavorite: boolean;
 };
 
-export default function ExerciseList({ exercises, onItemPress }: Props) {
+type ListItem =
+    | { type: "divider"; title: string }
+    | { type: "exercise"; data: Exercise };
+
+export default function ExerciseList({ exercises, filter="", onItemPress }: Props) {
+
+    const listData: ListItem[] = useMemo(() => {
+        const filtered = exercises.filter(e =>
+            e.name.toLowerCase().includes(filter.toLowerCase())
+        );
+
+        const favoriteExercises = filtered.filter(e => e.isFavorite);
+        const otherExercises = filtered.filter(e => !e.isFavorite);
+
+        const data: ListItem[] = [];
+
+        if (favoriteExercises.length > 0) {
+            data.push({ type: "divider", title: "Favoriten" });
+            favoriteExercises.forEach(ex => data.push({ type: "exercise", data: ex }));
+        }
+
+        if (otherExercises.length > 0) {
+            data.push({ type: "divider", title: "Alle Übungen" });
+            otherExercises.forEach(ex => data.push({ type: "exercise", data: ex }));
+        }
+
+        return data;
+    }, [exercises, filter]);
+
     console.log(exercises);
     return (
         <FlatList
-            data={exercises}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-                <ExerciseItem exercise={item} onPress={onItemPress} />
-            )}
-            contentContainerStyle={{ padding: 16 }}
+            data={listData}
+            keyExtractor={(item, index) =>
+                item.type === "divider" ? `divider-${index}` : item.data.id
+            }
+            renderItem={({ item }) => {
+
+                {/* Dividing line with Text */}
+                if (item.type === "divider") {
+                    return (
+                        <View style={ styles.divider }>
+                            <Text style={ styles.dividerText }> { item.title } </Text>
+                            <View style={ styles.line } />
+                        </View>
+                    );
+                }
+
+                {/* Exercise Item */}
+                return (
+                    <ExerciseItem
+                        exercise={item.data}
+                        onPress={()=> onItemPress && onItemPress(item.data)}
+                    />
+                );
+            }}
+            contentContainerStyle={ styles.listContent }
+
+            // No Exercises found
             ListEmptyComponent={() => (
                 <View style={{ marginTop: 20 }}>
                     <Text style={{ textAlign: "center", color: "#666" }}>
@@ -34,3 +84,29 @@ export default function ExerciseList({ exercises, onItemPress }: Props) {
         />
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        marginTop: 20,
+    },
+    divider: {
+        marginVertical: 12,
+    },
+    dividerText: {
+        fontWeight: "600",
+        color: "#666"
+    },
+    line: {
+        flex: 1,
+        borderBottomColor: 'gray',
+        borderBottomWidth: 2,
+        height: 1,
+        backgroundColor: "#ccc",
+        marginTop: 4
+    },
+    listContent: {
+        marginHorizontal: 16,
+    },
+});
