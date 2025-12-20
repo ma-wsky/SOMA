@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 
 type Exercise = {
     id: string;
     name: string;
     muscleGroup?: string;
     isFavorite: boolean;
+    isOwn: boolean;
 };
 export function useLoadExercises() {
     const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -24,10 +25,7 @@ export function useLoadExercises() {
 
             try {
                 // Globale Übungen
-                const qGlobal = query(
-                    collection(db, "exercises"),
-                    where("isGlobal", "==", true)
-                );
+                const qGlobal = collection(db, "exercises");
 
                 // User-Übungen
                 const qUser = collection(db, "users", user.uid, "exercises");
@@ -48,6 +46,7 @@ export function useLoadExercises() {
                     name: doc.data().name || "unnamed",
                     ...doc.data(),
                     isFavorite: favoriteIds.has(doc.id),
+                    isOwn: false,
                 }));
 
                 const userExercises = snapshotU.docs.map(doc => ({
@@ -55,6 +54,7 @@ export function useLoadExercises() {
                     name: doc.data().name || "unnamed",
                     ...doc.data(),
                     isFavorite: favoriteIds.has(doc.id),
+                    isOwn: true,
                 }));
 
                 setExercises([...globalExercises, ...userExercises]);

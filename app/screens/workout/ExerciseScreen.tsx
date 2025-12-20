@@ -1,24 +1,63 @@
 import { router } from "expo-router";
 import { View, TextInput, StyleSheet, Text, Pressable } from "react-native";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { TopBar } from "../../components/TopBar"
+import { auth, db } from "../../firebaseConfig";
+import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import ExerciseList from "../../components/ExerciseList";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import {Colors} from "../../styles/theme";
 import { useLoadExercises } from "../../hooks/useLoadExercises";
 
 
+type Exercise = {
+    id: string;
+    name: string;
+    muscleGroup?: string;
+    equipment?: string;
+    isFavorite: boolean;
+};
+
 export default function ExerciseScreen() {
 
     const [filter, setFilter] = useState("");
-    const { exercises, loading } = useLoadExercises();
+    const { exercises, setExercises, loading } = useLoadExercises();
 
-    const filteredExercises = useMemo(() => {
-        return exercises.filter(ex =>
-            ex.name.toLowerCase().includes(filter.toLowerCase())
+    async function toggleFavorite(exercise: Exercise) {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const ref = doc(
+            db,
+            "users",
+            user.uid,
+            "favorites",
+            exercise.id,
         );
-    }, [exercises, filter]);
 
+        // new exercise Object in list to reload
+        setExercises(prev =>
+            prev.map(ex =>
+                ex.id === exercise.id
+                    ? { ...ex, isFavorite: !ex.isFavorite }
+                    : ex
+            )
+        );
+
+        // toggle favorite in db
+        if (exercise.isFavorite) {
+            await deleteDoc(ref);
+            exercise.isFavorite = false;
+            console.log(exercise.name+": no fav");
+        } else {
+            await setDoc(ref, {
+                createdAt: new Date(),
+            });
+            exercise.isFavorite = true;
+            console.log(exercise.name+": fav");
+        }
+
+    }
 
     return (
         <View style={styles.container}>
@@ -39,14 +78,10 @@ export default function ExerciseScreen() {
                        style={styles.search}/>
 
             <ExerciseList
-                exercises={filteredExercises}
+                exercises={exercises}
                 filter={filter}
-                onItemPress={(exercise) =>
-                    router.push({
-                        pathname: "/screens/workout/ExerciseInfoScreen",
-                        params: { name: exercise.name }
-                    })
-                }
+                onItemPress={toggleFavorite}
+                //onItemPress={(exercise) => router.push({ pathname: "/screens/workout/ExerciseInfoScreen", params: { name: exercise.name }})}
             />
 
             <Pressable

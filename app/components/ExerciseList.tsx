@@ -13,6 +13,7 @@ type Exercise = {
     name: string;
     muscleGroup?: string;
     isFavorite: boolean;
+    isOwn: boolean;
 };
 
 type ListItem =
@@ -27,7 +28,8 @@ export default function ExerciseList({ exercises, filter="", onItemPress }: Prop
         );
 
         const favoriteExercises = filtered.filter(e => e.isFavorite);
-        const otherExercises = filtered.filter(e => !e.isFavorite);
+        const ownExercises = filtered.filter(e => e.isOwn && !e.isFavorite);
+        const otherExercises = filtered.filter(e => !e.isOwn && !e.isFavorite);
 
         const data: ListItem[] = [];
 
@@ -36,9 +38,14 @@ export default function ExerciseList({ exercises, filter="", onItemPress }: Prop
             favoriteExercises.forEach(ex => data.push({ type: "exercise", data: ex }));
         }
 
-        if (otherExercises.length > 0) {
-            data.push({ type: "divider", title: "Alle Übungen" });
-            otherExercises.forEach(ex => data.push({ type: "exercise", data: ex }));
+        if (ownExercises.length > 0) {
+            data.push({ type: "divider", title: "Meine Übungen" });
+            ownExercises.forEach(ex => data.push({ type: "exercise", data: ex }));
+        }
+
+        if (otherExercises.length > 0){
+            data.push({ type: "divider", title: "Andere Übungen"});
+            otherExercises.forEach(ex => data.push({ type: "exercise", data: ex}));
         }
 
         return data;

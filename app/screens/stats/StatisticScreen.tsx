@@ -1,64 +1,15 @@
 import { View,TextInput,StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useState } from 'react';
-import { auth, db } from "../../firebaseConfig";
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import ExerciseList from "../../components/ExerciseList"
 import { useLoadExercises } from "../../hooks/useLoadExercises"
 
 
-type Exercise = {
-    id: string;
-    name: string;
-    muscleGroup?: string;
-    equipment?: string;
-    ownerId?: string | null;
-    isGlobal?: boolean;
-    isFavorite: boolean;
-};
-
 export default function StatisticScreen() {
 
-    const { exercises, setExercises, loading } = useLoadExercises();
+    const { exercises, loading } = useLoadExercises();
     const [filter, setFilter] = useState("");
-
-    async function toggleFavorite(exercise: Exercise) {
-        const user = auth.currentUser;
-        if (!user) return;
-
-        const ref = doc(
-            db,
-            "users",
-            user.uid,
-            "favorites",
-            exercise.id,
-        );
-
-        // new exercise Object in list to reload
-        setExercises(prev =>
-            prev.map(ex =>
-                ex.id === exercise.id
-                    ? { ...ex, isFavorite: !ex.isFavorite }
-                    : ex
-            )
-        );
-
-        // toggle favorite in db
-        if (exercise.isFavorite) {
-            await deleteDoc(ref);
-            exercise.isFavorite = false;
-            console.log(exercise.name+": no fav");
-        } else {
-            await setDoc(ref, {
-                createdAt: new Date(),
-            });
-            exercise.isFavorite = true;
-            console.log(exercise.name+": fav");
-        }
-
-    }
-
 
     return (
         <View style={styles.container}>
