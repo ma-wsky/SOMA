@@ -1,13 +1,11 @@
 import { router } from "expo-router";
 import { View, TextInput, StyleSheet, Text, Pressable } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { TopBar } from "../../components/TopBar"
-import { auth, db } from "../../firebaseConfig";
-import { getDocs, where, query, collection } from "firebase/firestore";
 import ExerciseList from "../../components/ExerciseList";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import {Colors} from "../../styles/theme";
-//import {workoutStyles as styles} from "../../styles/workoutStyles";
+import { useLoadExercises } from "../../hooks/useLoadExercises";
 
 
 type Exercise = {
@@ -17,66 +15,20 @@ type Exercise = {
     equipment?: string;
     ownerId?: string | null;
     isGlobal?: boolean;
+    isFavorite: boolean;
 };
 
 export default function ExerciseScreen() {
 
     const [filter, setFilter] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [exercises, setExercises] = useState<Exercise[]>([]);
+    const { exercises, setExercises, loading } = useLoadExercises();
 
-    const filteredExercises = exercises.filter(ex => {
-        // @ts-ignore
-        return ex.name.toLowerCase().includes(filter.toLowerCase());
-    });
+    const filteredExercises = useMemo(() => {
+        return exercises.filter(ex =>
+            ex.name.toLowerCase().includes(filter.toLowerCase())
+        );
+    }, [exercises, filter]);
 
-    useEffect(() => {
-        const loadExercises = async () => {
-            setLoading(true);
-            const user = auth.currentUser;
-            if (!user) {
-                console.error("Kein User angemeldet.");
-                setLoading(false);
-                return;
-            }
-
-            try {
-                const qGlobal =
-                    query(collection(db, "exercises"),
-                    where("isGlobal", "==", true),
-                );
-
-                const qUser =
-                    collection(db, "users", user.uid, "exercises");
-
-                const snapshotG = await getDocs(qGlobal);
-                const snapshotU = await getDocs(qUser);
-
-                const globalExercises = snapshotG.docs.map(doc => ({
-                    id: doc.id,
-                    name: doc.data().name || "unnamed",
-                    ...doc.data()
-                }));
-
-                const userExercises = snapshotU.docs.map(doc => ({
-                    id: doc.id,
-                    name: doc.data().name || "unnamed",
-                    ...doc.data()
-                }));
-
-                const allExercises = [...globalExercises, ...userExercises];
-                setExercises(allExercises);
-            } catch (e) {
-                console.error("Fehler beim Laden:", e);
-            }finally {
-                setLoading(false);
-            }
-        };
-
-        loadExercises();
-    }, []);
-
-    console.log(filteredExercises);
 
     return (
         <View style={styles.container}>
@@ -98,6 +50,7 @@ export default function ExerciseScreen() {
 
             <ExerciseList
                 exercises={filteredExercises}
+                filter={filter}
                 onItemPress={(exercise) => console.log("Gewählt:", exercise.name)}
             />
 

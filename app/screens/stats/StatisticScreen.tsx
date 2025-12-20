@@ -1,12 +1,10 @@
-import { View,Text,TextInput,FlatList,StyleSheet, Pressable } from "react-native";
-import { useState, useEffect } from 'react';
-import {useRouter, router} from "expo-router";
-import ExerciseItem from "../../components/ExerciseItem";
+import { View,TextInput,StyleSheet } from "react-native";
+import { useState } from 'react';
 import { auth, db } from "../../firebaseConfig";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
-import { getDocs, where, query, collection } from "firebase/firestore";
 import LoadingOverlay from "../../components/LoadingOverlay";
-import {Colors} from "@/app/styles/theme";
+import ExerciseList from "../../components/ExerciseList"
+import { useLoadExercises } from "../../hooks/useLoadExercises"
 
 
 type Exercise = {
@@ -19,103 +17,10 @@ type Exercise = {
     isFavorite: boolean;
 };
 
-type ListItem =
-    | { type: "divider"; title: string }
-    | { type: "exercise"; data: Exercise };
-
 export default function StatisticScreen() {
 
+    const { exercises, setExercises, loading } = useLoadExercises();
     const [filter, setFilter] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [exercises, setExercises] = useState<Exercise[]>([]);
-
-    const filteredExercises = exercises.filter(ex => {
-        return ex.name.toLowerCase().includes(filter.toLowerCase());
-    });
-
-    const favoriteExercises = filteredExercises.filter(e => e.isFavorite);
-    const otherExercises = filteredExercises.filter(e => !e.isFavorite);
-
-    const listData: ListItem[] = [];
-
-    if (favoriteExercises.length > 0) {
-        listData.push({ type: "divider", title: "Favoriten" });
-        favoriteExercises.forEach(ex =>
-            listData.push({ type: "exercise", data: ex })
-        );
-    }
-
-    if (otherExercises.length > 0) {
-        listData.push({ type: "divider", title: "Alle Übungen" });
-        otherExercises.forEach(ex =>
-            listData.push({ type: "exercise", data: ex })
-        );
-    }
-
-    useEffect(() => {
-        const loadExercises = async () => {
-            setLoading(true);
-            const user = auth.currentUser;
-            if (!user) {
-                console.error("Kein User angemeldet.");
-                setLoading(false);
-                return;
-            }
-
-            try {
-                const qGlobal =
-                    query(collection(db, "exercises"),
-                        where("isGlobal", "==", true),
-                    );
-
-                const qUser =
-                    collection(db, "users", user.uid, "exercises");
-
-                const qFavorites =
-                    collection(db,"users", user.uid, "favorites");
-
-                const [
-                    snapshotG,
-                    snapshotU,
-                    snapshotF,
-                ] = await Promise.all([
-                    getDocs(qGlobal),
-                    getDocs(qUser),
-                    getDocs(qFavorites),
-                ]);
-
-                const favoriteIds = new Set(
-                    snapshotF.docs.map(doc => doc.id)
-                );
-
-                const globalExercises = snapshotG.docs.map(doc => ({
-                    id: doc.id,
-                    name: doc.data().name || "unnamed",
-                    ...doc.data(),
-                    isFavorite: favoriteIds.has(doc.id),
-                }));
-
-                const userExercises = snapshotU.docs.map(doc => ({
-                    id: doc.id,
-                    name: doc.data().name || "unnamed",
-                    ...doc.data(),
-                    isFavorite: favoriteIds.has(doc.id),
-                }));
-
-                const allExercises = [...globalExercises, ...userExercises];
-                setExercises(allExercises);
-
-            } catch (e) {
-                console.error("Fehler beim Laden:", e);
-            }finally {
-                setLoading(false);
-            }
-        };
-
-        loadExercises();
-    }, []);
-
-
 
     async function toggleFavorite(exercise: Exercise) {
         const user = auth.currentUser;
@@ -154,8 +59,6 @@ export default function StatisticScreen() {
     }
 
 
-
-
     return (
         <View style={styles.container}>
 
@@ -169,35 +72,10 @@ export default function StatisticScreen() {
             {/* TODO: Filter with tags */}
 
             {/* Exercise List with favorites and regular */}
-            <FlatList
-                data={listData}
-                keyExtractor={(item, index) =>
-                    item.type === "divider" ? `divider-${index}` : item.data.id
-                }
-                renderItem={({ item }) => {
-
-                    {/* Dividing line with Text */}
-                    if (item.type === "divider") {
-                        return (
-                            <View style={ styles.divider }>
-                                <Text style={ styles.dividerText }>
-                                    { item.title }
-                                </Text>
-                                <View style={ styles.line } />
-                            </View>
-                        );
-                    }
-
-                    {/* Exercise Item */}
-                    return (
-                        <ExerciseItem
-                            exercise={item.data}
-                            onPress={async ()=> toggleFavorite(item.data)}
-                            //onPress={async ()=> router.push("/screens/stats/SingleExerciseScreen")}
-                        />
-                    );
-                }}
-                contentContainerStyle={ styles.listContent }
+            <ExerciseList
+                exercises={exercises}
+                filter={filter}
+                onItemPress={toggleFavorite}
             />
 
             {/* Loading Overlay */}
