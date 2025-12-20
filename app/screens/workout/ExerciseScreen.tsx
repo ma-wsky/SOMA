@@ -8,20 +8,10 @@ import {Colors} from "../../styles/theme";
 import { useLoadExercises } from "../../hooks/useLoadExercises";
 
 
-type Exercise = {
-    id: string;
-    name: string;
-    muscleGroup?: string;
-    equipment?: string;
-    ownerId?: string | null;
-    isGlobal?: boolean;
-    isFavorite: boolean;
-};
-
 export default function ExerciseScreen() {
 
     const [filter, setFilter] = useState("");
-    const { exercises, setExercises, loading } = useLoadExercises();
+    const { exercises, loading } = useLoadExercises();
 
     const filteredExercises = useMemo(() => {
         return exercises.filter(ex =>
