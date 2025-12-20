@@ -15,6 +15,7 @@ type Exercise = {
     name: string;
     muscleGroup?: string;
     equipment?: string;
+    instructions?: string;
     isFavorite: boolean;
 };
 
@@ -51,7 +52,10 @@ export default function ExerciseScreen() {
             console.log(exercise.name+": no fav");
         } else {
             await setDoc(ref, {
-                createdAt: new Date(),
+                name: exercise.name,
+                muscleGroup: exercise.muscleGroup,
+                equipment: exercise.equipment,
+                instructions: exercise.instructions,
             });
             exercise.isFavorite = true;
             console.log(exercise.name+": fav");
