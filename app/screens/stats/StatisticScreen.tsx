@@ -1,10 +1,12 @@
-import { View,Text,TextInput,FlatList,StyleSheet } from "react-native";
+import { View,Text,TextInput,FlatList,StyleSheet, Pressable } from "react-native";
 import { useState, useEffect } from 'react';
 import {useRouter, router} from "expo-router";
 import ExerciseItem from "../../components/ExerciseItem";
 import { auth, db } from "../../firebaseConfig";
+import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { getDocs, where, query, collection } from "firebase/firestore";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import {Colors} from "@/app/styles/theme";
 
 
 type Exercise = {
@@ -14,7 +16,7 @@ type Exercise = {
     equipment?: string;
     ownerId?: string | null;
     isGlobal?: boolean;
-    isFavorite?: boolean;
+    isFavorite: boolean;
 };
 
 type ListItem =
@@ -31,8 +33,8 @@ export default function StatisticScreen() {
         return ex.name.toLowerCase().includes(filter.toLowerCase());
     });
 
-    const favoriteExercises = filteredExercises.filter(e => e.isGlobal);
-    const otherExercises = filteredExercises.filter(e => !e.isGlobal);
+    const favoriteExercises = filteredExercises.filter(e => e.isFavorite);
+    const otherExercises = filteredExercises.filter(e => !e.isFavorite);
 
     const listData: ListItem[] = [];
 
@@ -71,19 +73,39 @@ export default function StatisticScreen() {
                         where("ownerId", "==", user.uid)
                     );
 
-                const snapshotG = await getDocs(qGlobal);
-                const snapshotU = await getDocs(qUser);
+                const qFavorites = collection(
+                    db,
+                    "users",
+                    user.uid,
+                    "favorites"
+                );
+
+                const [
+                    snapshotG,
+                    snapshotU,
+                    snapshotF,
+                ] = await Promise.all([
+                    getDocs(qGlobal),
+                    getDocs(qUser),
+                    getDocs(qFavorites),
+                ]);
+
+                const favoriteIds = new Set(
+                    snapshotF.docs.map(doc => doc.id)
+                );
 
                 const globalExercises = snapshotG.docs.map(doc => ({
                     id: doc.id,
                     name: doc.data().name || "unnamed",
-                    ...doc.data()
+                    ...doc.data(),
+                    isFavorite: favoriteIds.has(doc.id),
                 }));
 
                 const userExercises = snapshotU.docs.map(doc => ({
                     id: doc.id,
                     name: doc.data().name || "unnamed",
-                    ...doc.data()
+                    ...doc.data(),
+                    isFavorite: favoriteIds.has(doc.id),
                 }));
 
                 const allExercises = [...globalExercises, ...userExercises];
@@ -98,6 +120,47 @@ export default function StatisticScreen() {
 
         loadExercises();
     }, []);
+
+
+
+    async function toggleFavorite(exercise: Exercise) {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const ref = doc(
+            db,
+            "users",
+            user.uid,
+            "favorites",
+            exercise.id,
+        );
+
+        // new exercise Object in list to reload
+        setExercises(prev =>
+            prev.map(ex =>
+                ex.id === exercise.id
+                    ? { ...ex, isFavorite: !ex.isFavorite }
+                    : ex
+            )
+        );
+
+        // toggle favorite in db
+        if (exercise.isFavorite) {
+            await deleteDoc(ref);
+            exercise.isFavorite = false;
+            console.log(exercise.name+": no fav");
+        } else {
+            await setDoc(ref, {
+                createdAt: new Date(),
+            });
+            exercise.isFavorite = true;
+            console.log(exercise.name+": fav");
+        }
+
+    }
+
+
+
 
     return (
         <View style={styles.container}>
@@ -135,7 +198,7 @@ export default function StatisticScreen() {
                     return (
                         <ExerciseItem
                             exercise={item.data}
-                            onPress={async ()=> console.log(item.data.name)}
+                            onPress={async ()=> toggleFavorite(item.data)}
                             //onPress={async ()=> router.push("/screens/stats/SingleExerciseScreen")}
                         />
                     );
