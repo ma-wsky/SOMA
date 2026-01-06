@@ -60,7 +60,6 @@ export default function ExerciseScreen() {
             exercise.isFavorite = true;
             console.log(exercise.name+": fav");
         }
-
     }
 
     return (
@@ -84,8 +83,8 @@ export default function ExerciseScreen() {
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
-                onItemPress={toggleFavorite}
-                //onItemPress={(exercise) => router.push({ pathname: "/screens/workout/ExerciseInfoScreen", params: { name: exercise.name }})}
+                //onItemPress={toggleFavorite}
+                onItemPress={(exercise) => router.push({ pathname: "/screens/workout/SingleExerciseInfoScreen", params: { id: exercise.id }})}
             />
 
             <Pressable
