@@ -4,16 +4,38 @@ import { workoutStyles as styles } from "../styles/workoutStyles"
 import { Colors } from "../styles/theme"
 
 
-export default function WorkoutItem({workout}: any) {
+interface Props {
+    workout: Workout;
+    onPress?: (workout: Workout) => void;
+}
+
+type Workout = {
+    id: string;
+    name: string;
+    duration: number;
+    exercises: WorkoutExercise[];
+};
+
+type WorkoutExercise = {
+    id: string;
+    breakTime: number;
+    sets: Set[];
+};
+
+type Set = {
+    reps: number;
+    weight: number;
+    isDone: boolean;
+};
+
+export default function WorkoutItem({workout, onPress}: Props) {
     return (
         <View style={styles.itemContainer}>
 
-            {/* Name of Workout  */}
             <View>
                 <Text style={styles.title}>{workout.name}</Text>
             </View>
 
-            {/* Start Workout Button */}
             <Pressable
                 onPress={() => {router.push("/screens/workout/ActiveWorkoutScreen")}}
                 style={({ pressed }) => [

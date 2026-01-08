@@ -15,6 +15,7 @@ type Exercise = {
     isGlobal?: boolean;
 };
 
+
 export default function ExerciseItem({ exercise, onPress }: Props) {
     return (
         <Pressable
