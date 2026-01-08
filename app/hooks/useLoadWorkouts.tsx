@@ -21,7 +21,7 @@ type Set = {
     isDone: boolean;
 };
 
-export function useLoadWorkout() {
+export function useLoadWorkouts() {
     const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [loading, setLoading] = useState(false);
 

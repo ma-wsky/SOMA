@@ -2,8 +2,10 @@ import { Text,TextInput, FlatList, View, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import WorkoutItem from "../../components/WorkoutItem";
+import WorkoutList from "../../components/WorkoutList";
 import { workoutStyles as styles } from "../../styles/workoutStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useLoadWorkouts } from "@/app/hooks/useLoadWorkouts";
 
 
 const EXAMPLEWORKOUTS = [
@@ -13,9 +15,10 @@ const EXAMPLEWORKOUTS = [
 ];
 
 export default function WorkoutScreen() {
-    //case insensitiv ?
+
     const router = useRouter();
     const [filter, setFilter] = useState("");
+    const {workouts, loading} = useLoadWorkouts();
 
     const filteredWorkout = EXAMPLEWORKOUTS.filter(workout => {
         return workout.name.toLowerCase().includes(filter.toLowerCase());
@@ -53,6 +56,8 @@ export default function WorkoutScreen() {
                        style={styles.search}/>
 
             {/* Saved Workouts List */}
+            <WorkoutList workouts={workouts} filter={filter} onItemPress={(workout)=> router.push({})}/>
+            {/*
             <FlatList data={filteredWorkout} keyExtractor={(item) => item.id}
                       renderItem={({ item }) => (<WorkoutItem workout={item}/>)}/>
 
