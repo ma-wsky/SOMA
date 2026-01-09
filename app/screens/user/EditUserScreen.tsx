@@ -1,11 +1,13 @@
 import { useRouter } from "expo-router";
-import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView, Pressable, Alert } from "react-native";
+import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView, Pressable, Alert, Image } from "react-native";
 import { useState, useEffect } from 'react';
 import { auth, db } from "../../firebaseConfig";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { Colors } from "../../styles/theme";
 import { userStyles as styles } from "../../styles/userStyles";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import * as ImagePicker from 'expo-image-picker';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 
 export default function EditUserScreen() {
@@ -29,6 +31,67 @@ export default function EditUserScreen() {
     const [currentHeight, setCurrentHeight] = useState<string>("");
     const [inputHeight, setInputHeight] = useState<string>("");
 
+    const [image, setImage] = useState<string|null>(null);
+    const [isUploading, setIsUploading] = useState<boolean>(false)
+
+    const takePhoto = async ()=> {
+        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+        if (permissionResult.granted === false){
+            alert("Kamerazugriff verweigert!");
+            return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.5,
+        });
+
+        if (!result.canceled){
+            setImage(result.assets[0].uri);
+            uploadImage(result.assets[0].uri);
+        }
+    }
+
+    const uploadImage = async (uri:string)=> {
+        try {
+            setIsUploading(true);
+
+            // 1. URI in Blob umwandeln
+            const response = await fetch(uri);
+            const blob = await response.blob();
+
+            // 2. Referenz in Firebase Storage erstellen
+            const storage = getStorage();
+            const filename = `photos/${Date.now()}.jpg`;
+            const storageRef = ref(storage, filename);
+
+            // 3. Hochladen
+            await uploadBytes(storageRef, blob);
+
+            console.log("Upload erfolgreich!");
+
+            // 4. Download-URL erhalten (optional, um sie in der DB zu speichern)
+            const downloadURL = await getDownloadURL(storageRef);
+            console.log("Bild verfügbar unter:", downloadURL);
+
+            const user = auth.currentUser;
+            if (!user) return;
+            const userRef = doc(db, "users", user.uid);
+            await updateDoc(userRef, {
+                profilePicture: downloadURL,
+            })
+
+            console.log("URL im User-Feld gespeichert!");
+        } catch (error) {
+            console.error(error);
+            alert("Upload fehlgeschlagen.");
+        }finally{
+            setIsUploading(false);
+        }
+    }
+
 
     useEffect(() => {
         const loadUserData = async () => {
@@ -41,8 +104,8 @@ export default function EditUserScreen() {
             }
 
             try {
-                const ref = doc(db, "users", user.uid);
-                const snapshot = await getDoc(ref);
+                const userRef = doc(db, "users", user.uid);
+                const snapshot = await getDoc(userRef);
 
                 if (snapshot.exists()) {
                     const data = snapshot.data();
@@ -60,6 +123,8 @@ export default function EditUserScreen() {
 
                     setCurrentHeight(data.height || "");
                     setInputHeight(data.height || "");
+
+                    setImage(data.profilePicture);
                 }
             } catch (e) {
                 console.error("Fehler beim Laden:", e);
@@ -141,8 +206,18 @@ export default function EditUserScreen() {
 
                         {/* Profile Picture */}
                         <View style={styles.circleWrapper}>
-                            <View style={styles.circle}></View>
+                            <Pressable
+                                style={styles.circle}
+                                onPress={takePhoto}>
+                            </Pressable>
                         </View>
+
+                        {image ? (
+                            <Image source={{ uri: image }} style={{width:300,height:300}}/>
+                        ) : (
+                            <View style={styles.circle}></View>
+                        )}
+
 
                         {/* Layout of Infos */}
                         <View style={styles.layout}>
