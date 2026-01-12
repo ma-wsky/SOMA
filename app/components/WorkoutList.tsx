@@ -12,21 +12,21 @@ interface Props {
 type Workout = {
   id: string;
   name: string;
-  duration: number;
-  exercises: WorkoutExercise[];
+  date: string;
+  duration?: number;
+  exerciseSets: ExerciseSet[];
 };
 
-type WorkoutExercise = {
-  id: string;
-  breakTime: number;
-  sets: Set[];
-};
-
-type Set = {
-  reps: number;
+type ExerciseSet = {
+  id?: string;
+  exerciseId: string;
+  exerciseName?: string;
   weight: number;
-  isDone: boolean;
+  reps: number;
+  isDone?: boolean;
 };
+
+
 
 type ListItem = { type: "workout"; data: Workout };
 
@@ -37,7 +37,7 @@ export default function WorkoutList({
 }: Props) {
   const listData: ListItem[] = useMemo(() => {
     const filtered = workouts.filter((w) =>
-      w.name.toLowerCase().includes(filter.toLowerCase()),
+      w.date.toLowerCase().includes(filter.toLowerCase()),
     );
     const data: ListItem[] = [];
 

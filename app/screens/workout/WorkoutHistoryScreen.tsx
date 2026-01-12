@@ -6,27 +6,30 @@ import { auth, db } from "@/app/firebaseConfig";
 import { TopBar } from "@/app/components/TopBar";
 import { workoutStyles } from "@/app/styles/workoutStyles";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
-import WExerciseList from "@/app/components/WExerciseList";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { doc } from "firebase/firestore";
+
+type Exercise = {
+  id: string;
+  name: string;
+  muscleGroup: string;
+  equipment: string;
+  instructions: string;
+};
+
+type ExerciseSet = {
+  id?: string;
+  exerciseId: string;
+  exerciseName?: string;
+  weight: number;
+  reps: number;
+  isDone?: boolean;
+};
 
 type Workout = {
   id: string;
-  name: string;
-  duration: number;
-  exercises: WorkoutExercise[];
-  completedAt?: string;
-};
-
-type WorkoutExercise = {
-  id: string;
-  breakTime: number;
-  sets: Set[];
-};
-
-type Set = {
-  reps: number;
-  weight: number;
-  isDone: boolean;
+  date: string;
+  exerciseSets: ExerciseSet[];
 };
 
 export default function WorkoutHistoryScreen() {
@@ -34,11 +37,20 @@ export default function WorkoutHistoryScreen() {
   const [loading, setLoading] = useState(true);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [exercisesMap, setExercisesMap] = useState<Map<string, Exercise>>(new Map());
 
   useEffect(() => {
     const loadWorkoutHistory = async () => {
       setLoading(true);
       try {
+        // Load exercises first
+        const exercisesMap = new Map<string, Exercise>();
+        const exercisesSnapshot = await getDocs(collection(db, "exercises"));
+        exercisesSnapshot.forEach((doc) => {
+          exercisesMap.set(doc.id, { id: doc.id, ...doc.data() } as Exercise);
+        });
+        setExercisesMap(exercisesMap);
+
         const user = auth.currentUser;
         if (!user || !date) {
           setWorkouts([]);
@@ -46,25 +58,36 @@ export default function WorkoutHistoryScreen() {
           return;
         }
 
-        // Parse das Datum (format: YYYY-MM-DD)
-        const startOfDay = new Date(date);
-        startOfDay.setHours(0, 0, 0, 0);
-
-        const endOfDay = new Date(date);
-        endOfDay.setHours(23, 59, 59, 999);
-
         // Query Workouts für diesen Tag
-        const q = query(
-          collection(db, "users", user.uid, "workouts"),
-          where("completedAt", ">=", startOfDay.toISOString()),
-          where("completedAt", "<=", endOfDay.toISOString()),
-        );
+        const workoutsRef = collection(db, "users", user.uid, "workouts");
+        const snapshot = await getDocs(workoutsRef);
+        
+        const loadedWorkouts: Workout[] = [];
+        
+        for (const workoutDoc of snapshot.docs) {
+          const workoutData = workoutDoc.data();
+          // Filter by date if it matches
+          if (workoutData.date && workoutData.date.startsWith(date)) {
+            // Load exercise sets from subcollection
+            const setsSnapshot = await getDocs(collection(workoutDoc.ref, "exerciseSets"));
+            const sets: ExerciseSet[] = [];
+            setsSnapshot.forEach((setDoc) => {
+              const data = setDoc.data();
+              const exercise = exercisesMap.get(data.exerciseId);
+              sets.push({
+                id: setDoc.id,
+                ...data,
+                exerciseName: exercise?.name,
+              } as ExerciseSet);
+            });
 
-        const snapshot = await getDocs(q);
-        const loadedWorkouts = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Workout[];
+            loadedWorkouts.push({
+              id: workoutDoc.id,
+              date: workoutData.date,
+              exerciseSets: sets,
+            });
+          }
+        }
 
         setWorkouts(loadedWorkouts);
       } catch (e) {
@@ -85,23 +108,6 @@ export default function WorkoutHistoryScreen() {
       year: "numeric",
       month: "long",
       day: "numeric",
-    });
-  };
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const formatCompletionTime = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString("de-DE", {
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
@@ -167,18 +173,13 @@ export default function WorkoutHistoryScreen() {
                       marginBottom: 4,
                     }}
                   >
-                    {workout.name}
+                    Training vom {workout.date}
                   </Text>
                   <Text style={{ color: "#aaa", fontSize: 13 }}>
-                    ⏱️ Dauer: {formatTime(workout.duration)}
+                    📝 Sätze: {workout.exerciseSets.length}
                   </Text>
-                  {workout.completedAt && (
-                    <Text style={{ color: "#aaa", fontSize: 13 }}>
-                      🕐 Zeit: {formatCompletionTime(workout.completedAt)}
-                    </Text>
-                  )}
                   <Text style={{ color: "#aaa", fontSize: 13 }}>
-                    📝 Übungen: {workout.exercises.length}
+                    ✓ Abgeschlossen: {workout.exerciseSets.filter(s => s.isDone).length}/{workout.exerciseSets.length}
                   </Text>
                 </View>
                 <Ionicons
@@ -201,7 +202,7 @@ export default function WorkoutHistoryScreen() {
                     borderBottomRightRadius: 10,
                   }}
                 >
-                  {workout.exercises.length > 0 ? (
+                  {workout.exerciseSets.length > 0 ? (
                     <View>
                       <Text
                         style={{
@@ -210,64 +211,55 @@ export default function WorkoutHistoryScreen() {
                           marginBottom: 12,
                         }}
                       >
-                        Durchgeführte Übungen:
+                        Durchgeführte Sätze:
                       </Text>
-                      {workout.exercises.map((exercise, exIdx) => (
+                      {workout.exerciseSets.map((set, setIdx) => (
                         <View
-                          key={exIdx}
+                          key={setIdx}
                           style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "center",
                             backgroundColor: "#111",
                             padding: 10,
                             borderRadius: 8,
                             marginBottom: 8,
                           }}
                         >
-                          <Text
-                            style={{
-                              color: "#fff",
-                              fontWeight: "600",
-                              marginBottom: 6,
-                            }}
-                          >
-                            {exIdx + 1}. Übung: {exercise.id}
-                          </Text>
-                          {exercise.sets.map((set, setIdx) => (
-                            <View
-                              key={setIdx}
+                          <View style={{flex: 1}}>
+                            <Text
                               style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "center",
+                                color: "#fff",
+                                fontWeight: "600",
                                 marginBottom: 4,
-                                paddingHorizontal: 4,
                               }}
                             >
-                              <Text
-                                style={{
-                                  color: "#aaa",
-                                  fontSize: 13,
-                                }}
-                              >
-                                Satz {setIdx + 1}: {set.reps} Reps @{" "}
-                                {set.weight}kg
-                              </Text>
-                              <Ionicons
-                                name={
-                                  set.isDone
-                                    ? "checkmark-circle"
-                                    : "ellipse-outline"
-                                }
-                                size={18}
-                                color={set.isDone ? "#4CAF50" : "#666"}
-                              />
-                            </View>
-                          ))}
+                              {set.exerciseName || set.exerciseId}
+                            </Text>
+                            <Text
+                              style={{
+                                color: "#aaa",
+                                fontSize: 13,
+                              }}
+                            >
+                              {set.reps} Wiederholungen @ {set.weight}kg
+                            </Text>
+                          </View>
+                          <Ionicons
+                            name={
+                              set.isDone
+                                ? "checkmark-circle"
+                                : "ellipse-outline"
+                            }
+                            size={18}
+                            color={set.isDone ? "#4CAF50" : "#666"}
+                          />
                         </View>
                       ))}
                     </View>
                   ) : (
                     <Text style={{ color: "#aaa", textAlign: "center" }}>
-                      Keine Übungen aufgezeichnet
+                      Keine Sätze aufgezeichnet
                     </Text>
                   )}
                 </View>

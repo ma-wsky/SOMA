@@ -12,20 +12,16 @@ interface Props {
 type Workout = {
     id: string;
     name: string;
-    duration: number;
-    exercises: WorkoutExercise[];
+    date: string;
+    exerciseSets: ExerciseSet[];
 };
 
-type WorkoutExercise = {
-    id: string;
-    breakTime: number;
-    sets: Set[];
-};
-
-type Set = {
-    reps: number;
+type ExerciseSet = {
+    id?: string;
+    exerciseId: string;
     weight: number;
-    isDone: boolean;
+    reps: number;
+    isDone?: boolean;
 };
 
 export default function WorkoutItem({workout, onPress}: Props) {
@@ -34,10 +30,13 @@ export default function WorkoutItem({workout, onPress}: Props) {
 
             <View>
                 <Text style={styles.title}>{workout.name}</Text>
+                <Text style={{color: "#aaa", fontSize: 12, marginTop: 4}}>
+                    {workout.exerciseSets.length} Sets
+                </Text>
             </View>
 
             <Pressable
-                onPress={() => {router.push("/screens/workout/ActiveWorkoutScreen")}}
+                onPress={() => {router.push({pathname: "/screens/workout/ActiveWorkoutScreen", params: {id: workout.id}})}}
                 style={({ pressed }) => [
                     styles.itemButton,
                     {backgroundColor: pressed ? Colors.secondary : Colors.primary},

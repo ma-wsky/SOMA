@@ -11,76 +11,99 @@ import {
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState, useEffect } from "react";
-import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from "firebase/firestore";
 import { auth, db } from "@/app/firebaseConfig";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
+// New Firebase structure
+type ExerciseSet = {
+  id?: string;
+  exerciseId: string;
+  exerciseName?: string;
+  weight: number;
+  reps: number;
+  isDone?: boolean;
+};
+
 type Workout = {
+  id?: string;
+  date: string;
+  exerciseSets: ExerciseSet[];
+};
+
+type Exercise = {
   id: string;
   name: string;
-  duration: number;
-  exercises: WorkoutExercise[];
+  muscleGroup?: string;
+  equipment?: string;
+  instructions?: string;
 };
-
-type WorkoutExercise = {
-  id: string;
-  breakTime: number;
-  sets: Set[];
-};
-
-type Set = {
-  reps: number;
-  weight: number;
-  isDone: boolean;
-};
-
 
 export default function EditWorkoutScreen() {
   const [loading, setLoading] = useState<boolean>(false);
-  const { id, selectedExerciseId, breakTime: selectedBreakTime } = useLocalSearchParams<{ 
-    id: string;
+  const { id, selectedExerciseId, selectedExerciseName } = useLocalSearchParams<{ 
+    id?: string;
     selectedExerciseId?: string;
-    breakTime?: string;
+    selectedExerciseName?: string;
   }>();
   const [workout, setWorkout] = useState<Workout | null>(null);
-  const [workoutName, setWorkoutName] = useState("");
+  const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
 
   // Load Workout on mount
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        if (id) {
-          const globalRef = doc(db, "workouts", id);
-          const globalSnap = await getDoc(globalRef);
-          if (globalSnap.exists()) {
-            const data = globalSnap.data() as Workout;
-            setWorkout({ ...data, id: globalSnap.id });
-            setWorkoutName(data.name);
-            return;
-          }
+        const user = auth.currentUser;
+        if (!user) {
+          Alert.alert("Fehler", "Sie müssen angemeldet sein");
+          return;
+        }
 
-          const user = auth.currentUser;
-          if (user) {
-            const userRef = doc(db, "users", user.uid, "workouts", id);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-              const data = userSnap.data() as Workout;
-              setWorkout({ ...data, id: userSnap.id });
-              setWorkoutName(data.name);
-              return;
-            }
+        // Load all exercises for reference
+        const exercisesMap = new Map<string, Exercise>();
+        const exercisesSnapshot = await getDocs(collection(db, "exercises"));
+        exercisesSnapshot.forEach((doc) => {
+          exercisesMap.set(doc.id, { id: doc.id, ...doc.data() } as Exercise);
+        });
+        setExercises(exercisesMap);
+
+        if (id) {
+          // Load existing workout
+          const workoutRef = doc(db, "users", user.uid, "workouts", id);
+          const workoutSnap = await getDoc(workoutRef);
+          if (workoutSnap.exists()) {
+            const workoutData = workoutSnap.data() as Omit<Workout, 'id' | 'exerciseSets'>;
+            
+            // Load exercise sets from subcollection
+            const setsSnapshot = await getDocs(collection(workoutRef, "exerciseSets"));
+            const exerciseSets: ExerciseSet[] = [];
+            setsSnapshot.forEach((setDoc) => {
+              const setData = setDoc.data();
+              exerciseSets.push({
+                id: setDoc.id,
+                exerciseId: setData.exerciseId,
+                exerciseName: exercisesMap.get(setData.exerciseId)?.name,
+                weight: setData.weight,
+                reps: setData.reps,
+                isDone: setData.isDone || false,
+              });
+            });
+
+            setWorkout({ 
+              id: workoutSnap.id, 
+              ...workoutData, 
+              exerciseSets 
+            });
+            return;
           }
         } else {
           // Create new workout
           setWorkout({
-            id: Date.now().toString(),
-            name: "Neues Training",
-            duration: 0,
-            exercises: [],
+            date: new Date().toISOString(),
+            exerciseSets: [],
           });
-          setWorkoutName("Neues Training");
         }
       } catch (e) {
         console.error("Fehler beim Laden:", e);
@@ -96,33 +119,35 @@ export default function EditWorkoutScreen() {
   // Handle returning from AddExerciseToWorkoutScreen with selected exercise
   useEffect(() => {
     if (selectedExerciseId && workout) {
-      const newWorkoutExercise: WorkoutExercise = {
-        id: selectedExerciseId,
-        breakTime: parseInt(selectedBreakTime || "30") || 30,
-        sets: [{ reps: 10, weight: 0, isDone: false }],
+      const newSet: ExerciseSet = {
+        exerciseId: selectedExerciseId,
+        exerciseName: selectedExerciseName,
+        weight: 0,
+        reps: 10,
+        isDone: false,
       };
 
       setWorkout((prev) => ({
         ...prev!,
-        exercises: [...(prev?.exercises || []), newWorkoutExercise],
+        exerciseSets: [...(prev?.exerciseSets || []), newSet],
       }));
 
       // Clear params to prevent duplicate additions
       router.setParams({
         selectedExerciseId: undefined,
-        breakTime: undefined,
+        selectedExerciseName: undefined,
       });
     }
   }, [selectedExerciseId]);
 
   // Save/Update Workout
   const handleSaveWorkout = async () => {
-    if (!workoutName.trim()) {
-      Alert.alert("Fehler", "Geben Sie einen Namen für das Training ein");
+    if (!workout) return;
+
+    if (workout.exerciseSets.length === 0) {
+      Alert.alert("Fehler", "Fügen Sie mindestens einen Satz hinzu");
       return;
     }
-
-    if (!workout) return;
 
     setLoading(true);
     try {
@@ -132,25 +157,43 @@ export default function EditWorkoutScreen() {
         return;
       }
 
+      const workoutId = id || Date.now().toString();
+      const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
+      
+      // Prepare workout data (without exerciseSets, those go in subcollection)
       const workoutData = {
-        name: workoutName,
-        duration: workout.duration || 0,
-        exercises: workout.exercises || [],
+        date: workout.date,
       };
 
-      if (id && id !== workout.id) {
-        // Update existing workout
-        const userRef = doc(db, "users", user.uid, "workouts", id);
-        await updateDoc(userRef, workoutData);
-        Alert.alert("Erfolg", "Training aktualisiert");
-      } else {
-        // Create new workout
-        const newId = Date.now().toString();
-        const userRef = doc(db, "users", user.uid, "workouts", newId);
-        await setDoc(userRef, workoutData);
-        Alert.alert("Erfolg", "Training erstellt");
-      }
+      // Use batch write for atomicity
+      const batch = writeBatch(db);
+      
+      // Set main workout document
+      batch.set(workoutRef, workoutData);
 
+      // Add/update exercise sets in subcollection
+      const setsRef = collection(workoutRef, "exerciseSets");
+      
+      // Clear existing sets and add new ones
+      const existingSets = await getDocs(setsRef);
+      existingSets.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+
+      // Add new sets
+      workout.exerciseSets.forEach((set, index) => {
+        const setRef = doc(setsRef, `set_${index}`);
+        batch.set(setRef, {
+          exerciseId: set.exerciseId,
+          weight: set.weight,
+          reps: set.reps,
+          isDone: set.isDone || false,
+        });
+      });
+
+      await batch.commit();
+      
+      Alert.alert("Erfolg", id ? "Training aktualisiert" : "Training erstellt");
       router.back();
     } catch (e) {
       console.error("Fehler beim Speichern:", e);
@@ -160,45 +203,21 @@ export default function EditWorkoutScreen() {
     }
   };
 
-  // Remove exercise
-  const handleRemoveExercise = (index: number) => {
+  // Remove exercise set
+  const handleRemoveSet = (index: number) => {
     setWorkout((prev) => ({
       ...prev!,
-      exercises: prev!.exercises.filter((_, i) => i !== index),
+      exerciseSets: prev!.exerciseSets.filter((_, i) => i !== index),
     }));
   };
 
-  // Update set for exercise
-  const handleUpdateSet = (exerciseIndex: number, setIndex: number, key: 'reps' | 'weight', value: string) => {
+  // Update set
+  const handleUpdateSet = (index: number, key: 'weight' | 'reps', value: string) => {
     if (!workout) return;
-    const updatedExercises = [...workout.exercises];
+    const updatedSets = [...workout.exerciseSets];
     const numValue = parseInt(value) || 0;
-    updatedExercises[exerciseIndex].sets[setIndex][key] = numValue;
-    setWorkout({ ...workout, exercises: updatedExercises });
-  };
-
-  // Remove set from exercise
-  const handleRemoveSet = (exerciseIndex: number, setIndex: number) => {
-    if (!workout) return;
-    const updatedExercises = [...workout.exercises];
-    updatedExercises[exerciseIndex].sets = updatedExercises[exerciseIndex].sets.filter((_, i) => i !== setIndex);
-    setWorkout({ ...workout, exercises: updatedExercises });
-  };
-
-  // Add set to exercise
-  const handleAddSet = (exerciseIndex: number) => {
-    if (!workout) return;
-    const updatedExercises = [...workout.exercises];
-    updatedExercises[exerciseIndex].sets.push({ reps: 10, weight: 0, isDone: false });
-    setWorkout({ ...workout, exercises: updatedExercises });
-  };
-
-  // Update break time for exercise
-  const handleUpdateBreakTime = (exerciseIndex: number, value: string) => {
-    if (!workout) return;
-    const updatedExercises = [...workout.exercises];
-    updatedExercises[exerciseIndex].breakTime = parseInt(value) || 30;
-    setWorkout({ ...workout, exercises: updatedExercises });
+    updatedSets[index][key] = numValue;
+    setWorkout({ ...workout, exerciseSets: updatedSets });
   };
 
   if (!workout) {
@@ -220,26 +239,15 @@ export default function EditWorkoutScreen() {
       />
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-        {/* Workout Name */}
+        {/* Workout Date */}
         <Text style={{ color: "#fff", fontSize: 16, marginBottom: 8 }}>
-          Training Name
+          Datum
         </Text>
-        <TextInput
-          value={workoutName}
-          onChangeText={setWorkoutName}
-          placeholder="z.B. Push Day"
-          placeholderTextColor="#666"
-          style={{
-            backgroundColor: "#222",
-            color: "#fff",
-            padding: 12,
-            borderRadius: 8,
-            marginBottom: 20,
-            fontSize: 16,
-          }}
-        />
+        <Text style={{ color: "#aaa", fontSize: 14, marginBottom: 20 }}>
+          {new Date(workout.date).toLocaleDateString('de-DE')}
+        </Text>
 
-        {/* Exercises Section */}
+        {/* Exercise Sets Section */}
         <View style={{ marginBottom: 20 }}>
           <Text
             style={{
@@ -249,17 +257,17 @@ export default function EditWorkoutScreen() {
               marginBottom: 12,
             }}
           >
-            Übungen ({workout.exercises.length})
+            Sätze ({workout.exerciseSets.length})
           </Text>
 
-          {workout.exercises && workout.exercises.length > 0 ? (
+          {workout.exerciseSets && workout.exerciseSets.length > 0 ? (
             <FlatList
-              data={workout.exercises}
+              data={workout.exerciseSets}
               scrollEnabled={false}
               keyExtractor={(_, i) => i.toString()}
-              renderItem={({ item: exercise, index: exerciseIndex }) => (
+              renderItem={({ item: set, index }) => (
                 <View
-                  key={exerciseIndex}
+                  key={index}
                   style={{
                     backgroundColor: "#222",
                     padding: 12,
@@ -275,105 +283,46 @@ export default function EditWorkoutScreen() {
                         fontSize: 16,
                       }}
                     >
-                      Übung: {exercise.id}
+                      {set.exerciseName || set.exerciseId}
                     </Text>
                     <Pressable
-                      onPress={() => handleRemoveExercise(exerciseIndex)}
+                      onPress={() => handleRemoveSet(index)}
                       style={{ padding: 8 }}
                     >
                       <Ionicons name="trash" size={20} color="#ff6b6b" />
                     </Pressable>
                   </View>
 
-                  {/* Break Time Input */}
-                  <View style={{ marginBottom: 12 }}>
-                    <Text style={{ color: "#aaa", fontSize: 14, marginBottom: 4 }}>
-                      Pausenzeit (Sekunden)
-                    </Text>
-                    <TextInput
-                      value={exercise.breakTime.toString()}
-                      onChangeText={(val) => handleUpdateBreakTime(exerciseIndex, val)}
-                      keyboardType="numeric"
-                      style={{
-                        backgroundColor: "#111",
-                        color: "#fff",
-                        padding: 8,
-                        borderRadius: 4,
-                      }}
-                    />
-                  </View>
-
-                  {/* Sets */}
-                  <View style={{ marginBottom: 12 }}>
-                    <Text style={{ color: "#aaa", fontSize: 14, marginBottom: 8 }}>
-                      Sätze ({exercise.sets.length})
-                    </Text>
-                    {exercise.sets.map((set, setIndex) => (
-                      <View
-                        key={setIndex}
+                  {/* Weight and Reps Inputs */}
+                  <View style={{ flexDirection: "row", gap: 12 }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: "#aaa", fontSize: 12, marginBottom: 4 }}>Wiederholungen</Text>
+                      <TextInput
+                        value={set.reps.toString()}
+                        onChangeText={(val) => handleUpdateSet(index, 'reps', val)}
+                        keyboardType="numeric"
                         style={{
                           backgroundColor: "#111",
-                          padding: 10,
-                          borderRadius: 6,
-                          marginBottom: 8,
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                          alignItems: "center",
+                          color: "#fff",
+                          padding: 8,
+                          borderRadius: 4,
                         }}
-                      >
-                        <View style={{ flexDirection: "row", gap: 8, flex: 1 }}>
-                          <View>
-                            <Text style={{ color: "#aaa", fontSize: 12 }}>Reps</Text>
-                            <TextInput
-                              value={set.reps.toString()}
-                              onChangeText={(val) => handleUpdateSet(exerciseIndex, setIndex, 'reps', val)}
-                              keyboardType="numeric"
-                              style={{
-                                backgroundColor: "#000",
-                                color: "#fff",
-                                width: 60,
-                                padding: 6,
-                                borderRadius: 4,
-                                marginTop: 4,
-                              }}
-                            />
-                          </View>
-                          <View>
-                            <Text style={{ color: "#aaa", fontSize: 12 }}>Weight (kg)</Text>
-                            <TextInput
-                              value={set.weight.toString()}
-                              onChangeText={(val) => handleUpdateSet(exerciseIndex, setIndex, 'weight', val)}
-                              keyboardType="numeric"
-                              style={{
-                                backgroundColor: "#000",
-                                color: "#fff",
-                                width: 60,
-                                padding: 6,
-                                borderRadius: 4,
-                                marginTop: 4,
-                              }}
-                            />
-                          </View>
-                        </View>
-                        <Pressable
-                          onPress={() => handleRemoveSet(exerciseIndex, setIndex)}
-                          style={{ padding: 8 }}
-                        >
-                          <Ionicons name="trash" size={16} color="#ff6b6b" />
-                        </Pressable>
-                      </View>
-                    ))}
-                    <Pressable
-                      onPress={() => handleAddSet(exerciseIndex)}
-                      style={{
-                        backgroundColor: "#333",
-                        padding: 8,
-                        borderRadius: 4,
-                        alignItems: "center",
-                      }}
-                    >
-                      <Text style={{ color: "#fff", fontSize: 12 }}>+ Satz hinzufügen</Text>
-                    </Pressable>
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: "#aaa", fontSize: 12, marginBottom: 4 }}>Gewicht (kg)</Text>
+                      <TextInput
+                        value={set.weight.toString()}
+                        onChangeText={(val) => handleUpdateSet(index, 'weight', val)}
+                        keyboardType="numeric"
+                        style={{
+                          backgroundColor: "#111",
+                          color: "#fff",
+                          padding: 8,
+                          borderRadius: 4,
+                        }}
+                      />
+                    </View>
                   </View>
                 </View>
               )}
@@ -382,7 +331,7 @@ export default function EditWorkoutScreen() {
             <Text
               style={{ color: "#666", textAlign: "center", marginBottom: 16 }}
             >
-              Noch keine Übungen hinzugefügt
+              Noch keine Sätze hinzugefügt
             </Text>
           )}
 

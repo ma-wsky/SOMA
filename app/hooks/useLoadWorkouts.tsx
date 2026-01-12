@@ -1,74 +1,91 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc } from "firebase/firestore";
+
+type Exercise = {
+  id: string;
+  name: string;
+  muscleGroup: string;
+  equipment: string;
+  instructions: string;
+};
+
+type ExerciseSet = {
+  id?: string;
+  exerciseId: string;
+  exerciseName?: string;
+  weight: number;
+  reps: number;
+  isDone?: boolean;
+};
 
 type Workout = {
-    id: string;
-    name: string;
-    duration: number;
-    exercises: WorkoutExercise[];
-};
-
-type WorkoutExercise = {
-    id: string;
-    breakTime: number;
-    sets: Set[];
-};
-
-type Set = {
-    reps: number;
-    weight: number;
-    isDone: boolean;
+  id: string;
+  date: string;
+  exerciseSets: ExerciseSet[];
 };
 
 export function useLoadWorkouts() {
-    const [workouts, setWorkouts] = useState<Workout[]>([]);
-    const [loading, setLoading] = useState(false);
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        const loadWorkouts = async () => {
-            setLoading(true);
-            const user = auth.currentUser;
-            if (!user) {
-                console.error("Kein User angemeldet.");
-                setLoading(false);
-                return;
-            }
+  useEffect(() => {
+    const loadWorkouts = async () => {
+      setLoading(true);
+      const user = auth.currentUser;
+      if (!user) {
+        console.error("Kein User angemeldet.");
+        setLoading(false);
+        return;
+      }
 
-            try {
-                const qGlobal=collection(db, "workouts");
-                const qUser=collection(db, "users", user.uid, "workouts");
+      try {
+        // Load exercises first for enrichment
+        const exercisesMap = new Map<string, Exercise>();
+        const exercisesSnapshot = await getDocs(collection(db, "exercises"));
+        exercisesSnapshot.forEach((doc) => {
+          exercisesMap.set(doc.id, { id: doc.id, ...doc.data() } as Exercise);
+        });
 
-                const [snapshotG, snapshotU] = await Promise.all([
-                    getDocs(qGlobal),
-                    getDocs(qUser),
-                ]);
+        // Load user's workouts
+        const userWorkoutsRef = collection(db, "users", user.uid, "workouts");
+        const snapshotU = await getDocs(userWorkoutsRef);
 
-                const globalWorkouts = snapshotG.docs.map(doc => ({
-                    id: doc.id,
-                    name: doc.data().name || "unnamed",
-                    duration: doc.data().duration || 0,
-                    exercises: doc.data().exercises || [],
-                }));
+        const userWorkouts: Workout[] = [];
+        for (const workoutDoc of snapshotU.docs) {
+          const workoutData = workoutDoc.data();
+          
+          // Load exercise sets from subcollection
+          const setsSnapshot = await getDocs(collection(workoutDoc.ref, "exerciseSets"));
+          const sets: ExerciseSet[] = [];
+          setsSnapshot.forEach((setDoc) => {
+            const data = setDoc.data();
+            const exercise = exercisesMap.get(data.exerciseId);
+            sets.push({
+              id: setDoc.id,
+              ...data,
+              exerciseName: exercise?.name,
+            } as ExerciseSet);
+          });
 
-                const userWorkouts = snapshotU.docs.map(doc => ({
-                    id: doc.id,
-                    name: doc.data().name || "unnamed",
-                    duration: doc.data().duration || 0,
-                    exercises: doc.data().exercises || [],
-                }));
+          userWorkouts.push({
+            id: workoutDoc.id,
+            date: workoutData.date || "",
+            exerciseSets: sets,
+          });
+        }
 
-                setWorkouts([...globalWorkouts, ...userWorkouts]);
-            } catch (e) {
-                console.error("Fehler beim Laden der Workouts:", e);
-            } finally {
-                setLoading(false);
-            }
-        };
+        setWorkouts(userWorkouts);
+      } catch (e) {
+        console.error("Fehler beim Laden der Workouts:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        loadWorkouts();
-    }, []);
+    loadWorkouts();
+  }, []);
 
-    return { workouts, setWorkouts, loading };
+  return { workouts, setWorkouts, loading };
 }
 
