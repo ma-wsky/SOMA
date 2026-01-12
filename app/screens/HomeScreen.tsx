@@ -28,7 +28,7 @@ export default function Home(){
 
             <View style={{marginHorizontal: 20, marginTop: 80,}}>
                 <Pressable
-                    onPress={() => {router.push("/screens/workout/ExerciseScreen")}}
+                    onPress={() => {router.push("/screens/exercise/ExerciseScreen")}}
                     style={({ pressed }) => [
                         styles.bigButton,
                         {backgroundColor: pressed ? "#333" : "#000"},
