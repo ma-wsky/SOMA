@@ -114,6 +114,8 @@ export default function SingleWorkoutInfoScreen() {
         onLeftPress={() => router.back()}
       />
 
+        <Text>TEXT IST WEIß</Text>
+
       <Text style={workoutStyles.title}>Training vom {workout.date}</Text>
 
       <FlatList

@@ -12,33 +12,20 @@ export default function AddExerciseToWorkoutScreen() {
 
     const [filter, setFilter] = useState("");
     const [breakTime, setBreakTime] = useState("30");
-    const { workoutEditId } = useLocalSearchParams<{ workoutEditId: string }>();
+    const { workoutEditId, workoutEditKey, returnTo } = useLocalSearchParams<{ workoutEditId?: string; workoutEditKey?: string; returnTo?: string }>();
     const { exercises, loading } = useLoadExercises();
 
-    const [selected, setSelected] = useState<Array<{id: string; name: string}>>([]);
-
-    const toggleSelectExercise = (exercise: any) => {
-        const exists = selected.find((s) => s.id === exercise.id);
-        if (exists) {
-            setSelected((prev) => prev.filter((p) => p.id !== exercise.id));
-        } else {
-            setSelected((prev) => [...prev, { id: exercise.id, name: exercise.name }]);
-        }
-    };
-
-    const handleAddSelected = () => {
-        if (selected.length === 0) {
-            router.back();
+    // Single-select behavior: navigate immediately when an exercise is tapped
+    const handleSelectExercise = (exercise: any) => {
+        const key = workoutEditKey || workoutEditId;
+        // If returnTo === 'active' we return to ActiveWorkoutScreen
+        if (returnTo === 'active' && key) {
+            router.push({ pathname: "/screens/workout/ActiveWorkoutScreen", params: { workoutEditKey: key, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name } });
             return;
         }
-        router.push({
-            pathname: "/screens/workout/EditWorkoutScreen",
-            params: {
-                id: workoutEditId,
-                selectedExercises: JSON.stringify(selected),
-                breakTime: breakTime
-            }
-        });
+
+        // Default: go to EditWorkoutScreen
+        router.push({ pathname: "/screens/workout/EditWorkoutScreen", params: { workoutEditKey: key, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name, breakTime } });
     };
 
     return (
@@ -76,21 +63,10 @@ export default function AddExerciseToWorkoutScreen() {
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
-                onItemPress={(exercise) => toggleSelectExercise(exercise)}
-                selectedIds={selected.map(s => s.id)}
+                onItemPress={(exercise) => handleSelectExercise(exercise)}
             />
 
-            {/* Add Selected Button */}
-            {selected.length > 0 && (
-                <View style={{ padding: 20 }}>
-                    <Pressable
-                        onPress={handleAddSelected}
-                        style={{ backgroundColor: '#000', padding: 12, borderRadius: 8, alignItems: 'center' }}
-                    >
-                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Hinzufügen ({selected.length})</Text>
-                    </Pressable>
-                </View>
-            )}
+            {/* Note: single-select; tapping an exercise returns immediately */}
 
             {/* Loading Overlay */}
             <LoadingOverlay visible={loading} />

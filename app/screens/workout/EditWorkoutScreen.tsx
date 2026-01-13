@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { showAlert } from "@/app/utils/alertHelper";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from "firebase/firestore";
 import { auth, db } from "@/app/firebaseConfig";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
@@ -44,16 +44,18 @@ type Exercise = {
 
 export default function EditWorkoutScreen() {
   const [loading, setLoading] = useState<boolean>(false);
-  const { id, selectedExerciseId, selectedExerciseName, selectedExercises } = useLocalSearchParams<{ 
+  const { id, selectedExerciseId, selectedExerciseName, selectedExercises, workoutEditKey } = useLocalSearchParams<{ 
     id?: string;
     selectedExerciseId?: string;
     selectedExerciseName?: string;
     selectedExercises?: string;
+    workoutEditKey?: string;
   }>();
+  const editKeyRef = useRef<string | null>(null);
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
 
-  // Load Workout on mount
+  // Load Workout on mount (or restore draft)
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -72,7 +74,10 @@ export default function EditWorkoutScreen() {
         });
         setExercises(exercisesMap);
 
+        // Establish editKey: if id exists use stable key, else generate / use passed workoutEditKey
         if (id) {
+          editKeyRef.current = `workout_${id}`;
+
           // Load existing workout
           const workoutRef = doc(db, "users", user.uid, "workouts", id);
           const workoutSnap = await getDoc(workoutRef);
@@ -94,13 +99,28 @@ export default function EditWorkoutScreen() {
               });
             });
 
-            setWorkout({ 
-              id: workoutSnap.id, 
-              ...workoutData, 
-              exerciseSets 
-            });
+            // See if there is a draft saved in editing store
+            const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editKeyRef.current!);
+            if (draft) {
+              setWorkout(draft);
+            } else {
+              setWorkout({ 
+                id: workoutSnap.id, 
+                ...workoutData, 
+                exerciseSets 
+              });
+            }
             return;
           }
+        }
+
+        // For new workout, pick an edit key (either passed or generated)
+        editKeyRef.current = workoutEditKey || `temp_${Date.now()}`;
+
+        // Restore draft if present
+        const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editKeyRef.current);
+        if (draft) {
+          setWorkout(draft);
         } else {
           // Create new workout
           setWorkout({
@@ -135,12 +155,16 @@ export default function EditWorkoutScreen() {
       return newSet;
     };
 
-    // Single selection (legacy)
+    // Single selection (legacy) or returned from AddExercise screen
     if (selectedExerciseId) {
       setWorkout((prev) => {
         const base = prev ?? { date: new Date().toISOString(), exerciseSets: [] };
         const newSet = buildNewSet(base, selectedExerciseId, selectedExerciseName);
-        return { ...base, exerciseSets: [...(base.exerciseSets || []), newSet] };
+        const newWorkout = { ...base, exerciseSets: [...(base.exerciseSets || []), newSet] };
+
+        // Persist draft
+        if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newWorkout);
+        return newWorkout;
       });
 
       // Clear params to prevent duplicate additions
@@ -161,7 +185,9 @@ export default function EditWorkoutScreen() {
           parsed.forEach((ex) => {
             newSets.push(buildNewSet(base, ex.id, ex.name));
           });
-          return { ...base, exerciseSets: [...(base.exerciseSets || []), ...newSets] };
+          const newWorkout = { ...base, exerciseSets: [...(base.exerciseSets || []), ...newSets] };
+          if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newWorkout);
+          return newWorkout;
         });
       } catch (e) {
         console.error('Failed to parse selectedExercises', e);
@@ -175,8 +201,8 @@ export default function EditWorkoutScreen() {
   const handleSaveWorkout = async () => {
     if (!workout) return;
 
-    if (workout.exerciseSets.length === 0) {
-      showAlert("Fehler", "Fügen Sie mindestens einen Satz hinzu");
+    if (!workout.name || workout.exerciseSets.length === 0) {
+      showAlert("Fehler", "Bitte geben Sie einen Namen ein und fügen Sie mindestens einen Satz hinzu");
       return;
     }
 
@@ -227,6 +253,9 @@ export default function EditWorkoutScreen() {
 
       await batch.commit();
       
+      // Clear draft
+      if (editKeyRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editKeyRef.current);
+
       showAlert("Erfolg", id ? "Training aktualisiert" : "Training erstellt");
       router.back();
     } catch (e) {
@@ -239,19 +268,28 @@ export default function EditWorkoutScreen() {
 
   // Remove exercise set
   const handleRemoveSet = (index: number) => {
-    setWorkout((prev) => ({
-      ...prev!,
-      exerciseSets: prev!.exerciseSets.filter((_, i) => i !== index),
-    }));
+    setWorkout((prev) => {
+      const newW = { ...prev!, exerciseSets: prev!.exerciseSets.filter((_, i) => i !== index) };
+      if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newW);
+      return newW;
+    });
   };
 
+  // Persist draft when workout changes
+  useEffect(() => {
+    if (editKeyRef.current && workout) {
+      require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, workout);
+    }
+  }, [workout]);
   // Update set
   const handleUpdateSet = (index: number, key: 'weight' | 'reps', value: string) => {
     if (!workout) return;
     const updatedSets = [...workout.exerciseSets];
     const numValue = parseInt(value) || 0;
     updatedSets[index][key] = numValue;
-    setWorkout({ ...workout, exerciseSets: updatedSets });
+    const newW = { ...workout, exerciseSets: updatedSets };
+    if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newW);
+    setWorkout(newW);
   };
 
   // Add a set for a given exercise
@@ -266,10 +304,9 @@ export default function EditWorkoutScreen() {
       reps: 5,
       isDone: false,
     };
-    setWorkout((prev) => ({
-      ...prev!,
-      exerciseSets: [...(prev?.exerciseSets || []), newSet],
-    }));
+    const newW = { ...workout, exerciseSets: [...(workout?.exerciseSets || []), newSet] };
+    if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newW);
+    setWorkout(newW);
   };
 
   if (!workout) {
@@ -280,14 +317,16 @@ export default function EditWorkoutScreen() {
     );
   }
 
+  const canSave = !!workout?.name && (workout.exerciseSets?.length ?? 0) > 0;
+
   return (
     <View style={workoutStyles.container}>
       <TopBar
-        leftButtonText="Zurück"
+        leftButtonText="Abbrechen"
         titleText={id ? "Training bearbeiten" : "Training erstellen"}
-        rightButtonText="Speichern"
-        onLeftPress={() => router.back()}
-        onRightPress={handleSaveWorkout}
+        rightButtonText={canSave ? "Speichern" : undefined}
+        onLeftPress={() => router.push("../..//(tabs)/WorkoutScreenProxy")}
+        onRightPress={canSave ? handleSaveWorkout : undefined}
       />
 
       {/* Name field */}
@@ -388,7 +427,7 @@ export default function EditWorkoutScreen() {
           <Pressable
             onPress={() => router.push({
               pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
-              params: { workoutEditId: id }
+              params: { workoutEditKey: editKeyRef.current }
             })}
             style={{
               backgroundColor: "#333",
