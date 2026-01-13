@@ -8,13 +8,15 @@ import {
   StyleSheet,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from "firebase/firestore";
 import { auth, db } from "@/app/firebaseConfig";
 import { workoutStyles } from "@/app/styles/workoutStyles";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { TopBar } from "@/app/components/TopBar";
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // New Firebase structure
 type ExerciseSet = {
@@ -237,17 +239,35 @@ export default function ActiveWorkoutScreen() {
       .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const snapPoints = ['98%'];
+
+  const bottomSheetRef = useRef<BottomSheet>(null);
+
+  const handlesSheetChanges = useCallback((index: number) => {
+    if(index === 0){
+      //TODO close sheet and open overlay that shows important workout stats. Pushable-> opens active workout Sheet again.
+      router.back();
+    }
+    console.log('handleSheetChanges', index);
+  }, []);
+
   if (!workout) {
     return (
-      <View style={workoutStyles.container}>
+      <GestureHandlerRootView style={styles.sheetContainer}>
+      <BottomSheet index={1} snapPoints={snapPoints} ref={bottomSheetRef} onChange={handlesSheetChanges}>
+      <BottomSheetView style={styles.sheetContainerContent}>
         <Text>Workout wird geladen...</Text>
         <LoadingOverlay visible={loading} />
-      </View>
+      </BottomSheetView>
+      </BottomSheet>
+      </GestureHandlerRootView>
     );
   }
 
   return (
-    <View style={workoutStyles.container}>
+    <GestureHandlerRootView style={styles.sheetContainer}>
+      <BottomSheet index={1} snapPoints={snapPoints} ref={bottomSheetRef} onChange={handlesSheetChanges}>
+      <BottomSheetView style={styles.sheetContainerContent}>
       <TopBar
         leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
         titleText={isEditMode ? "Training bearbeiten" : "Aktives Training"}
@@ -337,7 +357,9 @@ export default function ActiveWorkoutScreen() {
       )}
 
       <LoadingOverlay visible={loading} />
-    </View>
+    </BottomSheetView>
+      </BottomSheet>
+      </GestureHandlerRootView>
   );
 }
 
@@ -392,5 +414,14 @@ const styles = StyleSheet.create({
   setTextDone: {
     color: "#4CAF50",
     textDecorationLine: "line-through",
+  },
+  sheetContainer: {
+    flex: 1,
+    backgroundColor: 'grey',
+  },
+  sheetContainerContent: {
+    flex: 1,
+    padding: 36,
+    alignItems: 'center',
   },
 });
