@@ -23,6 +23,7 @@ type ExerciseSet = {
   id?: string;
   exerciseId: string;
   exerciseName?: string;
+  name?: string;
   weight: number;
   reps: number;
   isDone?: boolean;
@@ -139,6 +140,24 @@ export default function ActiveWorkoutScreen() {
     });
   };
 
+  // Add a set for a given exercise in active workout
+  const handleAddSet = (exerciseId: string, exerciseName?: string) => {
+    if (!workout) return;
+    const existingCount = workout.exerciseSets.filter(s => s.exerciseId === exerciseId).length;
+    const newSet: ExerciseSet = {
+      exerciseId,
+      exerciseName: exerciseName || exercises.get(exerciseId)?.name,
+      name: `${exerciseName || exercises.get(exerciseId)?.name}Set${existingCount + 1}`,
+      weight: 20,
+      reps: 5,
+      isDone: false,
+    };
+    setWorkout((prev) => ({
+      ...prev!,
+      exerciseSets: [...(prev?.exerciseSets || []), newSet],
+    }));
+  };
+
   // Discard Workout
   const handleDiscardWorkout = () => {
     Alert.alert("Training verwerfen", "Möchten Sie dieses Training wirklich verwerfen?", [
@@ -179,9 +198,22 @@ export default function ActiveWorkoutScreen() {
 
             // Update all sets with isDone status using batch
             const batch = writeBatch(db);
+            const setsRef = collection(workoutRef, "exerciseSets");
             workout.exerciseSets.forEach((set) => {
-              const setRef = doc(workoutRef, "exerciseSets", set.id!);
-              batch.update(setRef, { isDone: set.isDone });
+              if (set.id) {
+                const setRef = doc(workoutRef, "exerciseSets", set.id);
+                batch.update(setRef, { isDone: set.isDone });
+              } else {
+                const newRef = doc(setsRef);
+                batch.set(newRef, {
+                  exerciseId: set.exerciseId,
+                  exerciseName: set.exerciseName || null,
+                  name: set.name || null,
+                  weight: set.weight,
+                  reps: set.reps,
+                  isDone: set.isDone || false,
+                });
+              }
             });
             await batch.commit();
 
@@ -241,20 +273,32 @@ export default function ActiveWorkoutScreen() {
 
   const snapPoints = ['98%'];
 
-  const bottomSheetRef = useRef<BottomSheet>(null);
+  const bottomSheetRef = useRef<BottomSheet | null>(null);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const handlesSheetChanges = useCallback((index: number) => {
-    if(index === 0){
-      //TODO close sheet and open overlay that shows important workout stats. Pushable-> opens active workout Sheet again.
-      router.back();
-    }
     console.log('handleSheetChanges', index);
-  }, []);
+    if (index !== 1) {
+      setIsMinimized(true);
+      try {
+        router.push({
+          pathname: '/(tabs)/HomeScreenProxy',
+          params: {
+            activeOverlayWorkout: JSON.stringify({ id: workout?.id ?? null, setsCount: workout?.exerciseSets.length ?? 0, elapsed: elapsedTime })
+          }
+        });
+      } catch (e) {
+        console.warn('Navigation to home failed', e);
+      }
+    } else {
+      setIsMinimized(false);
+    }
+  }, [workout, elapsedTime]);
 
   if (!workout) {
     return (
       <GestureHandlerRootView style={styles.sheetContainer}>
-      <BottomSheet index={1} snapPoints={snapPoints} ref={bottomSheetRef} onChange={handlesSheetChanges}>
+      <BottomSheet index={1} snapPoints={snapPoints} ref={bottomSheetRef} onChange={handlesSheetChanges} enablePanDownToClose={true}>
       <BottomSheetView style={styles.sheetContainerContent}>
         <Text>Workout wird geladen...</Text>
         <LoadingOverlay visible={loading} />
@@ -266,7 +310,7 @@ export default function ActiveWorkoutScreen() {
 
   return (
     <GestureHandlerRootView style={styles.sheetContainer}>
-      <BottomSheet index={1} snapPoints={snapPoints} ref={bottomSheetRef} onChange={handlesSheetChanges}>
+      <BottomSheet index={1} snapPoints={snapPoints} ref={bottomSheetRef} onChange={handlesSheetChanges} enablePanDownToClose={true}>
       <BottomSheetView style={styles.sheetContainerContent}>
       <TopBar
         leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
@@ -330,6 +374,19 @@ export default function ActiveWorkoutScreen() {
         </ScrollView>
       )}
 
+        {/* Add set button: show after last set of each exercise */}
+        {workout.exerciseSets.map((set, i) => {
+          const next = workout.exerciseSets[i+1];
+          if (!next || next.exerciseId !== set.exerciseId) {
+            return (
+              <Pressable key={`add-${i}`} onPress={() => handleAddSet(set.exerciseId, set.exerciseName)} style={{ marginHorizontal: 16, marginBottom: 12, padding: 10, backgroundColor: '#2b2b2b', borderRadius: 8 }}>
+                <Text style={{ color: '#fff' }}>+ Satz hinzufügen für {set.exerciseName || set.exerciseId}</Text>
+              </Pressable>
+            );
+          }
+          return null;
+        })}
+
       {/* Edit Button - only in normal mode */}
       {!isEditMode && (
         <View
@@ -359,6 +416,31 @@ export default function ActiveWorkoutScreen() {
       <LoadingOverlay visible={loading} />
     </BottomSheetView>
       </BottomSheet>
+
+      {/* Minimized overlay (shows above menubar) */}
+      {isMinimized && (
+        <Pressable
+          onPress={() => (bottomSheetRef.current as any)?.snapToIndex?.(0)}
+          style={{
+            position: 'absolute',
+            left: 20,
+            right: 20,
+            bottom: 60,
+            backgroundColor: '#222',
+            padding: 12,
+            borderRadius: 8,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: '#333'
+          }}
+        >
+          <Text style={{ color: '#fff', fontWeight: '600' }}>{workout.exerciseSets.length} Sätze</Text>
+          <Text style={{ color: '#aaa' }}>{formatTime(elapsedTime)}</Text>
+        </Pressable>
+      )}
+
       </GestureHandlerRootView>
   );
 }

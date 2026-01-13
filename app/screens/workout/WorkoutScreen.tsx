@@ -1,6 +1,7 @@
 import { Text, TextInput, View, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import WorkoutList from "../../components/WorkoutList";
 import { workoutStyles as styles } from "../../styles/workoutStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -10,7 +11,15 @@ import LoadingOverlay from "../../components/LoadingOverlay";
 export default function WorkoutScreen() {
   const router = useRouter();
   const [filter, setFilter] = useState("");
+  const [hasActiveWorkout, setHasActiveWorkout] = useState(false);
   const { workouts, loading } = useLoadWorkouts();
+
+  // Open active workout screen when this tab is focused
+  hasActiveWorkout && (useFocusEffect(
+    useCallback(() => {
+      router.push('/screens/workout/ActiveWorkoutScreen');
+    }, [])
+  ));
 
   return (
     <View style={styles.container}>

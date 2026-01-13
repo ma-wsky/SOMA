@@ -21,6 +21,7 @@ type ExerciseSet = {
   id?: string;
   exerciseId: string;
   exerciseName?: string;
+  name?: string;
   weight: number;
   reps: number;
   isDone?: boolean;
@@ -42,10 +43,11 @@ type Exercise = {
 
 export default function EditWorkoutScreen() {
   const [loading, setLoading] = useState<boolean>(false);
-  const { id, selectedExerciseId, selectedExerciseName } = useLocalSearchParams<{ 
+  const { id, selectedExerciseId, selectedExerciseName, selectedExercises } = useLocalSearchParams<{ 
     id?: string;
     selectedExerciseId?: string;
     selectedExerciseName?: string;
+    selectedExercises?: string;
   }>();
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
@@ -116,30 +118,49 @@ export default function EditWorkoutScreen() {
     loadData();
   }, [id]);
 
-  // Handle returning from AddExerciseToWorkoutScreen with selected exercise
+  // Handle returning from AddExerciseToWorkoutScreen with selected exercise(s)
   useEffect(() => {
-    if (selectedExerciseId && workout) {
-      const name = selectedExerciseName || exercises.get(selectedExerciseId)?.name;
+    const addExerciseSet = (exerciseId: string, exerciseName?: string) => {
+      const name = exerciseName || exercises.get(exerciseId)?.name || 'Übung';
+      const existingCount = workout?.exerciseSets.filter(s => s.exerciseId === exerciseId).length || 0;
       const newSet: ExerciseSet = {
-        exerciseId: selectedExerciseId,
+        exerciseId,
         exerciseName: name,
-        weight: 0,
-        reps: 10,
+        name: `${name}Set${existingCount + 1}`,
+        weight: 20,
+        reps: 5,
         isDone: false,
       };
-
       setWorkout((prev) => ({
         ...prev!,
         exerciseSets: [...(prev?.exerciseSets || []), newSet],
       }));
+    };
+
+    // Single selection (legacy)
+    if (selectedExerciseId && workout) {
+      addExerciseSet(selectedExerciseId, selectedExerciseName);
 
       // Clear params to prevent duplicate additions
       router.setParams({
         selectedExerciseId: undefined,
         selectedExerciseName: undefined,
       });
+      return;
     }
-  }, [selectedExerciseId, selectedExerciseName, workout, exercises]);
+
+    // Multiple selection
+    if (selectedExercises && workout) {
+      try {
+        const parsed = JSON.parse(selectedExercises) as Array<{ id: string; name: string }>;
+        parsed.forEach((ex) => addExerciseSet(ex.id, ex.name));
+      } catch (e) {
+        console.error('Failed to parse selectedExercises', e);
+      }
+
+      router.setParams({ selectedExercises: undefined });
+    }
+  }, [selectedExerciseId, selectedExerciseName, selectedExercises, workout, exercises]);
 
   // Save/Update Workout
   const handleSaveWorkout = async () => {
@@ -186,6 +207,8 @@ export default function EditWorkoutScreen() {
         const setRef = doc(setsRef, `set_${index}`);
         batch.set(setRef, {
           exerciseId: set.exerciseId,
+          exerciseName: set.exerciseName || null,
+          name: set.name || null,
           weight: set.weight,
           reps: set.reps,
           isDone: set.isDone || false,
@@ -219,6 +242,24 @@ export default function EditWorkoutScreen() {
     const numValue = parseInt(value) || 0;
     updatedSets[index][key] = numValue;
     setWorkout({ ...workout, exerciseSets: updatedSets });
+  };
+
+  // Add a set for a given exercise
+  const handleAddSet = (exerciseId: string, exerciseName?: string) => {
+    if (!workout) return;
+    const existingCount = workout.exerciseSets.filter(s => s.exerciseId === exerciseId).length;
+    const newSet: ExerciseSet = {
+      exerciseId,
+      exerciseName: exerciseName || exercises.get(exerciseId)?.name,
+      name: `${exerciseName || exercises.get(exerciseId)?.name}Set${existingCount + 1}`,
+      weight: 20,
+      reps: 5,
+      isDone: false,
+    };
+    setWorkout((prev) => ({
+      ...prev!,
+      exerciseSets: [...(prev?.exerciseSets || []), newSet],
+    }));
   };
 
   if (!workout) {
@@ -262,79 +303,64 @@ export default function EditWorkoutScreen() {
           </Text>
 
           {workout.exerciseSets && workout.exerciseSets.length > 0 ? (
-            <FlatList
-              data={workout.exerciseSets}
-              scrollEnabled={false}
-              keyExtractor={(_, i) => i.toString()}
-              renderItem={({ item: set, index }) => (
-                <View
-                  key={index}
-                  style={{
-                    backgroundColor: "#222",
-                    padding: 12,
-                    borderRadius: 8,
-                    marginBottom: 12,
-                  }}
-                >
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                    <Text
-                      style={{
-                        color: "#fff",
-                        fontWeight: "600",
-                        fontSize: 16,
-                      }}
-                    >
-                      {set.exerciseName || set.exerciseId}
-                    </Text>
-                    <Pressable
-                      onPress={() => handleRemoveSet(index)}
-                      style={{ padding: 8 }}
-                    >
-                      <Ionicons name="trash" size={20} color="#ff6b6b" />
-                    </Pressable>
-                  </View>
+          // Group sets by exercise
+          Array.from(
+            workout.exerciseSets.reduce((map, set) => {
+              const arr = map.get(set.exerciseId) || [];
+              arr.push(set);
+              map.set(set.exerciseId, arr);
+              return map;
+            }, new Map<string, ExerciseSet[]>())
+          ).map(([exerciseId, sets]) => (
+            <View key={exerciseId} style={{ marginBottom: 20 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>
+                  {sets[0].exerciseName || exerciseId} ({sets.length})
+                </Text>
+                <Pressable onPress={() => handleAddSet(exerciseId, sets[0].exerciseName)} style={{ padding: 8 }}>
+                  <Text style={{ color: '#fff' }}>+ Satz hinzufügen</Text>
+                </Pressable>
+              </View>
 
-                  {/* Weight and Reps Inputs */}
-                  <View style={{ flexDirection: "row", gap: 12 }}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ color: "#aaa", fontSize: 12, marginBottom: 4 }}>Wiederholungen</Text>
-                      <TextInput
-                        value={set.reps.toString()}
-                        onChangeText={(val) => handleUpdateSet(index, 'reps', val)}
-                        keyboardType="numeric"
-                        style={{
-                          backgroundColor: "#111",
-                          color: "#fff",
-                          padding: 8,
-                          borderRadius: 4,
-                        }}
-                      />
+              {sets.map((set, idx) => {
+                const index = workout.exerciseSets.indexOf(set);
+                return (
+                  <View key={idx} style={{ backgroundColor: "#222", padding: 12, borderRadius: 8, marginBottom: 12 }}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                      <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>{set.name || `Satz ${idx+1}`}</Text>
+                      <Pressable onPress={() => handleRemoveSet(index)} style={{ padding: 8 }}>
+                        <Ionicons name="trash" size={20} color="#ff6b6b" />
+                      </Pressable>
                     </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ color: "#aaa", fontSize: 12, marginBottom: 4 }}>Gewicht (kg)</Text>
-                      <TextInput
-                        value={set.weight.toString()}
-                        onChangeText={(val) => handleUpdateSet(index, 'weight', val)}
-                        keyboardType="numeric"
-                        style={{
-                          backgroundColor: "#111",
-                          color: "#fff",
-                          padding: 8,
-                          borderRadius: 4,
-                        }}
-                      />
+
+                    <View style={{ flexDirection: "row", gap: 12 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ color: "#aaa", fontSize: 12, marginBottom: 4 }}>Wiederholungen</Text>
+                        <TextInput
+                          value={set.reps.toString()}
+                          onChangeText={(val) => handleUpdateSet(index, 'reps', val)}
+                          keyboardType="numeric"
+                          style={{ backgroundColor: "#111", color: "#fff", padding: 8, borderRadius: 4 }}
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ color: "#aaa", fontSize: 12, marginBottom: 4 }}>Gewicht (kg)</Text>
+                        <TextInput
+                          value={set.weight.toString()}
+                          onChangeText={(val) => handleUpdateSet(index, 'weight', val)}
+                          keyboardType="numeric"
+                          style={{ backgroundColor: "#111", color: "#fff", padding: 8, borderRadius: 4 }}
+                        />
+                      </View>
                     </View>
                   </View>
-                </View>
-              )}
-            />
-          ) : (
-            <Text
-              style={{ color: "#666", textAlign: "center", marginBottom: 16 }}
-            >
-              Noch keine Sätze hinzugefügt
-            </Text>
-          )}
+                );
+              })}
+            </View>
+          ))
+        ) : (
+          <Text style={{ color: "#666", textAlign: "center", marginBottom: 16 }}>Noch keine Sätze hinzugefügt</Text>
+        )}
 
           {/* Add Exercise Button */}
           <Pressable

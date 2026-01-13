@@ -15,14 +15,27 @@ export default function AddExerciseToWorkoutScreen() {
     const { workoutEditId } = useLocalSearchParams<{ workoutEditId: string }>();
     const { exercises, loading } = useLoadExercises();
 
-    const handleSelectExercise = (exercise: any) => {
-        // Navigate back to EditWorkoutScreen with selected exercise
+    const [selected, setSelected] = useState<Array<{id: string; name: string}>>([]);
+
+    const toggleSelectExercise = (exercise: any) => {
+        const exists = selected.find((s) => s.id === exercise.id);
+        if (exists) {
+            setSelected((prev) => prev.filter((p) => p.id !== exercise.id));
+        } else {
+            setSelected((prev) => [...prev, { id: exercise.id, name: exercise.name }]);
+        }
+    };
+
+    const handleAddSelected = () => {
+        if (selected.length === 0) {
+            router.back();
+            return;
+        }
         router.push({
             pathname: "/screens/workout/EditWorkoutScreen",
             params: {
                 id: workoutEditId,
-                selectedExerciseId: exercise.id,
-                selectedExerciseName: exercise.name,
+                selectedExercises: JSON.stringify(selected),
                 breakTime: breakTime
             }
         });
@@ -63,8 +76,21 @@ export default function AddExerciseToWorkoutScreen() {
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
-                onItemPress={(exercise) => handleSelectExercise(exercise)}
+                onItemPress={(exercise) => toggleSelectExercise(exercise)}
+                selectedIds={selected.map(s => s.id)}
             />
+
+            {/* Add Selected Button */}
+            {selected.length > 0 && (
+                <View style={{ padding: 20 }}>
+                    <Pressable
+                        onPress={handleAddSelected}
+                        style={{ backgroundColor: '#000', padding: 12, borderRadius: 8, alignItems: 'center' }}
+                    >
+                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Hinzufügen ({selected.length})</Text>
+                    </Pressable>
+                </View>
+            )}
 
             {/* Loading Overlay */}
             <LoadingOverlay visible={loading} />

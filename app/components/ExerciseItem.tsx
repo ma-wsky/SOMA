@@ -6,6 +6,7 @@ interface Props {
     exercise: Exercise;
     onPress?: (exercise: Exercise) => void;
     onAddToWorkout?: (exercise: Exercise) => void;
+    selected?: any;
 }
 
 type Exercise = {
@@ -39,6 +40,11 @@ const styles = StyleSheet.create({
         marginVertical: 4,
         borderRadius: 10,
         backgroundColor: Colors.black,
+    },
+    selected: {
+        backgroundColor: '#333',
+        borderColor: Colors.primary,
+        borderWidth: 1,
     },
     name: {
         fontSize: 20,

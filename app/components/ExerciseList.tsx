@@ -6,6 +6,7 @@ interface Props {
     exercises: Exercise[];
     filter?: string,
     onItemPress?: (exercise: Exercise) => void;
+    selectedIds?: string[];
 }
 
 type Exercise = {
@@ -20,7 +21,7 @@ type ListItem =
     | { type: "divider"; title: string }
     | { type: "exercise"; data: Exercise };
 
-export default function ExerciseList({ exercises, filter="", onItemPress }: Props) {
+export default function ExerciseList({ exercises, filter="", onItemPress, selectedIds}: Props) {
 
     const listData: ListItem[] = useMemo(() => {
         const filtered = exercises.filter(e =>
@@ -75,6 +76,7 @@ export default function ExerciseList({ exercises, filter="", onItemPress }: Prop
                     <ExerciseItem
                         exercise={item.data}
                         onPress={()=> onItemPress && onItemPress(item.data)}
+                        selected={selectedIds?.includes(item.data.id)}
                     />
                 );
             }}
