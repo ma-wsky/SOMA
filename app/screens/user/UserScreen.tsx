@@ -142,7 +142,7 @@ export default function UserScreen() {
                                 ? { uri: profilePic }
                                 : profilePic
                         }
-                        style={{width:300,height:300}}/>
+                        style={styles.image}/>
                 </View>
 
                 <View style={styles.layout}>
@@ -220,8 +220,6 @@ export default function UserScreen() {
 
             </View>
         </ScrollView>
-
-
 
     );
 }

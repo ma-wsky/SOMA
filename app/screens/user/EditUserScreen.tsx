@@ -31,7 +31,7 @@ export default function EditUserScreen() {
     const [currentHeight, setCurrentHeight] = useState<string>("");
     const [inputHeight, setInputHeight] = useState<string>("");
 
-    const [image, setImage] = useState<string|null>(null);
+    const [profilePic, setProfilePic] = useState<string>();
     const [isUploading, setIsUploading] = useState<boolean>(false)
 
     const takePhoto = async ()=> {
@@ -49,7 +49,7 @@ export default function EditUserScreen() {
         });
 
         if (!result.canceled){
-            setImage(result.assets[0].uri);
+            setProfilePic(result.assets[0].uri);
             uploadImage(result.assets[0].uri);
         }
     }
@@ -124,7 +124,7 @@ export default function EditUserScreen() {
                     setCurrentHeight(data.height || "");
                     setInputHeight(data.height || "");
 
-                    setImage(data.profilePicture);
+                    setProfilePic(data.profilePicture);
                 }
             } catch (e) {
                 console.error("Fehler beim Laden:", e);
@@ -207,16 +207,21 @@ export default function EditUserScreen() {
                         {/* Profile Picture */}
                         <View style={styles.circleWrapper}>
                             <Pressable
-                                style={styles.circle}
+                                style={({pressed}) => [
+                                    { opacity: pressed ? 0.7 : 1.0 },
+                                ]}
                                 onPress={takePhoto}>
+
+                                <Image
+                                    source={
+                                        typeof profilePic === 'string'
+                                            ? { uri: profilePic }
+                                            : profilePic
+                                    }
+                                    style={styles.image}/>
+
                             </Pressable>
                         </View>
-
-                        {image ? (
-                            <Image source={{ uri: image }} style={{width:300,height:300}}/>
-                        ) : (
-                            <View style={styles.circle}></View>
-                        )}
 
 
                         {/* Layout of Infos */}

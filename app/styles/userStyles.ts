@@ -78,4 +78,12 @@ export const userStyles = StyleSheet.create({
     input: {
         flex: 1,
     },
+    image: {
+        width:150,
+        height:150,
+        borderRadius: 75,
+        borderWidth: 4,
+        borderColor: 'black',
+        resizeMode: 'cover',
+    },
 })
