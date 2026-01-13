@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { View, Text, Pressable, ScrollView, Alert } from "react-native";
+import { View, Text, Pressable, ScrollView, Alert, Image } from "react-native";
 import { useState, useEffect } from 'react';
 import { auth, db } from "../../firebaseConfig";
 import { signOut, deleteUser } from "firebase/auth";
@@ -19,6 +19,7 @@ export default function UserScreen() {
     const [currentBirthdate, setCurrentBirthdate] = useState<string>("");
     const [currentWeight, setCurrentWeight] = useState<string>("");
     const [currentHeight, setCurrentHeight] = useState<string>("");
+    const [profilePic, setProfilePic] = useState<string>();
 
     const [anon, setAnon] = useState<boolean>(false);
 
@@ -87,6 +88,8 @@ export default function UserScreen() {
                 setAnon(true);
             }
 
+            const defaultProfilePicture = require('../../assets/default-profile-picture/default-profile-picture.jpg');
+
             try {
                 const ref = doc(db, "users", user.uid);
                 const snapshot = await getDoc(ref);
@@ -98,9 +101,13 @@ export default function UserScreen() {
                     setCurrentBirthdate(data.birthdate || "Noch kein Datum gesetzt");
                     setCurrentWeight(data.weight || "Noch kein Gewicht gesetzt");
                     setCurrentHeight(data.height || "Noch keine Größe gesetzt");
+                    setProfilePic(data.profilePicture ? data.profilePicture : defaultProfilePicture);
+                }else{
+                    setProfilePic(defaultProfilePicture);
                 }
             } catch (e) {
                 console.error("Fehler beim Laden:", e);
+                setProfilePic(defaultProfilePicture);
             }finally {
                 setLoading(false);
             }
@@ -129,7 +136,13 @@ export default function UserScreen() {
                 </View>
 
                 <View style={styles.circleWrapper}>
-                    <View style={styles.circle}></View>
+                    <Image
+                        source={
+                            typeof profilePic === 'string'
+                                ? { uri: profilePic }
+                                : profilePic
+                        }
+                        style={styles.image}/>
                 </View>
 
                 <View style={styles.layout}>
@@ -207,8 +220,6 @@ export default function UserScreen() {
 
             </View>
         </ScrollView>
-
-
 
     );
 }

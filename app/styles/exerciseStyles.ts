@@ -44,6 +44,24 @@ export const exerciseStyles = StyleSheet.create({
         alignItems: "center",
     },
     picText: {
-        color: "white",
-    }
+        color: "black",
+    },
+    image: {
+        width:150,
+        height:150,
+        borderRadius: 75,
+        borderWidth: 4,
+        borderColor: 'black',
+        resizeMode: 'cover',
+    },
+    textOverlay: {
+        // Positioniert den Text absolut über dem Bild
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 })
