@@ -2,27 +2,29 @@ import { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig";
 import { collection, getDocs, doc } from "firebase/firestore";
 
-type Exercise = {
+type Workout = {
   id: string;
   name: string;
-  muscleGroup: string;
-  equipment: string;
-  instructions: string;
+  date: string;
+  duration: number;
+  exerciseSets: ExerciseSet[];
 };
 
 type ExerciseSet = {
-  id?: string;
+  id: string;
   exerciseId: string;
-  exerciseName?: string;
+  exerciseName: string;
   weight: number;
   reps: number;
-  isDone?: boolean;
+  isDone: boolean;
 };
 
-type Workout = {
-  id: string;
-  date: string;
-  exerciseSets: ExerciseSet[];
+type Exercise = {
+    id: string;
+    name: string;
+    muscleGroup?: string;
+    isFavorite: boolean;
+    isOwn: boolean;
 };
 
 export function useLoadWorkouts() {
@@ -70,6 +72,8 @@ export function useLoadWorkouts() {
 
           userWorkouts.push({
             id: workoutDoc.id,
+            name: workoutData.name || "Unnamed Workout",
+            duration: workoutData.duration || 0,
             date: workoutData.date || "",
             exerciseSets: sets,
           });

@@ -5,6 +5,7 @@ import { Colors } from "../styles/theme"
 interface Props {
     exercise: Exercise;
     onPress?: (exercise: Exercise) => void;
+    onAddToWorkout?: (exercise: Exercise) => void;
 }
 
 type Exercise = {
@@ -24,6 +25,9 @@ export default function ExerciseItem({ exercise, onPress }: Props) {
             <Text style={styles.name}>{exercise.name}</Text>
 
             <Text style={styles.muscle}>{exercise.muscleGroup}</Text>
+
+
+
 
         </Pressable>
     );

@@ -63,7 +63,6 @@ export default function AddExerciseToWorkoutScreen() {
                 exercises={exercises}
                 filter={filter}
                 onItemPress={(exercise) => handleSelectExercise(exercise.id)}
-                onItemAdd={(exercise) => handleSelectExercise(exercise.id)}
             />
 
             {/* Loading Overlay */}

@@ -13,27 +13,31 @@ type Workout = {
     id: string;
     name: string;
     date: string;
+    duration: number;
     exerciseSets: ExerciseSet[];
 };
 
 type ExerciseSet = {
-    id?: string;
+    id: string;
+    exerciseName: string;
     exerciseId: string;
     weight: number;
     reps: number;
-    isDone?: boolean;
+    isDone: boolean;
 };
 
 export default function WorkoutItem({workout, onPress}: Props) {
     return (
         <View style={styles.itemContainer}>
 
-            <View>
+            <Pressable
+                onPress={() => {router.push({pathname: "/screens/workout/SingleWorkoutInfoScreen", params: {id: workout.id}})}}
+            >
                 <Text style={styles.title}>{workout.name}</Text>
                 <Text style={{color: "#aaa", fontSize: 12, marginTop: 4}}>
                     {workout.exerciseSets.length} Sets
                 </Text>
-            </View>
+            </Pressable>
 
             <Pressable
                 onPress={() => {router.push({pathname: "/screens/workout/ActiveWorkoutScreen", params: {id: workout.id}})}}

@@ -55,7 +55,7 @@ export default function CreateExerciseScreen() {
                     equipment: inputEquipment,
                     instructions: inputInstructions,
                 })
-                router.replace("/screens/workout/ExerciseScreen");
+                router.replace("./screens/workout/ExerciseScreen");
                 Alert.alert("Gespeichert", "Deine Änderungen wurden übernommen.");
 
             }else{
@@ -83,7 +83,7 @@ export default function CreateExerciseScreen() {
                                     await updateDoc(docRef, updates);
                                 }
 
-                                router.replace("/screens/workout/ExerciseScreen");
+                                router.replace("./screens/workout/ExerciseScreen");
                                 Alert.alert("Gespeichert", "Deine Änderungen wurden übernommen.");
                             },
                         },

@@ -13,28 +13,24 @@ type Workout = {
   id: string;
   name: string;
   date: string;
-  duration?: number;
+  duration: number;
   exerciseSets: ExerciseSet[];
 };
 
 type ExerciseSet = {
-  id?: string;
+  id: string;
   exerciseId: string;
-  exerciseName?: string;
+  exerciseName: string;
   weight: number;
   reps: number;
-  isDone?: boolean;
+  isDone: boolean;
 };
 
 
 
 type ListItem = { type: "workout"; data: Workout };
 
-export default function WorkoutList({
-  workouts,
-  filter = "",
-  onItemPress,
-}: Props) {
+export default function WorkoutList({workouts, filter = "", onItemPress}: Props) {
   const listData: ListItem[] = useMemo(() => {
     const filtered = workouts.filter((w) =>
       w.date.toLowerCase().includes(filter.toLowerCase()),
