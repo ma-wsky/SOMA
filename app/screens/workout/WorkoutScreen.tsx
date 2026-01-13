@@ -14,12 +14,19 @@ export default function WorkoutScreen() {
   const [hasActiveWorkout, setHasActiveWorkout] = useState(false);
   const { workouts, loading } = useLoadWorkouts();
 
-  // Open active workout screen when this tab is focused
-  hasActiveWorkout && (useFocusEffect(
+  // When this tab is focused, open the ActiveWorkoutScreen if there is an active workout stored
+  useFocusEffect(
     useCallback(() => {
-      router.push('/screens/workout/ActiveWorkoutScreen');
+      try {
+        const active = require("@/app/utils/activeWorkoutStore").getActiveWorkout();
+        if (active?.id) {
+          router.push({ pathname: '/screens/workout/ActiveWorkoutScreen', params: { id: active.id } });
+        }
+      } catch (e) {
+        console.warn('Error checking active workout on focus', e);
+      }
     }, [])
-  ));
+  );
 
   return (
     <View style={styles.container}>

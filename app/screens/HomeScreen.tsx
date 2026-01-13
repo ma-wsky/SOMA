@@ -1,5 +1,7 @@
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from 'react';
 import { View, Pressable, Text } from 'react-native';
+import { clearActiveWorkout } from '@/app/utils/activeWorkoutStore';
 import { Calendar } from "react-native-calendars";
 import {Colors} from "../styles/theme";
 import { homeStyles as styles } from "../styles/homeStyles";
@@ -12,14 +14,32 @@ export default function Home(){
     const router = useRouter();
     const { activeOverlayWorkout } = useLocalSearchParams<{ activeOverlayWorkout?: string }>();
 
-    let overlay: { id?: string | null; setsCount?: number; elapsed?: number } | null = null;
-    if (activeOverlayWorkout) {
+    const [overlayObj, setOverlayObj] = useState<{ id?: string | null; setsCount?: number; startTime?: number; elapsed?: number } | null>(null);
+    const [displayElapsed, setDisplayElapsed] = useState<number>(0);
+
+    useEffect(() => {
+        if (!activeOverlayWorkout) {
+            setOverlayObj(null);
+            setDisplayElapsed(0);
+            return;
+        }
         try {
-            overlay = JSON.parse(activeOverlayWorkout);
+            const parsed = JSON.parse(activeOverlayWorkout);
+            setOverlayObj(parsed);
+            if (parsed.startTime) {
+                const tick = () => setDisplayElapsed(Math.floor((Date.now() - parsed.startTime)/1000));
+                tick();
+                const t = setInterval(tick, 1000);
+                return () => clearInterval(t);
+            } else {
+                setDisplayElapsed(parsed.elapsed ?? 0);
+            }
         } catch (e) {
             console.warn('Invalid overlay param', e);
+            setOverlayObj(null);
+            setDisplayElapsed(0);
         }
-    }
+    }, [activeOverlayWorkout]);
 
     const formatTime = (seconds: number) => {
         const hours = Math.floor(seconds / 3600);
@@ -64,17 +84,18 @@ export default function Home(){
             </View>
 
             {/* Active workout overlay (from minimized sheet) */}
-            {overlay && (
+            {overlayObj && (
                 <Pressable
                     onPress={() => {
                         // clear param and open active workout
+                        clearActiveWorkout();
                         router.replace({ pathname: '/(tabs)/HomeScreenProxy' });
-                        router.push({ pathname: '/screens/workout/ActiveWorkoutScreen', params: { id: overlay?.id } });
+                        router.push({ pathname: '/screens/workout/ActiveWorkoutScreen', params: { id: overlayObj?.id } });
                     }}
                     style={{ position: 'absolute', left: 20, right: 20, bottom: 80, backgroundColor: '#222', padding: 12, borderRadius: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#333' }}
                 >
-                    <Text style={{ color: '#fff', fontWeight: '600' }}>{overlay.setsCount} Sätze</Text>
-                    <Text style={{ color: '#aaa' }}>{formatTime(overlay.elapsed || 0)}</Text>
+                    <Text style={{ color: '#fff', fontWeight: '600' }}>{overlayObj.setsCount} Sätze</Text>
+                    <Text style={{ color: '#aaa' }}>{formatTime(displayElapsed)}</Text>
                 </Pressable>
             )}
 

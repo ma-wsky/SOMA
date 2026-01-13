@@ -1,12 +1,14 @@
 import {
   View,
   Text,
+  TextInput,
   Pressable,
   ScrollView,
   FlatList,
-  Alert,
   StyleSheet,
 } from "react-native";
+import { showAlert, showConfirm } from "@/app/utils/alertHelper";
+import { setActiveWorkout, clearActiveWorkout } from "@/app/utils/activeWorkoutStore";
 import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from "firebase/firestore";
@@ -32,6 +34,7 @@ type ExerciseSet = {
 type Workout = {
   id?: string;
   date: string;
+  name?: string;
   exerciseSets: ExerciseSet[];
   startTime?: number;
 };
@@ -107,7 +110,7 @@ export default function ActiveWorkoutScreen() {
         }
       } catch (e) {
         console.error("Fehler beim Laden des Workouts:", e);
-        Alert.alert("Fehler", "Workout konnte nicht geladen werden");
+        showAlert("Fehler", "Workout konnte nicht geladen werden");
       } finally {
         setLoading(false);
       }
@@ -160,107 +163,121 @@ export default function ActiveWorkoutScreen() {
 
   // Discard Workout
   const handleDiscardWorkout = () => {
-    Alert.alert("Training verwerfen", "Möchten Sie dieses Training wirklich verwerfen?", [
-      {
-        text: "Abbrechen",
-        style: "cancel",
-      },
-      {
-        text: "Verwerfen",
-        style: "destructive",
-        onPress: () => {
-          router.back();
-        },
-      },
-    ]);
+    showConfirm("Training verwerfen", "Möchten Sie dieses Training wirklich verwerfen?", () => {
+      clearActiveWorkout();
+      router.back();
+    }, { confirmText: "Verwerfen", cancelText: "Abbrechen" });
   };
 
   // Finish Workout (speichern)
   const handleFinishWorkout = async () => {
-    Alert.alert("Training beenden", "Möchten Sie dieses Training speichern?", [
-      {
-        text: "Abbrechen",
-        style: "cancel",
-      },
-      {
-        text: "Speichern",
-        onPress: async () => {
-          setLoading(true);
-          try {
-            const user = auth.currentUser;
-            if (!user || !workout) return;
+    showConfirm("Training beenden", "Möchten Sie dieses Training speichern?", async () => {
+      setLoading(true);
+      try {
+        const user = auth.currentUser;
+        if (!user || !workout) return;
 
-            // Save main workout document
-            const workoutRef = doc(db, "users", user.uid, "workouts", workout.id!);
-            await setDoc(workoutRef, {
-              date: workout.date,
+        // Save main workout document
+        const workoutRef = doc(db, "users", user.uid, "workouts", workout.id!);
+        await setDoc(workoutRef, {
+          date: workout.date,
+          name: workout.name || null,
+        });
+
+        // Update all sets with isDone status using batch
+        const batch = writeBatch(db);
+        const setsRef = collection(workoutRef, "exerciseSets");
+        workout.exerciseSets.forEach((set) => {
+          if (set.id) {
+            const setRef = doc(workoutRef, "exerciseSets", set.id);
+            batch.update(setRef, { isDone: set.isDone });
+          } else {
+            const newRef = doc(setsRef);
+            batch.set(newRef, {
+              exerciseId: set.exerciseId,
+              exerciseName: set.exerciseName || null,
+              name: set.name || null,
+              weight: set.weight,
+              reps: set.reps,
+              isDone: set.isDone || false,
             });
-
-            // Update all sets with isDone status using batch
-            const batch = writeBatch(db);
-            const setsRef = collection(workoutRef, "exerciseSets");
-            workout.exerciseSets.forEach((set) => {
-              if (set.id) {
-                const setRef = doc(workoutRef, "exerciseSets", set.id);
-                batch.update(setRef, { isDone: set.isDone });
-              } else {
-                const newRef = doc(setsRef);
-                batch.set(newRef, {
-                  exerciseId: set.exerciseId,
-                  exerciseName: set.exerciseName || null,
-                  name: set.name || null,
-                  weight: set.weight,
-                  reps: set.reps,
-                  isDone: set.isDone || false,
-                });
-              }
-            });
-            await batch.commit();
-
-            Alert.alert("Erfolg", "Training gespeichert");
-            router.back();
-          } catch (e) {
-            console.error("Fehler beim Speichern:", e);
-            Alert.alert("Fehler", "Training konnte nicht gespeichert werden");
-          } finally {
-            setLoading(false);
           }
-        },
-      },
-    ]);
+        });
+        await batch.commit();
+
+        showAlert("Erfolg", "Training gespeichert");
+        clearActiveWorkout();
+        router.back();
+      } catch (e) {
+        console.error("Fehler beim Speichern:", e);
+        showAlert("Fehler", "Training konnte nicht gespeichert werden");
+      } finally {
+        setLoading(false);
+      }
+    }, { confirmText: "Speichern", cancelText: "Abbrechen" });
   };
 
-  // Edit mode - save changes
+  // Remove a set
+  const handleRemoveSet = (index: number) => {
+    setWorkout((prev) => ({
+      ...prev!,
+      exerciseSets: prev!.exerciseSets.filter((_, i) => i !== index),
+    }));
+  };
+
+  // Update a set value
+  const handleUpdateSet = (index: number, key: 'weight' | 'reps', value: string) => {
+    if (!workout) return;
+    const updatedSets = [...workout.exerciseSets];
+    const numValue = parseInt(value) || 0;
+    updatedSets[index][key] = numValue;
+    setWorkout({ ...workout, exerciseSets: updatedSets });
+  };
+
+  // Edit mode - save changes (persist full sets)
   const handleSaveChanges = async () => {
     if (!workout) return;
     setLoading(true);
     try {
       const user = auth.currentUser;
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
-      // Save main workout document
-      const workoutRef = doc(db, "users", user.uid, "workouts", workout.id!);
-      await setDoc(workoutRef, {
-        date: workout.date,
-      });
+      const workoutId = workout.id || Date.now().toString();
+      const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
 
-      // Update all sets with isDone status using batch
       const batch = writeBatch(db);
-      workout.exerciseSets.forEach((set) => {
-        const setRef = doc(workoutRef, "exerciseSets", set.id!);
-        batch.update(setRef, { isDone: set.isDone });
+      batch.set(workoutRef, { date: workout.date, name: workout.name || null });
+
+      const setsRef = collection(workoutRef, "exerciseSets");
+      const existingSets = await getDocs(setsRef);
+      existingSets.forEach((d) => batch.delete(d.ref));
+
+      workout.exerciseSets.forEach((set, index) => {
+        const setRef = doc(setsRef, `set_${index}`);
+        batch.set(setRef, {
+          exerciseId: set.exerciseId,
+          exerciseName: set.exerciseName || null,
+          name: set.name || null,
+          weight: set.weight,
+          reps: set.reps,
+          isDone: set.isDone || false,
+        });
       });
+
       await batch.commit();
 
       setIsEditMode(false);
-      Alert.alert("Erfolg", "Änderungen gespeichert");
+      showAlert("Erfolg", "Änderungen gespeichert");
     } catch (e) {
       console.error("Fehler beim Speichern:", e);
-      Alert.alert("Fehler", "Änderungen konnten nicht gespeichert werden");
+      showAlert("Fehler", "Änderungen konnten nicht gespeichert werden");
     } finally {
       setLoading(false);
     }
-  };
+  }; 
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -273,7 +290,7 @@ export default function ActiveWorkoutScreen() {
 
   const snapPoints = ['98%'];
 
-  const bottomSheetRef = useRef<BottomSheet | null>(null);
+  const bottomSheetRef = useRef<BottomSheet>(null);
   const [isMinimized, setIsMinimized] = useState(false);
 
   const handlesSheetChanges = useCallback((index: number) => {
@@ -284,16 +301,25 @@ export default function ActiveWorkoutScreen() {
         router.push({
           pathname: '/(tabs)/HomeScreenProxy',
           params: {
-            activeOverlayWorkout: JSON.stringify({ id: workout?.id ?? null, setsCount: workout?.exerciseSets.length ?? 0, elapsed: elapsedTime })
+            activeOverlayWorkout: JSON.stringify({ id: workout?.id ?? null, setsCount: workout?.exerciseSets.length ?? 0, startTime: workout?.startTime ?? Date.now() })
           }
         });
       } catch (e) {
         console.warn('Navigation to home failed', e);
       }
+
+      // Store active workout in-memory so Workout tab can detect and open it
+      setActiveWorkout({ id: workout?.id ?? null, startTime: workout?.startTime ?? Date.now(), setsCount: workout?.exerciseSets.length ?? 0 });
     } else {
       setIsMinimized(false);
+      /*try {
+        router.replace({ pathname: '/(tabs)/HomeScreenProxy' });
+      } catch (e) {
+        console.warn('Failed to clear home overlay param', e);
+      }*/
+      clearActiveWorkout();
     }
-  }, [workout, elapsedTime]);
+  }, [workout]);
 
   if (!workout) {
     return (
@@ -320,6 +346,23 @@ export default function ActiveWorkoutScreen() {
         onRightPress={isEditMode ? handleSaveChanges : handleFinishWorkout}
       />
 
+      {/* Name (editable in edit mode) */}
+      {isEditMode ? (
+        <View style={{ paddingHorizontal: 20, width: '100%', marginTop: 8 }}>
+          <TextInput
+            value={workout.name || ''}
+            onChangeText={(t) => setWorkout(prev => ({ ...(prev ?? { date: new Date().toISOString(), exerciseSets: [] }), name: t }))}
+            placeholder="Name des Trainings"
+            placeholderTextColor="#666"
+            style={{ backgroundColor: '#111', color: '#fff', padding: 8, borderRadius: 8 }}
+          />
+        </View>
+      ) : (
+        <View style={{ paddingHorizontal: 20, width: '100%', marginTop: 8 }}>
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>{workout.name || 'Aktives Training'}</Text>
+        </View>
+      )}
+
       {/* Timer */}
       <View style={styles.timerSection}>
         <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
@@ -327,45 +370,106 @@ export default function ActiveWorkoutScreen() {
 
       {/* Exercise Sets List */}
       {workout.exerciseSets.length > 0 ? (
-        <FlatList
-          data={workout.exerciseSets}
-          keyExtractor={(_, i) => i.toString()}
-          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-          renderItem={({ item: set, index: setIndex }) => (
-            <Pressable
-              key={setIndex}
-              onPress={() => !isEditMode && handleSetCheck(setIndex)}
-              disabled={isEditMode}
-              style={[styles.setItem, set.isDone && styles.setItemDone]}
-            >
-              {!isEditMode && (
-                <View
-                  style={[
-                    styles.checkbox,
-                    set.isDone && styles.checkboxDone,
-                  ]}
-                >
-                  {set.isDone && (
-                    <Ionicons name="checkmark" size={16} color="#fff" />
-                  )}
+        isEditMode ? (
+          // Group sets by exercise with edit controls
+          <View style={{ paddingHorizontal: 16, paddingBottom: 100, width: '100%' }}>
+            {Array.from(
+              workout.exerciseSets.reduce((map, set) => {
+                const arr = map.get(set.exerciseId) || [];
+                arr.push(set);
+                map.set(set.exerciseId, arr);
+                return map;
+              }, new Map<string, ExerciseSet[]>())
+            ).map(([exerciseId, sets]) => (
+              <View key={exerciseId} style={{ marginBottom: 20 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>
+                    {sets[0].exerciseName || exerciseId} ({sets.length})
+                  </Text>
+                  <Pressable onPress={() => handleAddSet(exerciseId, sets[0].exerciseName)} style={{ padding: 8 }}>
+                    <Text style={{ color: '#fff' }}>+ Satz hinzufügen</Text>
+                  </Pressable>
                 </View>
-              )}
-              <View style={{ flex: 1 }}>
-                <Text style={styles.exerciseName}>
-                  {set.exerciseName || set.exerciseId}
-                </Text>
-                <Text
-                  style={[
-                    styles.setText,
-                    set.isDone && styles.setTextDone,
-                  ]}
-                >
-                  {set.reps} Wiederholungen @ {set.weight}kg
-                </Text>
+
+                {sets.map((set, idx) => {
+                  const index = workout.exerciseSets.indexOf(set);
+                  return (
+                    <View key={idx} style={{ backgroundColor: "#222", padding: 12, borderRadius: 8, marginBottom: 12 }}>
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                        <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>{set.name || `Satz ${idx+1}`}</Text>
+                        <Pressable onPress={() => handleRemoveSet(index)} style={{ padding: 8 }}>
+                          <Ionicons name="trash" size={20} color="#ff6b6b" />
+                        </Pressable>
+                      </View>
+
+                      <View style={{ flexDirection: "row", gap: 12 }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: "#aaa", fontSize: 12, marginBottom: 4 }}>Wiederholungen</Text>
+                          <TextInput
+                            value={set.reps.toString()}
+                            onChangeText={(val) => handleUpdateSet(index, 'reps', val)}
+                            keyboardType="numeric"
+                            style={{ backgroundColor: "#111", color: "#fff", padding: 8, borderRadius: 4 }}
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: "#aaa", fontSize: 12, marginBottom: 4 }}>Gewicht (kg)</Text>
+                          <TextInput
+                            value={set.weight.toString()}
+                            onChangeText={(val) => handleUpdateSet(index, 'weight', val)}
+                            keyboardType="numeric"
+                            style={{ backgroundColor: "#111", color: "#fff", padding: 8, borderRadius: 4 }}
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
-            </Pressable>
-          )}
-        />
+            ))}
+          </View>
+        ) : (
+          // non-edit simple list
+          <FlatList
+            data={workout.exerciseSets}
+            keyExtractor={(_, i) => i.toString()}
+            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+            renderItem={({ item: set, index: setIndex }) => (
+              <Pressable
+                key={setIndex}
+                onPress={() => !isEditMode && handleSetCheck(setIndex)}
+                disabled={isEditMode}
+                style={[styles.setItem, set.isDone && styles.setItemDone]}
+              >
+                {!isEditMode && (
+                  <View
+                    style={[
+                      styles.checkbox,
+                      set.isDone && styles.checkboxDone,
+                    ]}
+                  >
+                    {set.isDone && (
+                      <Ionicons name="checkmark" size={16} color="#fff" />
+                    )}
+                  </View>
+                )}
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.exerciseName}>
+                    {set.exerciseName || set.exerciseId}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.setText,
+                      set.isDone && styles.setTextDone,
+                    ]}
+                  >
+                    {set.reps} Wiederholungen @ {set.weight}kg
+                  </Text>
+                </View>
+              </Pressable>
+            )}
+          />
+        )
       ) : (
         <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 40 }}>
           <Text style={{ color: "#aaa", textAlign: "center", fontSize: 16 }}>

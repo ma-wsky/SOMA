@@ -6,9 +6,9 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  Alert,
   FlatList,
 } from "react-native";
+import { showAlert } from "@/app/utils/alertHelper";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState, useEffect } from "react";
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from "firebase/firestore";
@@ -30,6 +30,7 @@ type ExerciseSet = {
 type Workout = {
   id?: string;
   date: string;
+  name?: string;
   exerciseSets: ExerciseSet[];
 };
 
@@ -59,7 +60,7 @@ export default function EditWorkoutScreen() {
       try {
         const user = auth.currentUser;
         if (!user) {
-          Alert.alert("Fehler", "Sie müssen angemeldet sein");
+          showAlert("Fehler", "Sie müssen angemeldet sein");
           return;
         }
 
@@ -109,7 +110,7 @@ export default function EditWorkoutScreen() {
         }
       } catch (e) {
         console.error("Fehler beim Laden:", e);
-        Alert.alert("Fehler", "Workout konnte nicht geladen werden");
+        showAlert("Fehler", "Workout konnte nicht geladen werden");
       } finally {
         setLoading(false);
       }
@@ -120,9 +121,9 @@ export default function EditWorkoutScreen() {
 
   // Handle returning from AddExerciseToWorkoutScreen with selected exercise(s)
   useEffect(() => {
-    const addExerciseSet = (exerciseId: string, exerciseName?: string) => {
+    const buildNewSet = (baseWorkout: Workout, exerciseId: string, exerciseName?: string) => {
       const name = exerciseName || exercises.get(exerciseId)?.name || 'Übung';
-      const existingCount = workout?.exerciseSets.filter(s => s.exerciseId === exerciseId).length || 0;
+      const existingCount = baseWorkout.exerciseSets.filter(s => s.exerciseId === exerciseId).length || 0;
       const newSet: ExerciseSet = {
         exerciseId,
         exerciseName: name,
@@ -131,15 +132,16 @@ export default function EditWorkoutScreen() {
         reps: 5,
         isDone: false,
       };
-      setWorkout((prev) => ({
-        ...prev!,
-        exerciseSets: [...(prev?.exerciseSets || []), newSet],
-      }));
+      return newSet;
     };
 
     // Single selection (legacy)
-    if (selectedExerciseId && workout) {
-      addExerciseSet(selectedExerciseId, selectedExerciseName);
+    if (selectedExerciseId) {
+      setWorkout((prev) => {
+        const base = prev ?? { date: new Date().toISOString(), exerciseSets: [] };
+        const newSet = buildNewSet(base, selectedExerciseId, selectedExerciseName);
+        return { ...base, exerciseSets: [...(base.exerciseSets || []), newSet] };
+      });
 
       // Clear params to prevent duplicate additions
       router.setParams({
@@ -150,24 +152,31 @@ export default function EditWorkoutScreen() {
     }
 
     // Multiple selection
-    if (selectedExercises && workout) {
+    if (selectedExercises) {
       try {
         const parsed = JSON.parse(selectedExercises) as Array<{ id: string; name: string }>;
-        parsed.forEach((ex) => addExerciseSet(ex.id, ex.name));
+        setWorkout((prev) => {
+          const base = prev ?? { date: new Date().toISOString(), exerciseSets: [] };
+          const newSets: ExerciseSet[] = [];
+          parsed.forEach((ex) => {
+            newSets.push(buildNewSet(base, ex.id, ex.name));
+          });
+          return { ...base, exerciseSets: [...(base.exerciseSets || []), ...newSets] };
+        });
       } catch (e) {
         console.error('Failed to parse selectedExercises', e);
       }
 
       router.setParams({ selectedExercises: undefined });
     }
-  }, [selectedExerciseId, selectedExerciseName, selectedExercises, workout, exercises]);
+  }, [selectedExerciseId, selectedExerciseName, selectedExercises, exercises]);
 
   // Save/Update Workout
   const handleSaveWorkout = async () => {
     if (!workout) return;
 
     if (workout.exerciseSets.length === 0) {
-      Alert.alert("Fehler", "Fügen Sie mindestens einen Satz hinzu");
+      showAlert("Fehler", "Fügen Sie mindestens einen Satz hinzu");
       return;
     }
 
@@ -175,7 +184,7 @@ export default function EditWorkoutScreen() {
     try {
       const user = auth.currentUser;
       if (!user) {
-        Alert.alert("Fehler", "Sie müssen angemeldet sein");
+        showAlert("Fehler", "Sie müssen angemeldet sein");
         return;
       }
 
@@ -185,6 +194,7 @@ export default function EditWorkoutScreen() {
       // Prepare workout data (without exerciseSets, those go in subcollection)
       const workoutData = {
         date: workout.date,
+        name: workout.name || null,
       };
 
       // Use batch write for atomicity
@@ -217,11 +227,11 @@ export default function EditWorkoutScreen() {
 
       await batch.commit();
       
-      Alert.alert("Erfolg", id ? "Training aktualisiert" : "Training erstellt");
+      showAlert("Erfolg", id ? "Training aktualisiert" : "Training erstellt");
       router.back();
     } catch (e) {
       console.error("Fehler beim Speichern:", e);
-      Alert.alert("Fehler", "Training konnte nicht gespeichert werden");
+      showAlert("Fehler", "Training konnte nicht gespeichert werden");
     } finally {
       setLoading(false);
     }
@@ -279,6 +289,18 @@ export default function EditWorkoutScreen() {
         onLeftPress={() => router.back()}
         onRightPress={handleSaveWorkout}
       />
+
+      {/* Name field */}
+      <View style={{ paddingHorizontal: 20, marginTop: 8 }}>
+        <Text style={{ color: '#fff', marginBottom: 6 }}>Name des Trainings</Text>
+        <TextInput
+          value={workout.name || ''}
+          onChangeText={(t) => setWorkout(prev => ({ ...(prev ?? { date: new Date().toISOString(), exerciseSets: [] }), name: t }))}
+          placeholder="z. B. Oberkörper-Programm"
+          placeholderTextColor="#666"
+          style={{ backgroundColor: '#111', color: '#fff', padding: 10, borderRadius: 8 }}
+        />
+      </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
         {/* Workout Date */}
