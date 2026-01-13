@@ -119,9 +119,10 @@ export default function EditWorkoutScreen() {
   // Handle returning from AddExerciseToWorkoutScreen with selected exercise
   useEffect(() => {
     if (selectedExerciseId && workout) {
+      const name = selectedExerciseName || exercises.get(selectedExerciseId)?.name;
       const newSet: ExerciseSet = {
         exerciseId: selectedExerciseId,
-        exerciseName: selectedExerciseName,
+        exerciseName: name,
         weight: 0,
         reps: 10,
         isDone: false,
@@ -138,7 +139,7 @@ export default function EditWorkoutScreen() {
         selectedExerciseName: undefined,
       });
     }
-  }, [selectedExerciseId]);
+  }, [selectedExerciseId, selectedExerciseName, workout, exercises]);
 
   // Save/Update Workout
   const handleSaveWorkout = async () => {

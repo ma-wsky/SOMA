@@ -15,13 +15,14 @@ export default function AddExerciseToWorkoutScreen() {
     const { workoutEditId } = useLocalSearchParams<{ workoutEditId: string }>();
     const { exercises, loading } = useLoadExercises();
 
-    const handleSelectExercise = (exerciseId: string) => {
+    const handleSelectExercise = (exercise: any) => {
         // Navigate back to EditWorkoutScreen with selected exercise
         router.push({
             pathname: "/screens/workout/EditWorkoutScreen",
             params: {
                 id: workoutEditId,
-                selectedExerciseId: exerciseId,
+                selectedExerciseId: exercise.id,
+                selectedExerciseName: exercise.name,
                 breakTime: breakTime
             }
         });
@@ -62,7 +63,7 @@ export default function AddExerciseToWorkoutScreen() {
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
-                onItemPress={(exercise) => handleSelectExercise(exercise.id)}
+                onItemPress={(exercise) => handleSelectExercise(exercise)}
             />
 
             {/* Loading Overlay */}
