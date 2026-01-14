@@ -8,6 +8,7 @@ import { userStyles as styles } from "../../styles/userStyles";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import * as ImagePicker from 'expo-image-picker';
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 
 export default function EditUserScreen() {
@@ -33,6 +34,9 @@ export default function EditUserScreen() {
 
     const [profilePic, setProfilePic] = useState<string>();
     const [isUploading, setIsUploading] = useState<boolean>(false)
+
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [dateObject, setDateObject] = useState(new Date());
 
     const takePhoto = async ()=> {
         const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
@@ -125,6 +129,15 @@ export default function EditUserScreen() {
                     setInputHeight(data.height || "");
 
                     setProfilePic(data.profilePicture);
+
+                    if (data.birthdate) {
+                        // Versuch, den String "TT.MM.JJJJ" zurück in ein Objekt zu wandeln
+                        const parts = data.birthdate.split('.');
+                        if (parts.length === 3) {
+                            const parsedDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                            setDateObject(parsedDate);
+                        }
+                    }
                 }
             } catch (e) {
                 console.error("Fehler beim Laden:", e);
@@ -231,7 +244,7 @@ export default function EditUserScreen() {
                             <View style={styles.wrapper}>
                                 <Text style={styles.text}>Name</Text>
 
-                                <View style={styles.fieldWrapper}>
+                                <View style={styles.EditFieldWrapper}>
                                     <TextInput
                                         style={styles.input}
                                         placeholder={currentName || "Name eingeben"}
@@ -245,7 +258,7 @@ export default function EditUserScreen() {
                             <View style={styles.wrapper}>
                                 <Text style={styles.text}>E-Mail</Text>
 
-                                <View style={styles.fieldWrapper}>
+                                <View style={styles.EditFieldWrapper}>
                                     <TextInput
                                         style={styles.input}
                                         placeholder={currentMail || "E-Mail eingeben"}
@@ -260,20 +273,50 @@ export default function EditUserScreen() {
                             <View style={styles.wrapper}>
                                 <Text style={styles.text}>Geburtsdatum</Text>
 
-                                <View style={styles.fieldWrapper}>
-                                    <TextInput
+                                <View style={styles.EditFieldWrapper}>
+                                    <Pressable
+                                        onPress={() => setShowDatePicker(true)}
                                         style={styles.input}
-                                        placeholder={currentBirthdate || "Datum eingeben"}
-                                        value={inputBirthdate}
-                                        onChangeText={setInputBirthdate}/>
+                                    >
+                                        <Text style={[styles.input, !inputBirthdate && { color: '#999' }]}>
+                                            {inputBirthdate || "Datum wählen"}
+                                        </Text>
+                                    </Pressable>
                                 </View>
+
+
+                                {showDatePicker && (
+                                    <DateTimePicker
+                                        value={dateObject}
+                                        mode="date"
+                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                        maximumDate={new Date()} // Verhindert Daten in der Zukunft
+                                        onChange={(event, selectedDate) => {
+                                            // Android schließt den Picker sofort nach Auswahl
+                                            if (Platform.OS === 'android') setShowDatePicker(false);
+
+                                            if (selectedDate) {
+                                                setDateObject(selectedDate);
+
+                                                // Formatierung für die Anzeige (TT.MM.JJJJ)
+                                                const formatted = selectedDate.toLocaleDateString('de-DE', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric'
+                                                });
+
+                                                setInputBirthdate(formatted);
+                                            }
+                                        }}
+                                    />
+                                )}
                             </View>
 
                             {/* Weight */}
                             <View style={styles.wrapper}>
                                 <Text style={styles.text}>Gewicht</Text>
 
-                                <View style={styles.fieldWrapper}>
+                                <View style={styles.EditFieldWrapper}>
                                     <TextInput
                                         style={styles.input}
                                         placeholder={currentWeight || "Gewicht eingeben"}
@@ -287,7 +330,7 @@ export default function EditUserScreen() {
                             <View style={styles.wrapper}>
                                 <Text style={styles.text}>Größe</Text>
 
-                                <View style={styles.fieldWrapper}>
+                                <View style={styles.EditFieldWrapper}>
                                     <TextInput
                                         style={styles.input}
                                         placeholder={currentHeight || "Größe eingeben"}
