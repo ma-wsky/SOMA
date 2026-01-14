@@ -8,7 +8,7 @@ import {
   ScrollView,
   FlatList,
 } from "react-native";
-import { showAlert } from "@/app/utils/alertHelper";
+import { showAlert, showConfirm } from "@/app/utils/alertHelper";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState, useEffect, useRef } from "react";
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from "firebase/firestore";
@@ -16,22 +16,23 @@ import { auth, db } from "@/app/firebaseConfig";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-// New Firebase structure
-type ExerciseSet = {
-  id?: string;
-  exerciseId: string;
-  exerciseName?: string;
-  name?: string;
-  weight: number;
-  reps: number;
-  isDone?: boolean;
+type Workout = {
+    id?: string;
+    name?: string | null;
+    date: string;
+    duration?: number;
+    exerciseSets: ExerciseSet[];
 };
 
-type Workout = {
+type ExerciseSet = {
   id?: string;
-  date: string;
   name?: string;
-  exerciseSets: ExerciseSet[];
+  exerciseName?: string;
+  exerciseId: string;
+  breaktime?: number;
+  weight: number;
+  reps: number;
+  isDone: boolean;
 };
 
 type Exercise = {
@@ -44,27 +45,26 @@ type Exercise = {
 
 export default function EditWorkoutScreen() {
   const [loading, setLoading] = useState<boolean>(false);
-  const { id, selectedExerciseId, selectedExerciseName, selectedExercises, workoutEditKey } = useLocalSearchParams<{ 
+  const { id, selectedExerciseId, workoutEditId, selectedExerciseName, selectedBreakTime } = useLocalSearchParams<{ 
     id?: string;
     selectedExerciseId?: string;
+    workoutEditId?: string;
     selectedExerciseName?: string;
-    selectedExercises?: string;
-    workoutEditKey?: string;
+    selectedBreakTime?: string;
   }>();
-  const editKeyRef = useRef<string | null>(null);
-  const [workout, setWorkout] = useState<Workout | null>(null);
+  const editIdRef = useRef<string | null>(null);
+  // Keep a local workout immediately so adding sets works even before async load finishes
+  const [workout, setWorkout] = useState<Workout>({ date: new Date().toISOString(), exerciseSets: [] } as Workout);
   const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
 
-  // Load Workout on mount (or restore draft)
+  // Load Workout on mount
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
         const user = auth.currentUser;
-        if (!user) {
-          showAlert("Fehler", "Sie müssen angemeldet sein");
-          return;
-        }
+        if (!user) return;
+      
 
         // Load all exercises for reference
         const exercisesMap = new Map<string, Exercise>();
@@ -74,9 +74,8 @@ export default function EditWorkoutScreen() {
         });
         setExercises(exercisesMap);
 
-        // Establish editKey: if id exists use stable key, else generate / use passed workoutEditKey
         if (id) {
-          editKeyRef.current = `workout_${id}`;
+          editIdRef.current = `workout_${id}`;
 
           // Load existing workout
           const workoutRef = doc(db, "users", user.uid, "workouts", id);
@@ -92,22 +91,27 @@ export default function EditWorkoutScreen() {
               exerciseSets.push({
                 id: setDoc.id,
                 exerciseId: setData.exerciseId,
-                exerciseName: exercisesMap.get(setData.exerciseId)?.name,
+                exerciseName: setData.exerciseName || exercisesMap.get(setData.exerciseId)?.name,
+                name: setData.name || undefined,
+                breaktime: setData.breaktime ?? 30,
                 weight: setData.weight,
                 reps: setData.reps,
                 isDone: setData.isDone || false,
               });
             });
 
-            // See if there is a draft saved in editing store
-            const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editKeyRef.current!);
+                    // See if there is a draft saved in editing store
+            const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editIdRef.current!);
             if (draft) {
               setWorkout(draft);
             } else {
-              setWorkout({ 
-                id: workoutSnap.id, 
-                ...workoutData, 
-                exerciseSets 
+              // If the user already added sets locally, don't overwrite; otherwise use loaded workout
+              setWorkout(prev => {
+                if (prev && prev.exerciseSets && prev.exerciseSets.length > 0) {
+                  // keep local changes (user-added sets) intact
+                  return prev;
+                }
+                return { id: workoutSnap.id, ...workoutData, exerciseSets } as Workout;
               });
             }
             return;
@@ -115,18 +119,19 @@ export default function EditWorkoutScreen() {
         }
 
         // For new workout, pick an edit key (either passed or generated)
-        editKeyRef.current = workoutEditKey || `temp_${Date.now()}`;
+        editIdRef.current = workoutEditId || `temp_${Date.now()}`;
 
         // Restore draft if present
-        const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editKeyRef.current);
+        const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editIdRef.current);
         if (draft) {
           setWorkout(draft);
         } else {
-          // Create new workout
-          setWorkout({
+          // Create new workout only if there isn't already one in-memory (preserve additions made while loading)
+          setWorkout(prev => prev ?? ({
             date: new Date().toISOString(),
             exerciseSets: [],
-          });
+            startTime: Date.now(),
+          } as Workout));
         }
       } catch (e) {
         console.error("Fehler beim Laden:", e);
@@ -141,13 +146,16 @@ export default function EditWorkoutScreen() {
 
   // Handle returning from AddExerciseToWorkoutScreen with selected exercise(s)
   useEffect(() => {
-    const buildNewSet = (baseWorkout: Workout, exerciseId: string, exerciseName?: string) => {
+    console.log('EditWorkoutScreen useEffect fired:', { selectedExerciseId, selectedExerciseName, selectedBreakTime, exercisesSize: exercises.size });
+    const buildNewSet = (baseWorkout: Workout, exerciseId: string, exerciseName?: string, breaktime?: number) => {
       const name = exerciseName || exercises.get(exerciseId)?.name || 'Übung';
       const existingCount = baseWorkout.exerciseSets.filter(s => s.exerciseId === exerciseId).length || 0;
       const newSet: ExerciseSet = {
+        id: `set_${Date.now()}`,
         exerciseId,
         exerciseName: name,
         name: `${name}Set${existingCount + 1}`,
+        breaktime: breaktime ?? 30,
         weight: 20,
         reps: 5,
         isDone: false,
@@ -157,45 +165,21 @@ export default function EditWorkoutScreen() {
 
     // Single selection (legacy) or returned from AddExercise screen
     if (selectedExerciseId) {
-      setWorkout((prev) => {
-        const base = prev ?? { date: new Date().toISOString(), exerciseSets: [] };
-        const newSet = buildNewSet(base, selectedExerciseId, selectedExerciseName);
-        const newWorkout = { ...base, exerciseSets: [...(base.exerciseSets || []), newSet] };
-
-        // Persist draft
-        if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newWorkout);
-        return newWorkout;
-      });
+      console.log('Adding new set from selectedExerciseId:', selectedExerciseId);
+      // Use the shared add method; ensure it accepts breaktime
+      handleAddSet(selectedExerciseId, selectedExerciseName, Number(selectedBreakTime));
 
       // Clear params to prevent duplicate additions
       router.setParams({
         selectedExerciseId: undefined,
         selectedExerciseName: undefined,
+        selectedBreakTime: undefined,
       });
       return;
     }
 
-    // Multiple selection
-    if (selectedExercises) {
-      try {
-        const parsed = JSON.parse(selectedExercises) as Array<{ id: string; name: string }>;
-        setWorkout((prev) => {
-          const base = prev ?? { date: new Date().toISOString(), exerciseSets: [] };
-          const newSets: ExerciseSet[] = [];
-          parsed.forEach((ex) => {
-            newSets.push(buildNewSet(base, ex.id, ex.name));
-          });
-          const newWorkout = { ...base, exerciseSets: [...(base.exerciseSets || []), ...newSets] };
-          if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newWorkout);
-          return newWorkout;
-        });
-      } catch (e) {
-        console.error('Failed to parse selectedExercises', e);
-      }
-
-      router.setParams({ selectedExercises: undefined });
-    }
-  }, [selectedExerciseId, selectedExerciseName, selectedExercises, exercises]);
+    
+  }, [selectedExerciseId, exercises]);
 
   // Save/Update Workout
   const handleSaveWorkout = async () => {
@@ -206,79 +190,83 @@ export default function EditWorkoutScreen() {
       return;
     }
 
-    setLoading(true);
-    try {
-      const user = auth.currentUser;
-      if (!user) {
-        showAlert("Fehler", "Sie müssen angemeldet sein");
-        return;
-      }
+    // Confirm before saving
+    showConfirm("Training speichern", "Möchten Sie dieses Training speichern?", async () => {
+      setLoading(true);
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          showAlert("Fehler", "Sie müssen angemeldet sein");
+          return;
+        }
 
-      const workoutId = id || Date.now().toString();
-      const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
-      
-      // Prepare workout data (without exerciseSets, those go in subcollection)
-      const workoutData = {
-        date: workout.date,
-        name: workout.name || null,
-      };
+        const workoutId = id || Date.now().toString();
+        const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
+        
+        // Prepare workout data (without exerciseSets, those go in subcollection)
+        const workoutData = {
+          date: workout.date,
+          name: workout.name || null,
+        };
 
-      // Use batch write for atomicity
-      const batch = writeBatch(db);
-      
-      // Set main workout document
-      batch.set(workoutRef, workoutData);
+        // Use batch write for atomicity
+        const batch = writeBatch(db);
+        
+        // Set main workout document
+        batch.set(workoutRef, workoutData);
 
-      // Add/update exercise sets in subcollection
-      const setsRef = collection(workoutRef, "exerciseSets");
-      
-      // Clear existing sets and add new ones
-      const existingSets = await getDocs(setsRef);
-      existingSets.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
-
-      // Add new sets
-      workout.exerciseSets.forEach((set, index) => {
-        const setRef = doc(setsRef, `set_${index}`);
-        batch.set(setRef, {
-          exerciseId: set.exerciseId,
-          exerciseName: set.exerciseName || null,
-          name: set.name || null,
-          weight: set.weight,
-          reps: set.reps,
-          isDone: set.isDone || false,
+        // Add/update exercise sets in subcollection
+        const setsRef = collection(workoutRef, "exerciseSets");
+        
+        // Clear existing sets and add new ones
+        const existingSets = await getDocs(setsRef);
+        existingSets.forEach((doc) => {
+          batch.delete(doc.ref);
         });
-      });
 
-      await batch.commit();
-      
-      // Clear draft
-      if (editKeyRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editKeyRef.current);
+        // Add new sets
+        workout.exerciseSets.forEach((set, index) => {
+          const setRef = doc(setsRef, `set_${index}`);
+          batch.set(setRef, {
+            exerciseId: set.exerciseId,
+            exerciseName: set.exerciseName || null,
+            name: set.name || null,
+            breaktime: set.breaktime ?? 30,
+            weight: set.weight,
+            reps: set.reps,
+            isDone: set.isDone || false,
+          });
+        });
 
-      showAlert("Erfolg", id ? "Training aktualisiert" : "Training erstellt");
-      router.back();
-    } catch (e) {
-      console.error("Fehler beim Speichern:", e);
-      showAlert("Fehler", "Training konnte nicht gespeichert werden");
-    } finally {
-      setLoading(false);
-    }
+        await batch.commit();
+        
+        // Clear draft
+        if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
+
+        showAlert("Erfolg", id ? "Training aktualisiert" : "Training erstellt");
+        router.back();
+      } catch (e) {
+        console.error("Fehler beim Speichern:", e);
+        showAlert("Fehler", "Training konnte nicht gespeichert werden");
+      } finally {
+        setLoading(false);
+      }
+    }, { confirmText: "Speichern", cancelText: "Abbrechen" });
   };
 
   // Remove exercise set
   const handleRemoveSet = (index: number) => {
     setWorkout((prev) => {
       const newW = { ...prev!, exerciseSets: prev!.exerciseSets.filter((_, i) => i !== index) };
-      if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newW);
+      if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
       return newW;
     });
   };
 
   // Persist draft when workout changes
   useEffect(() => {
-    if (editKeyRef.current && workout) {
-      require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, workout);
+    if (editIdRef.current && workout) {
+      require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, workout);
     }
   }, [workout]);
   // Update set
@@ -288,24 +276,27 @@ export default function EditWorkoutScreen() {
     const numValue = parseInt(value) || 0;
     updatedSets[index][key] = numValue;
     const newW = { ...workout, exerciseSets: updatedSets };
-    if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newW);
+    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
     setWorkout(newW);
   };
 
   // Add a set for a given exercise
-  const handleAddSet = (exerciseId: string, exerciseName?: string) => {
-    if (!workout) return;
-    const existingCount = workout.exerciseSets.filter(s => s.exerciseId === exerciseId).length;
+  const handleAddSet = (exerciseId: string, exerciseName?: string, breaktime?: number) => {
+    // Ensure workout exists locally
+    const base = workout ?? { date: new Date().toISOString(), exerciseSets: [] } as Workout;
+    const existingCount = base.exerciseSets.filter(s => s.exerciseId === exerciseId).length;
     const newSet: ExerciseSet = {
+      id: `set_${Date.now()}`,
       exerciseId,
       exerciseName: exerciseName || exercises.get(exerciseId)?.name,
       name: `${exerciseName || exercises.get(exerciseId)?.name}Set${existingCount + 1}`,
+      breaktime: breaktime ?? 30,
       weight: 20,
       reps: 5,
       isDone: false,
     };
-    const newW = { ...workout, exerciseSets: [...(workout?.exerciseSets || []), newSet] };
-    if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newW);
+    const newW = { ...base, exerciseSets: [...(base.exerciseSets || []), newSet] } as Workout;
+    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
     setWorkout(newW);
   };
 
@@ -427,7 +418,7 @@ export default function EditWorkoutScreen() {
           <Pressable
             onPress={() => router.push({
               pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
-              params: { workoutEditKey: editKeyRef.current }
+              params: { workoutEditId: editIdRef.current, returnTo: 'edit' }
             })}
             style={{
               backgroundColor: "#333",

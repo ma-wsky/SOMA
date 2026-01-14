@@ -19,8 +19,10 @@ type Workout = {
 
 type ExerciseSet = {
     id: string;
+    name: string;
     exerciseName: string;
     exerciseId: string;
+    breaktime: number;
     weight: number;
     reps: number;
     isDone: boolean;

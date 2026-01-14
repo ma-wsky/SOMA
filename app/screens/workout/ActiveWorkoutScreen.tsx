@@ -26,6 +26,7 @@ type ExerciseSet = {
   exerciseId: string;
   exerciseName?: string;
   name?: string;
+  breaktime?: number;
   weight: number;
   reps: number;
   isDone?: boolean;
@@ -46,10 +47,10 @@ type Exercise = {
 };
 
 export default function ActiveWorkoutScreen() {
-  const { id, selectedExerciseId, selectedExerciseName, workoutEditKey } = useLocalSearchParams<{ id?: string; selectedExerciseId?: string; selectedExerciseName?: string; workoutEditKey?: string }>();
+  const { id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime } = useLocalSearchParams<{ id?: string; selectedExerciseId?: string; selectedExerciseName?: string; workoutEditId?: string; selectedBreakTime?: string }>();
   const [loading, setLoading] = useState(false);
   const [workout, setWorkout] = useState<Workout | null>(null);
-  const editKeyRef = useRef<string | null>(null);  const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
+  const editIdRef = useRef<string | null>(null);  const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
   const [isEditMode, setIsEditMode] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -72,7 +73,7 @@ export default function ActiveWorkoutScreen() {
 
         if (id) {
           // Wenn ID vorhanden, lade gespeichertes Workout
-          editKeyRef.current = workoutEditKey || `workout_${id}`;
+          editIdRef.current = workoutEditId || `workout_${id}`;
 
           const userRef = doc(db, "users", user.uid, "workouts", id);
           const userSnap = await getDoc(userRef);
@@ -87,14 +88,17 @@ export default function ActiveWorkoutScreen() {
               exerciseSets.push({
                 id: setDoc.id,
                 exerciseId: setData.exerciseId,
-                exerciseName: exercisesMap.get(setData.exerciseId)?.name,
+                exerciseName: setData.exerciseName || exercisesMap.get(setData.exerciseId)?.name,
+                name: setData.name || undefined,
                 weight: setData.weight,
                 reps: setData.reps,
                 isDone: setData.isDone || false,
+                // prefer stored breaktime, fallback to default 30
+                breaktime: setData.breaktime ?? 30,
               });
             });
 
-            const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editKeyRef.current!);
+            const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editIdRef.current!);
             if (draft) {
               setWorkout(draft);
             } else {
@@ -109,9 +113,9 @@ export default function ActiveWorkoutScreen() {
           }
         } else {
           // Leeres Workout (freies Training)
-          editKeyRef.current = workoutEditKey || `temp_${Date.now()}`;
+          editIdRef.current = workoutEditId || `temp_${Date.now()}`;
 
-          const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editKeyRef.current);
+          const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editIdRef.current);
           if (draft) {
             setWorkout(draft as Workout);
           } else {
@@ -158,27 +162,29 @@ export default function ActiveWorkoutScreen() {
   };
 
   // Add a set for a given exercise in active workout
-  const handleAddSet = (exerciseId: string, exerciseName?: string) => {
+  const handleAddSet = (exerciseId: string, exerciseName?: string, breaktime?: number) => {
       if (!workout) return;
     const existingCount = workout.exerciseSets.filter(s => s.exerciseId === exerciseId).length;
     const newSet: ExerciseSet = {
+      id: `set_${Date.now()}`,
       exerciseId,
       exerciseName: exerciseName || exercises.get(exerciseId)?.name,
       name: `${exerciseName || exercises.get(exerciseId)?.name}Set${existingCount + 1}`,
+      breaktime: breaktime ?? 30,
       weight: 20,
       reps: 5,
       isDone: false,
     };
     const newW = { ...workout, exerciseSets: [...(workout?.exerciseSets || []), newSet] };
     setWorkout(newW);
-    if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newW);
-  };
+    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
+  }; 
 
   // Discard Workout
   const handleDiscardWorkout = () => {
     showConfirm("Training verwerfen", "Möchten Sie dieses Training wirklich verwerfen?", () => {
       clearActiveWorkout();
-      if (editKeyRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editKeyRef.current);
+      if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
       router.back();
     }, { confirmText: "Verwerfen", cancelText: "Abbrechen" });
   };
@@ -191,36 +197,41 @@ export default function ActiveWorkoutScreen() {
         const user = auth.currentUser;
         if (!user || !workout) return;
 
-        // Save main workout document
-        const workoutRef = doc(db, "users", user.uid, "workouts", workout.id!);
-        await setDoc(workoutRef, {
+        // Ensure we have an id (generate for new workouts)
+        const workoutId = workout.id || Date.now().toString();
+        const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
+
+        // Use batch write to atomically replace sets and set main doc
+        const batch = writeBatch(db);
+        batch.set(workoutRef, {
           date: workout.date,
           name: workout.name || null,
         });
 
-        // Update all sets with isDone status using batch
-        const batch = writeBatch(db);
         const setsRef = collection(workoutRef, "exerciseSets");
-        workout.exerciseSets.forEach((set) => {
-          if (set.id) {
-            const setRef = doc(workoutRef, "exerciseSets", set.id);
-            batch.update(setRef, { isDone: set.isDone });
-          } else {
-            const newRef = doc(setsRef);
-            batch.set(newRef, {
-              exerciseId: set.exerciseId,
-              exerciseName: set.exerciseName || null,
-              name: set.name || null,
-              weight: set.weight,
-              reps: set.reps,
-              isDone: set.isDone || false,
-            });
-          }
+        // Delete existing sets if any
+        const existingSets = await getDocs(setsRef);
+        existingSets.forEach((d) => batch.delete(d.ref));
+
+        // Add current sets
+        workout.exerciseSets.forEach((set, index) => {
+          const setRef = doc(setsRef, `set_${index}`);
+          batch.set(setRef, {
+            exerciseId: set.exerciseId,
+            exerciseName: set.exerciseName || null,
+            name: set.name || null,
+            breaktime: set.breaktime ?? 30,
+            weight: set.weight,
+            reps: set.reps,
+            isDone: set.isDone || false,
+          });
         });
+
         await batch.commit();
 
         showAlert("Erfolg", "Training gespeichert");
         clearActiveWorkout();
+        if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
         router.back();
       } catch (e) {
         console.error("Fehler beim Speichern:", e);
@@ -235,24 +246,24 @@ export default function ActiveWorkoutScreen() {
   const handleRemoveSet = (index: number) => {
     const newW = { ...workout!, exerciseSets: workout!.exerciseSets.filter((_, i) => i !== index) };
     setWorkout(newW);
-    if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newW);
+    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
   };
 
   // Persist draft when workout changes
   useEffect(() => {
-    if (editKeyRef.current && workout) {
-      require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, workout);
+    if (editIdRef.current && workout) {
+      require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, workout);
     }
   }, [workout]);
 
   // Handle exercise returned from AddExercise (single-select)
   useEffect(() => {
     if (selectedExerciseId) {
-      handleAddSet(selectedExerciseId, selectedExerciseName);
+      handleAddSet(selectedExerciseId, selectedExerciseName, Number(selectedBreakTime));
       // clear params to avoid duplicates
-      router.setParams({ selectedExerciseId: undefined, selectedExerciseName: undefined });
+      router.setParams({ selectedExerciseId: undefined, selectedExerciseName: undefined, selectedBreakTime: undefined });
     }
-  }, [selectedExerciseId, selectedExerciseName]);
+  }, [selectedExerciseId, selectedExerciseName, selectedBreakTime]);
   // Update a set value
   const handleUpdateSet = (index: number, key: 'weight' | 'reps', value: string) => {
     if (!workout) return;
@@ -261,7 +272,7 @@ export default function ActiveWorkoutScreen() {
     updatedSets[index][key] = numValue;
     const newW = { ...workout, exerciseSets: updatedSets };
     setWorkout(newW);
-    if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newW);
+    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
   };
 
   // Edit mode - save changes (persist full sets)
@@ -296,6 +307,7 @@ export default function ActiveWorkoutScreen() {
           exerciseId: set.exerciseId,
           exerciseName: set.exerciseName || null,
           name: set.name || null,
+          breaktime: set.breaktime ?? 30,
           weight: set.weight,
           reps: set.reps,
           isDone: set.isDone || false,
@@ -308,7 +320,7 @@ export default function ActiveWorkoutScreen() {
       showAlert("Erfolg", "Änderungen gespeichert");
 
       // Clear draft
-      if (editKeyRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editKeyRef.current);
+      if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
     } catch (e) {
       console.error("Fehler beim Speichern:", e);
       showAlert("Fehler", "Änderungen konnten nicht gespeichert werden");
@@ -395,7 +407,7 @@ export default function ActiveWorkoutScreen() {
             onChangeText={(t) => {
               const newW = { ...(workout ?? { date: new Date().toISOString(), exerciseSets: [] }), name: t } as Workout;
               setWorkout(newW);
-              if (editKeyRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editKeyRef.current, newW);
+              if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
             }}
             placeholder="Name des Trainings"
             placeholderTextColor="#666"
@@ -493,7 +505,7 @@ export default function ActiveWorkoutScreen() {
             {/* Add Exercise Button (edit mode) */}
             <View style={{ marginTop: 12 }}>
               <Pressable
-                onPress={() => router.push({ pathname: "/screens/exercise/AddExerciseToWorkoutScreen", params: { workoutEditKey: editKeyRef.current, returnTo: 'active' } })}
+                onPress={() => router.push({ pathname: "/screens/exercise/AddExerciseToWorkoutScreen", params: { workoutEditId: editIdRef.current, returnTo: 'active' } })}
                 style={({ pressed }) => [
                   { backgroundColor: pressed ? '#444' : '#333', padding: 12, borderRadius: 8, alignItems: 'center' }
                 ]}

@@ -12,20 +12,26 @@ export default function AddExerciseToWorkoutScreen() {
 
     const [filter, setFilter] = useState("");
     const [breakTime, setBreakTime] = useState("30");
-    const { workoutEditId, workoutEditKey, returnTo } = useLocalSearchParams<{ workoutEditId?: string; workoutEditKey?: string; returnTo?: string }>();
+    const [selectedId, setSelectedId] = useState("");
+    const { workoutEditId, returnTo } = useLocalSearchParams<{ workoutEditId?: string; returnTo?: string }>();  
     const { exercises, loading } = useLoadExercises();
 
-    // Single-select behavior: navigate immediately when an exercise is tapped
-    const handleSelectExercise = (exercise: any) => {
-        const key = workoutEditKey || workoutEditId;
-        // If returnTo === 'active' we return to ActiveWorkoutScreen
-        if (returnTo === 'active' && key) {
-            router.push({ pathname: "/screens/workout/ActiveWorkoutScreen", params: { workoutEditKey: key, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name } });
+
+
+    const addExercise = (exercise: any) => {
+        const workoutId = workoutEditId;
+        if (!workoutId) {return;}
+
+        
+        setSelectedId(exercise.id);
+
+        if (returnTo === 'active'){
+            router.push({ pathname: "/screens/workout/ActiveWorkoutScreen", params: { workoutEditId: workoutId, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name, selectedBreakTime: breakTime } });
+            return;
+        } else if (returnTo === 'edit'){
+            router.push({ pathname: "/screens/workout/EditWorkoutScreen", params: { workoutEditId: workoutId, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name, selectedBreakTime: breakTime } });
             return;
         }
-
-        // Default: go to EditWorkoutScreen
-        router.push({ pathname: "/screens/workout/EditWorkoutScreen", params: { workoutEditKey: key, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name, breakTime } });
     };
 
     return (
@@ -49,11 +55,11 @@ export default function AddExerciseToWorkoutScreen() {
 
             {/* Break Time Input */}
             <View style={styles.breakTimeContainer}>
-                <Text style={styles.breakTimeLabel}>Pausenzeit (Sekunden)</Text>
+                <Text style={styles.breakTimeLabel}>Pausenzeit zwischen Wiederholungen (Sekunden)</Text>
                 <TextInput
                     value={breakTime}
                     onChangeText={setBreakTime}
-                    placeholder="z.B. 30"
+                    placeholder="30"
                     placeholderTextColor="#666"
                     keyboardType="numeric"
                     style={styles.breakTimeInput}
@@ -63,10 +69,8 @@ export default function AddExerciseToWorkoutScreen() {
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
-                onItemPress={(exercise) => handleSelectExercise(exercise)}
+                onItemPress={(exercise) => addExercise(exercise)}
             />
-
-            {/* Note: single-select; tapping an exercise returns immediately */}
 
             {/* Loading Overlay */}
             <LoadingOverlay visible={loading} />
@@ -74,6 +78,7 @@ export default function AddExerciseToWorkoutScreen() {
         </View>
     );
 }
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,

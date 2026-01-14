@@ -1,12 +1,12 @@
-import { Pressable, Text, StyleSheet } from "react-native";
+import { Pressable, Text, StyleSheet, View } from "react-native";
 import { Colors } from "../styles/theme"
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 
 interface Props {
     exercise: Exercise;
     onPress?: (exercise: Exercise) => void;
     onAddToWorkout?: (exercise: Exercise) => void;
-    selected?: any;
 }
 
 type Exercise = {
@@ -20,15 +20,13 @@ type Exercise = {
 export default function ExerciseItem({ exercise, onPress }: Props) {
     return (
         <Pressable
-            onPress={() => onPress?.(exercise)}
-            style={styles.button}>
+            onPress={() => onPress?.(exercise)}> 
 
-            <Text style={styles.name}>{exercise.name}</Text>
+            <View>
+              <Text style={styles.name}>{exercise.name}</Text>
 
-            <Text style={styles.muscle}>{exercise.muscleGroup}</Text>
-
-
-
+              <Text style={styles.muscle}>{exercise.muscleGroup}</Text>
+            </View>
 
         </Pressable>
     );
