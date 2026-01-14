@@ -8,6 +8,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "../../styles/theme";
 import { authStyles as styles } from "../../styles/authStyles";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import { useGuestLogin } from "../../hooks/useGuestLogin";
 
 
 export default function RegisterScreen() {
@@ -18,6 +19,7 @@ export default function RegisterScreen() {
     const [password, setPassword] = useState("");
     const [hidden, setHidden] = useState(true);
     const [loading, setLoading] = useState(false);
+    const { handleGuestLogin, isGuestLoading } = useGuestLogin();
 
     const handleRegister = async () => {
         setLoading(true);
@@ -171,8 +173,28 @@ export default function RegisterScreen() {
                         </Pressable>
                     </View>
 
+                    {/* Gast Login */}
+                    <View style={{marginTop: 40,}}>
+                        <View style={{flexDirection:"row",justifyContent:"space-around",alignItems: "center"}}>
+                            <View style={styles.line}/>
+                            <Text style={styles.smallText}>Lieber ein Gast?</Text>
+                            <View style={styles.line}/>
+                        </View>
+
+                        <Pressable
+                            onPress={handleGuestLogin} disabled={isGuestLoading}
+                            style={({ pressed }) => [
+                                styles.secondaryBotton,
+                                {backgroundColor: pressed ? "#eee" : 'transparent'},
+                                {borderColor: pressed ? Colors.secondary : Colors.primary}
+                            ]}
+                        >
+                            <Text style={styles.secondaryButtonText}>Als Gast beitreten</Text>
+                        </Pressable>
+                    </View>
+
                     {/* Loading Overlay */}
-                    <LoadingOverlay visible={loading} />
+                    <LoadingOverlay visible={loading || isGuestLoading} />
 
                 </View>
             </TouchableWithoutFeedback>

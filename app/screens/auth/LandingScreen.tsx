@@ -1,17 +1,17 @@
 import { useRouter } from "expo-router";
-import { Text, View, Pressable, Alert } from 'react-native';
-import {useEffect, useState} from "react";
+import { Text, View, Pressable } from 'react-native';
+import {useEffect} from "react";
 import { auth } from "../../firebaseConfig";
-import { signInAnonymously } from "firebase/auth";
 import { Colors } from "../../styles/theme";
 import { authStyles as styles } from "../../styles/authStyles";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import { useGuestLogin } from "../../hooks/useGuestLogin";
 
 
 export default function LoginScreen(){
 
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const { handleGuestLogin, isGuestLoading } = useGuestLogin();
 
     // is user already logged in
     useEffect(() => {
@@ -19,19 +19,6 @@ export default function LoginScreen(){
             router.replace("/(tabs)/HomeScreenProxy");
         }
     }, []);
-
-    const handleGuestLogin = async () => {
-        setLoading(true);
-        try{
-            await signInAnonymously(auth);
-            Alert.alert("Geschafft!", "Als Gast angemeldet.");
-            router.replace("/(tabs)/HomeScreenProxy");
-        }catch (error: any){
-            console.error("Login error:", error.code);
-        }finally {
-            setLoading(false);
-        }
-    }
 
     return(
         <View style={styles.container}>
@@ -63,7 +50,7 @@ export default function LoginScreen(){
 
                 {/* Guest Login */}
                 <Pressable
-                    onPress={handleGuestLogin}
+                    onPress={handleGuestLogin} disabled={isGuestLoading}
                     style={({ pressed }) => [
                         styles.button,
                         {backgroundColor: pressed ? Colors.secondary : Colors.primary}
@@ -95,7 +82,7 @@ export default function LoginScreen(){
             </View>
 
             {/* Loading Overlay */}
-            <LoadingOverlay visible={loading} />
+            <LoadingOverlay visible={isGuestLoading} />
 
         </View>
     );
