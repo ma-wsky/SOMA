@@ -38,10 +38,17 @@ export const userStyles = StyleSheet.create({
     },
     fieldWrapper: {
         flexDirection: "row",
-        borderWidth: 2,
-        borderRadius: 20,
-        borderColor: Colors.primary,
         width: 250,
+    },
+    EditFieldWrapper:{
+        flexDirection: "row",
+        width: 250,
+        height: 45,
+        borderWidth: 2,
+        borderColor: 'gray',
+        borderRadius: 10,
+        justifyContent: "center",
+        paddingHorizontal: 10,
     },
     wrapper: {
         alignItems: "flex-start",
@@ -59,7 +66,6 @@ export const userStyles = StyleSheet.create({
     line: {
         borderBottomColor: 'gray',
         borderBottomWidth: 1,
-        marginVertical: "5%",
         marginHorizontal: 20,
     },
     circle: {
@@ -77,6 +83,7 @@ export const userStyles = StyleSheet.create({
     },
     input: {
         flex: 1,
+        textAlignVertical: "center",
     },
     image: {
         width:150,
