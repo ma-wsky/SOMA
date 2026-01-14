@@ -1,0 +1,60 @@
+import React, { useState } from 'react';
+import { View, TextInput, TouchableOpacity, KeyboardTypeOptions } from 'react-native';
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Colors } from "../../styles/theme";
+import { authStyles } from "../../styles/authStyles";
+
+interface AuthInputProps {
+    placeholder: string;
+    value: string;
+    onChangeText: (text: string) => void;
+    iconName: string;
+    keyboardType?: KeyboardTypeOptions;
+    isPassword?: boolean;
+    autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+}
+
+export const AuthInput = ({
+                              placeholder,
+                              value,
+                              onChangeText,
+                              iconName,
+                              keyboardType = "default",
+                              isPassword = false,
+                              autoCapitalize = "none"
+                          }: AuthInputProps) => {
+    const [isPasswordVisible, setIsPasswordVisible] = useState(!isPassword);
+
+    return (
+        <View style={authStyles.inputRow}>
+            <Ionicons
+                name={iconName}
+                size={28}
+                color={Colors.icon}
+                style={authStyles.icon}
+            />
+
+            <TextInput
+                style={authStyles.input}
+                placeholder={placeholder}
+                value={value}
+                onChangeText={onChangeText}
+                keyboardType={keyboardType}
+                secureTextEntry={isPassword && !isPasswordVisible}
+                autoCapitalize={autoCapitalize}
+                autoCorrect={false}
+            />
+
+            {isPassword && (
+                <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+                    <Ionicons
+                        name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
+                        size={24}
+                        color={Colors.icon}
+                        style={authStyles.eyeIcon}
+                    />
+                </TouchableOpacity>
+            )}
+        </View>
+    );
+};
