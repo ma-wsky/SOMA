@@ -8,7 +8,7 @@ interface AuthInputProps {
     placeholder: string;
     value: string;
     onChangeText: (text: string) => void;
-    iconName: string;
+    iconName: keyof typeof Ionicons.glyphMap;
     keyboardType?: KeyboardTypeOptions;
     isPassword?: boolean;
     autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
