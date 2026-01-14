@@ -52,12 +52,12 @@ export default function LoginScreen(){
 
                     {/* Title */}
                     <View style={authStyles.titleWrapper}>
-                        <Text style={authStyles.title}>Willkommen bei</Text>
-                        <Text style={authStyles.appname}>Appname!</Text>
+                        <Text style={authStyles.titleText}>Willkommen bei</Text>
+                        <Text style={authStyles.appnameText}>Appname!</Text>
                     </View>
 
                     {/* Inputs */}
-                    <View style={authStyles.inputs}>
+                    <View style={authStyles.authInputsWrapper}>
 
                         {/* E-Mail */}
                         <AuthInput placeholder="E-Mail"

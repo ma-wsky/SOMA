@@ -26,16 +26,16 @@ export const AuthInput = ({
     const [isPasswordVisible, setIsPasswordVisible] = useState(!isPassword);
 
     return (
-        <View style={authStyles.inputRow}>
+        <View style={authStyles.authInputRow}>
             <Ionicons
                 name={iconName}
                 size={28}
                 color={Colors.icon}
-                style={authStyles.icon}
+                style={authStyles.authIcon}
             />
 
             <TextInput
-                style={authStyles.input}
+                style={authStyles.authInputText}
                 placeholder={placeholder}
                 value={value}
                 onChangeText={onChangeText}

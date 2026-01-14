@@ -4,7 +4,7 @@ import { useState } from "react";
 import { db, auth } from "../../firebaseConfig";
 import { createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import {authStyles, authStyles as styles} from "../../styles/authStyles";
+import { authStyles } from "../../styles/authStyles";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { useGuestLogin } from "../../hooks/useGuestLogin";
 import { AuthButton } from "../../components/auth/authButton"
@@ -73,16 +73,16 @@ export default function RegisterScreen() {
             behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.container}>
+                <View style={authStyles.container}>
 
                     {/* Title */}
-                    <View style={styles.titleWrapper}>
-                        <Text style={styles.title}>Willkommen bei</Text>
-                        <Text style={styles.appname}>Appname!</Text>
+                    <View style={authStyles.titleWrapper}>
+                        <Text style={authStyles.titleText}>Willkommen bei</Text>
+                        <Text style={authStyles.appnameText}>Appname!</Text>
                     </View>
 
                     {/* Inputs */}
-                    <View style={authStyles.inputs}>
+                    <View style={authStyles.authInputsWrapper}>
 
                         {/* E-Mail */}
                         <AuthInput placeholder="E-Mail"
@@ -103,7 +103,7 @@ export default function RegisterScreen() {
                     </View>
 
                     {/* Register */}
-                    <View style={styles.buttonWrapper}>
+                    <View style={authStyles.buttonWrapper}>
                         <AuthButton title="Registrieren"
                                     onPress={handleRegister}
                         />

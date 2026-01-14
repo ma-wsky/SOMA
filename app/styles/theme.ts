@@ -4,8 +4,9 @@ export const Colors = {
     secondary: "#8A70CC",
     background: "#fff",
     iconActive: "#fff",
-    iconInactive: "#333",
+    icon: "#555",
     black: "#000",
+    white: "#fff",
 };
 
 export const DarkColors = {
