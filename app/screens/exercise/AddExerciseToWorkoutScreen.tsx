@@ -11,29 +11,37 @@ export default function AddExerciseToWorkoutScreen() {
 
     const [filter, setFilter] = useState("");
     const [breakTime, setBreakTime] = useState("30");
-    const [selectedId, setSelectedId] = useState("");
-    const { workoutEditId, returnTo } = useLocalSearchParams<{ workoutEditId?: string; returnTo?: string }>();  
+    const { workoutEditId, returnTo } = useLocalSearchParams<{ workoutEditId?: string; returnTo?: "active"|"edit"; }>();  
     const { exercises, loading } = useLoadExercises();
 
 
 
-    const addExercise = (exercise: any) => {
-        const workoutId = workoutEditId;
-        if (!workoutId) {return;}
+    const addExercise = (exercise: {id:string; name:string}) => {
+        if (!workoutEditId) {return;}
 
-        setSelectedId(exercise.id);
+        const params = {
+            workoutEditId,
+            selectedExerciseId: exercise.id,
+            selectedExerciseName: exercise.name,
+            selectedBreakTime: breakTime,
+        }; 
 
         if (returnTo === 'active'){
-            router.push({ pathname: "/screens/workout/ActiveWorkoutScreen", params: { workoutEditId: workoutId, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name, selectedBreakTime: breakTime } });
+            router.push({ pathname: "/screens/workout/ActiveWorkoutScreen", 
+                params
+            });
             return;
         } else if (returnTo === 'edit'){
-            router.push({ pathname: "/screens/workout/SingleWorkoutInfoScreen", params: { workoutEditId: workoutId, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name, selectedBreakTime: breakTime } });
+            router.push({ pathname: "/screens/workout/SingleWorkoutInfoScreen", 
+                params
+            });
             return;
         }
     };
 
-    const goToInfo = (exercise: any) => {
-        router.push({ pathname: "/screens/exercise/SingleExerciseInfoScreen", params: { id: exercise.id } });
+    const openInfo = (exercise: {id: string}) => {
+        router.push({ pathname: "/screens/exercise/SingleExerciseInfoScreen", 
+            params: { id: exercise.id } });
     };
 
     return (
@@ -57,7 +65,7 @@ export default function AddExerciseToWorkoutScreen() {
 
             {/* Break Time Input */}
             <View style={styles.breakTimeContainer}>
-                <Text style={styles.breakTimeLabel}>Pausenzeit zwischen Wiederholungen (Sekunden)</Text>
+                <Text style={styles.breakTimeLabel}>Pausenzeit nach einem Satz (Sekunden)</Text>
                 <TextInput
                     value={breakTime}
                     onChangeText={setBreakTime}
@@ -71,9 +79,9 @@ export default function AddExerciseToWorkoutScreen() {
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
-                onItemPress={(exercise) => goToInfo(exercise)}
-                onAddToWorkout={(exercise) => addExercise(exercise)}
-                showAddButton={true}
+                showAddButton
+                onItemPress={openInfo}
+                onAddToWorkout={addExercise}
             />
 
             {/* Loading Overlay */}
@@ -81,7 +89,8 @@ export default function AddExerciseToWorkoutScreen() {
 
         </View>
     );
-}
+};
+
 
 const styles = StyleSheet.create({
     container: {
