@@ -75,6 +75,7 @@ export default function ExerciseList({ exercises, filter="", onItemPress}: Props
                     <ExerciseItem
                         exercise={item.data}
                         onPress={()=> onItemPress && onItemPress(item.data)}
+                        onAddToWorkout={() => onItemPress && onItemPress(item.data)}
                     />
                 );
             }}

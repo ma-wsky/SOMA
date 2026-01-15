@@ -10,22 +10,22 @@ interface Props {
 }
 
 type Workout = {
-    id: string;
-    name: string;
+    id?: string;
+    name?: string;
     date: string;
-    duration: number;
+    duration?: number;
     exerciseSets: ExerciseSet[];
 };
 
 type ExerciseSet = {
     id: string;
-    name: string;
-    exerciseName: string;
+    name?: string;
+    exerciseName?: string;
     exerciseId: string;
-    breaktime: number;
-    weight: number;
-    reps: number;
-    isDone: boolean;
+    breaktime?: number;
+    weight?: number;
+    reps?: number;
+    isDone?: boolean;
 };
 
 export default function WorkoutItem({workout, onPress}: Props) {

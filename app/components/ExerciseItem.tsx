@@ -17,17 +17,24 @@ type Exercise = {
     isGlobal?: boolean;
 };
 
-export default function ExerciseItem({ exercise, onPress }: Props) {
+export default function ExerciseItem({ exercise, onPress, onAddToWorkout }: Props) {
     return (
         <Pressable
-            onPress={() => onPress?.(exercise)}> 
+            onPress={() => onPress?.(exercise)}
+            style={({pressed}) => [styles.button, pressed && styles.selected]}
+        >
+            <View style={styles.row}>
+              <View style={styles.meta}>
+                <Text style={styles.name}>{exercise.name}</Text>
+                <Text style={styles.muscle}>{exercise.muscleGroup}</Text>
+              </View>
 
-            <View>
-              <Text style={styles.name}>{exercise.name}</Text>
-
-              <Text style={styles.muscle}>{exercise.muscleGroup}</Text>
+              {onAddToWorkout ? (
+                <Pressable onPress={() => onAddToWorkout?.(exercise)} style={styles.addButton}>
+                  <Ionicons name="add" size={20} color={Colors.primary} />
+                </Pressable>
+              ) : null}
             </View>
-
         </Pressable>
     );
 }
@@ -43,6 +50,22 @@ const styles = StyleSheet.create({
         backgroundColor: '#333',
         borderColor: Colors.primary,
         borderWidth: 1,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    meta: {
+      flex: 1,
+      marginRight: 8,
+    },
+    addButton: {
+      padding: 8,
+      borderRadius: 8,
+      backgroundColor: '#111',
+      alignItems: 'center',
+      justifyContent: 'center'
     },
     name: {
         fontSize: 20,

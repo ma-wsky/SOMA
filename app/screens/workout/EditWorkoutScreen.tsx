@@ -53,6 +53,9 @@ export default function EditWorkoutScreen() {
     selectedBreakTime?: string;
   }>();
   const editIdRef = useRef<string | null>(null);
+  // Initialize edit key synchronously so drafts persist immediately when adding sets
+  if (!editIdRef.current) editIdRef.current = workoutEditId || (id ? `workout_${id}` : `temp_${Date.now()}`);
+
   // Keep a local workout immediately so adding sets works even before async load finishes
   const [workout, setWorkout] = useState<Workout>({ date: new Date().toISOString(), exerciseSets: [] } as Workout);
   const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
@@ -282,22 +285,26 @@ export default function EditWorkoutScreen() {
 
   // Add a set for a given exercise
   const handleAddSet = (exerciseId: string, exerciseName?: string, breaktime?: number) => {
-    // Ensure workout exists locally
-    const base = workout ?? { date: new Date().toISOString(), exerciseSets: [] } as Workout;
-    const existingCount = base.exerciseSets.filter(s => s.exerciseId === exerciseId).length;
-    const newSet: ExerciseSet = {
+    const newSetBase: ExerciseSet = {
       id: `set_${Date.now()}`,
       exerciseId,
       exerciseName: exerciseName || exercises.get(exerciseId)?.name,
-      name: `${exerciseName || exercises.get(exerciseId)?.name}Set${existingCount + 1}`,
+      name: `${exerciseName || exercises.get(exerciseId)?.name}Set`,
       breaktime: breaktime ?? 30,
       weight: 20,
       reps: 5,
       isDone: false,
     };
-    const newW = { ...base, exerciseSets: [...(base.exerciseSets || []), newSet] } as Workout;
-    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
-    setWorkout(newW);
+
+    // Use functional update to avoid races and ensure append semantics
+    setWorkout((prev) => {
+      const base = prev ?? ({ date: new Date().toISOString(), exerciseSets: [] } as Workout);
+      const count = base.exerciseSets.filter(s => s.exerciseId === exerciseId).length;
+      const newSet = { ...newSetBase, name: `${newSetBase.exerciseName}Set${count + 1}` } as ExerciseSet;
+      const newW = { ...base, exerciseSets: [...(base.exerciseSets || []), newSet] } as Workout;
+      if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
+      return newW;
+    });
   };
 
   if (!workout) {
