@@ -76,8 +76,23 @@ export default function ActiveWorkoutScreen() {
 
     return(
       <ScrollView contentContainerStyle={{paddingBottom: 120}}>
+        <View>
         {Object.entries(groupedSets).map(([exerciseId, sets]) => 
           renderExerciseViewCard(exerciseId, sets))}
+
+        <View style={{alignItems: "center"}}>
+        <Pressable
+          onPress={() => {setIsEditMode(true);}}
+          style={styles.topBarLikeButton}
+        >
+
+          <Text style={styles.topBarButtonText}>Bearbeiten</Text>
+        </Pressable>
+        </View>
+      
+
+
+</View>
       </ScrollView>
     );
   };
@@ -87,8 +102,19 @@ export default function ActiveWorkoutScreen() {
 
     return(
       <ScrollView contentContainerStyle={{paddingBottom: 120}}>
+        <View>
         {Object.entries(groupedSets).map(([exerciseId, sets]) =>
           renderExerciseEditCard(exerciseId, sets))}
+
+        <Pressable
+          onPress={() => addExercise("", undefined, 30)}
+          style={styles.addExerciseButton}
+        >
+
+          <Text style={styles.addExerciseButtonText}>+ Übung hinzufügen</Text>
+        </Pressable>
+
+        </View>
       </ScrollView>
     );
   };
@@ -162,13 +188,6 @@ export default function ActiveWorkoutScreen() {
 
       {sets.map((set, idx) => renderSetViewRow(set, workout!.exerciseSets.indexOf(set)))}
 
-      <Pressable
-        onPress={() => handleAddSet(exerciseId, sets[0].exerciseName)}
-        style={styles.addSetButton}
-      >
-
-        <Text style={styles.addSetButtonText}>+ Satz hinzufügen</Text>
-      </Pressable>
     </View>
   );
 
@@ -314,12 +333,11 @@ export default function ActiveWorkoutScreen() {
 
 
   //new Add Exercise in hope that multiple exercises can be added
-  const addExercise = (
-  exerciseId: string,
-  exerciseName?: string,
-  breaktime?: number
-) => {
+  const addExercise = (exerciseId: string, exerciseName?: string, breaktime?: number) => {
   if (!workout) return;
+
+  router.push({pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
+    params: { workoutEditId: editIdRef.current, returnTo: "active" }})
 
   const newSet: ExerciseSet = {
     id: `set_${Date.now()}`,
@@ -595,195 +613,7 @@ export default function ActiveWorkoutScreen() {
         onRightPress={isEditMode ? handleSaveChanges : handleFinishWorkout}
       />
 
-      {/* Name (editable in edit mode) */}
-      {isEditMode ? (
-        <View style={{ paddingHorizontal: 20, width: '100%', marginTop: 8 }}>
-          <TextInput
-            value={workout.name || ''}
-            onChangeText={(t) => {
-              const newW = { ...(workout ?? { date: new Date().toISOString(), exerciseSets: [] }), name: t } as Workout;
-              setWorkout(newW);
-              if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
-            }}
-            placeholder="Name des Trainings"
-            placeholderTextColor='#000'
-            style={{ backgroundColor: '#111', color: '#fff', padding: 8, borderRadius: 8 }}
-          />
-        </View>
-      ) : (
-        <View style={{ paddingHorizontal: 20, width: '100%', marginTop: 8 }}>
-          <Text style={styles.workoutName}>{workout.name !== 'Aktives Training'}</Text>
-        </View>
-      )}
-
-      {/* Name (editable in edit mode) */}
-      {isEditMode ? (
-        <View style={{ paddingHorizontal: 20, width: '100%', marginTop: 8 }}>
-          <TextInput
-            value={workout.name || ''}
-            onChangeText={(t) => setWorkout(prev => ({ ...(prev ?? { date: new Date().toISOString(), exerciseSets: [] }), name: t }))}
-            placeholder="Name des Trainings"
-            placeholderTextColor="#666"
-            style={{ backgroundColor: '#111', color: '#fff', padding: 8, borderRadius: 8 }}
-          />
-        </View>
-      ) : (
-        <View style={{ paddingHorizontal: 20, width: '100%', marginTop: 8 }}>
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>{workout.name !== 'Aktives Training'}</Text>
-        </View>
-      )};
-
-      {/* Exercise Sets List */}
-      {isEditMode ? (
-          // Group sets by exercise with edit controls (scrollable)
-          <ScrollView style={{ maxHeight: 420, width: '100%' }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}>
-            {Array.from(
-              workout.exerciseSets.reduce((map, set) => {
-                const arr = map.get(set.exerciseId) || [];
-                arr.push(set);
-                map.set(set.exerciseId, arr);
-                return map;
-              }, new Map<string, ExerciseSet[]>())
-            ).map(([exerciseId, sets]) => (
-              <View key={exerciseId} style={{ marginBottom: 20 }}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>
-                    {sets[0].exerciseName || exerciseId} ({sets.length})
-                  </Text>
-                  <Pressable onPress={() => handleAddSet(exerciseId, sets[0].exerciseName)} style={{ padding: 8 }}>
-                    <Text style={{ color: '#fff' }}>+ Satz hinzufügen</Text>
-                  </Pressable>
-                </View>
-
-                {sets.map((set, idx) => {
-                  const index = workout.exerciseSets.indexOf(set);
-                  return (
-                    <View key={idx} style={{ backgroundColor: "#222", padding: 12, borderRadius: 8, marginBottom: 12 }}>
-                      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                        <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>{set.name || `Satz ${idx+1}`}</Text>
-                        <Pressable onPress={() => handleRemoveSet(index)} style={{ padding: 8 }}>
-                          <Ionicons name="trash" size={20} color="#ff6b6b" />
-                        </Pressable>
-                      </View>
-
-                      <View style={{ flexDirection: "row", gap: 12 }}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ color: "#aaa", fontSize: 12, marginBottom: 4 }}>Wiederholungen</Text>
-                          <TextInput
-                            value={set.reps.toString()}
-                            onChangeText={(val) => handleUpdateSet(index, 'reps', val)}
-                            keyboardType="numeric"
-                            style={{ backgroundColor: "#111", color: "#fff", padding: 8, borderRadius: 4 }}
-                          />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ color: "#aaa", fontSize: 12, marginBottom: 4 }}>Gewicht (kg)</Text>
-                          <TextInput
-                            value={set.weight.toString()}
-                            onChangeText={(val) => handleUpdateSet(index, 'weight', val)}
-                            keyboardType="numeric"
-                            style={{ backgroundColor: "#111", color: "#fff", padding: 8, borderRadius: 4 }}
-                          />
-                        </View>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            ))}
-
-            {/* Add Exercise Button (edit mode) */}
-            <View style={{ marginTop: 12 }}>
-              <Pressable
-                onPress={() => router.push({ pathname: "/screens/exercise/AddExerciseToWorkoutScreen", params: { workoutEditId: editIdRef.current, returnTo: 'active' } })}
-                style={({ pressed }) => [
-                  { backgroundColor: pressed ? '#444' : '#333', padding: 12, borderRadius: 8, alignItems: 'center' }
-                ]}
-              >
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>+ Übung hinzufügen</Text>
-              </Pressable>
-            </View>
-          </ScrollView>
-        ) : (
-          // non-edit simple list
-          <FlatList
-            data={workout.exerciseSets}
-            keyExtractor={(_, i) => i.toString()}
-            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-            renderItem={({ item: set, index: setIndex }) => (
-              <Pressable
-                key={setIndex}
-                onPress={() => !isEditMode && handleSetCheck(setIndex)}
-                disabled={isEditMode}
-                style={styles.setItem}>
-                {!isEditMode && (
-                  <View
-                    style={[
-                      styles.checkbox
-                    ]}
-                  >
-                    {set.isDone && (
-                      <Ionicons name="checkmark" size={16} color="#fff" />
-                    )}
-                  </View>
-                )}
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.workoutName}>
-                    {set.exerciseName || set.exerciseId}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.setText
-                    ]}
-                  >
-                    {set.reps} Wiederholungen @ {set.weight}kg
-                  </Text>
-                </View>
-              </Pressable>
-            )}
-          />
-        )
-      }
-      
-
-        {/* Add set button: show after last set of each exercise */}
-        {workout.exerciseSets.map((set, i) => {
-          const next = workout.exerciseSets[i+1];
-          if (!next || next.exerciseId !== set.exerciseId) {
-            return (
-              <Pressable key={`add-${i}`} onPress={() => handleAddSet(set.exerciseId, set.exerciseName)} style={{ marginHorizontal: 16, marginBottom: 12, padding: 10, backgroundColor: '#2b2b2b', borderRadius: 8 }}>
-                <Text style={{ color: '#fff' }}>+ Satz hinzufügen für {set.exerciseName || set.exerciseId}</Text>
-              </Pressable>
-            );
-          }
-          return null;
-        })}
-
-      {/* Edit Button - only in normal mode */}
-      {!isEditMode && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 20,
-            right: 20,
-            left: 20,
-          }}
-        >
-          <Pressable
-            onPress={() => setIsEditMode(true)}
-            style={{
-              backgroundColor: "#333",
-              padding: 14,
-              borderRadius: 8,
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>
-              Bearbeiten
-            </Text>
-          </Pressable>
-        </View>
-      )}
+      {isEditMode ? renderEditMode() : renderViewMode()}
 
       <LoadingOverlay visible={loading} />
     </BottomSheetView>

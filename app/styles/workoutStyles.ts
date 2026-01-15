@@ -4,53 +4,56 @@ import { topBarStyles } from './topBarStyles';
 
 export const workoutStyles = StyleSheet.create({
 
-exerciseCard: {
-  backgroundColor: "#111",
-  padding: 12,
-  borderRadius: 10,
-  marginHorizontal: 16,
-  marginBottom: 16,
-},
-exerciseTitle: {
-  color: "#fff",
-  fontSize: 16,
-  fontWeight: "bold",
-  marginBottom: 8,
-},
-setRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  paddingVertical: 6,
-},
-setEditRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 8,
-  marginBottom: 8,
-},
-setLabel: {
-  color: "#aaa",
-  width: 50,
-},
-input: {
-  backgroundColor: "#222",
-  color: "#fff",
-  padding: 6,
-  borderRadius: 6,
-  width: 60,
-  textAlign: "center",
-},
-addSetButton: {
-  marginTop: 8,
-  padding: 8,
-  borderRadius: 6,
-  backgroundColor: "#2b2b2b",
-  alignItems: "center",
-},
-addSetButtonText: {
-  color: "#fff",
-  fontWeight: "600",
-},
+    //New experimental :/
+    exerciseCard: {
+    backgroundColor: "#111",
+    padding: 12,
+    borderRadius: 10,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    },
+    exerciseTitle: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 8,
+    },
+
+    setRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+    },
+    setEditRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+    },
+    setLabel: {
+    color: "#aaa",
+    width: 50,
+    },
+
+    input: {
+    backgroundColor: "#222",
+    color: "#fff",
+    padding: 6,
+    borderRadius: 6,
+    width: 60,
+    textAlign: "center",
+    },
+
+    addSetButton: {
+    marginTop: 8,
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: "#2b2b2b",
+    alignItems: "center",
+    },
+    addSetButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    },
 
     //Old Styles
     container: {
@@ -143,11 +146,22 @@ addSetButtonText: {
         fontWeight: "bold",
     },
 
+    topBarLikeButton: {
+        width: 100,
+        paddingVertical: 8,
+        borderRadius: 10,
+        alignItems: "center",
+        borderWidth: 2,
+        borderColor: Colors.primary,
+        backgroundColor: Colors.primary,
+    },
+
     topBarButton: topBarStyles.button,
     topBarButtonText: topBarStyles.buttonText,
 
     topBarText: topBarStyles.text,
     topBarContainer:topBarStyles.container,
+
 
     addExerciseButton:{
         padding: 8,
@@ -182,6 +196,11 @@ addSetButtonText: {
         flex: 1,
         padding: 10,
         backgroundColor: Colors.darkBackground,
+        flexDirection: "column",
+
+        height: "100%",
+        gap: 20,
+    
     },
 
 

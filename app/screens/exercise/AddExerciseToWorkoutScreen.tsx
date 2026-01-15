@@ -4,7 +4,6 @@ import { useState } from "react";
 import { TopBar } from "../../components/TopBar"
 import ExerciseList from "../../components/ExerciseList";
 import LoadingOverlay from "../../components/LoadingOverlay";
-import {Colors} from "../../styles/theme";
 import { useLoadExercises } from "../../hooks/useLoadExercises";
 
 
