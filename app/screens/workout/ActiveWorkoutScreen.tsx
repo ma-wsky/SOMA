@@ -25,10 +25,11 @@ type ExerciseSet = {
   exerciseId: string;
   exerciseName?: string;
   name?: string;
-  breaktime?: number;
   weight: number;
   reps: number;
   isDone?: boolean;
+  breaktime?: number;
+  restStartedAt?: number;
 };
 
 type Workout = {
@@ -49,10 +50,148 @@ export default function ActiveWorkoutScreen() {
   const { id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime } = useLocalSearchParams<{ id?: string; selectedExerciseId?: string; selectedExerciseName?: string; workoutEditId?: string; selectedBreakTime?: string }>();
   const [loading, setLoading] = useState(false);
   const [workout, setWorkout] = useState<Workout | null>(null);
-  const editIdRef = useRef<string | null>(null);  const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
+  const editIdRef = useRef<string | null>(null);  
+  const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
   const [isEditMode, setIsEditMode] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  
+  
+
+  const groupSetsByExercise = (sets: ExerciseSet[]) => {
+    const map: { [exerciseId: string]: ExerciseSet[] } = {};
+    sets.forEach((set) => {
+      if (!map[set.exerciseId]) {
+        map[set.exerciseId] = [];
+      }
+      map[set.exerciseId].push(set);
+    });
+    return map;
+  };
+
+
+  const renderViewMode = () => {
+    const groupedSets = groupSetsByExercise(workout!.exerciseSets);
+
+    return(
+      <ScrollView contentContainerStyle={{paddingBottom: 120}}>
+        {Object.entries(groupedSets).map(([exerciseId, sets]) => 
+          renderExerciseViewCard(exerciseId, sets))}
+      </ScrollView>
+    );
+  };
+
+  const renderEditMode =() => {
+    const groupedSets = groupSetsByExercise(workout!.exerciseSets);
+
+    return(
+      <ScrollView contentContainerStyle={{paddingBottom: 120}}>
+        {Object.entries(groupedSets).map(([exerciseId, sets]) =>
+          renderExerciseEditCard(exerciseId, sets))}
+      </ScrollView>
+    );
+  };
+
+
+  const renderSetEditMode = (set: ExerciseSet, index: number) => (
+    <View key={index} style={styles.setEditRow}>
+      <Text style={styles.setText}>Satz {index + 1}</Text>
+
+      <TextInput
+      value={set.weight.toString()}
+      onChangeText={(text) => handleUpdateSet(index, "weight", text)}
+      style={styles.input}
+      keyboardType="numeric"
+      />
+
+      <TextInput
+      value={set.reps.toString()}
+      onChangeText={(text) => handleUpdateSet(index,"reps", text)}
+      style={styles.input}
+      keyboardType="numeric"
+      />
+
+      <TextInput
+        value={(set.breaktime ?? 30).toString()}
+        keyboardType="numeric"
+        onChangeText={(v) => {
+          const secs = parseInt(v) || 0;
+          handleUpdateSet(index, "breaktime" as any, secs.toString());
+        }}
+        style={styles.input}
+        placeholder="Pause"
+      />
+
+      <Pressable onPress={() => handleRemoveSet(index)}>
+        <Ionicons name="trash" size={20} color="#ff4444" />
+      </Pressable>
+
+    </View>
+  );
+
+
+
+  const renderSetViewRow = (set: ExerciseSet, index: number) => {
+    
+    return(
+      <Pressable
+      key={index}
+      onPress={()=> handleSetCheck(index)}
+      style={styles.setRow}
+      >
+
+      <Text style={styles.setText}>{set.id}</Text>
+      <Text style={styles.setText}>{set.weight}</Text>
+      <Text style={styles.setText}>{set.reps}</Text>
+
+      <View style={[styles.checkbox, set.isDone && styles.checkboxDone]}>
+        {set.isDone && <Ionicons name="checkmark" size={16} color="#fff" />}
+      </View>
+
+      </Pressable>
+    );
+  };
+
+
+  const renderExerciseViewCard = (exerciseId: string, sets: ExerciseSet[]) => (
+    <View key={exerciseId} style={styles.exerciseCard}>
+      <Text style={styles.exerciseTitle}>
+        {sets[0].exerciseName}
+      </Text>
+
+      {sets.map((set, idx) => renderSetViewRow(set, workout!.exerciseSets.indexOf(set)))}
+
+      <Pressable
+        onPress={() => handleAddSet(exerciseId, sets[0].exerciseName)}
+        style={styles.addSetButton}
+      >
+
+        <Text style={styles.addSetButtonText}>+ Satz hinzufügen</Text>
+      </Pressable>
+    </View>
+  );
+
+  const renderExerciseEditCard = (exerciseId: string, sets: ExerciseSet[]) => (
+    <View key={exerciseId} style={styles.exerciseCard}> 
+      <Text style={styles.exerciseTitle}>
+        {sets[0].exerciseName}
+      </Text>
+
+      {sets.map((set)=>
+      renderSetEditMode(set, workout!.exerciseSets.indexOf(set)))}
+
+      <Pressable
+        onPress={() => handleAddSet(exerciseId, sets[0].exerciseName)}
+        style={styles.addSetButton}
+      >
+
+        <Text style={styles.addSetButtonText}>+ Satz hinzufügen</Text>
+      </Pressable>
+    </View>
+  );
+  
+
 
   // Lade Workout beim Start
   useEffect(() => {
@@ -72,7 +211,7 @@ export default function ActiveWorkoutScreen() {
 
         if (id) {
           // Wenn ID vorhanden, lade gespeichertes Workout
-          editIdRef.current = workoutEditId || `workout_${id}`;
+          editIdRef.current = workoutEditId || id;
 
           const userRef = doc(db, "users", user.uid, "workouts", id);
           const userSnap = await getDoc(userRef);
@@ -87,12 +226,11 @@ export default function ActiveWorkoutScreen() {
               exerciseSets.push({
                 id: setDoc.id,
                 exerciseId: setData.exerciseId,
-                exerciseName: setData.exerciseName || exercisesMap.get(setData.exerciseId)?.name,
-                name: setData.name || undefined,
+                exerciseName: setData.exerciseName,
+                name: setData.name,
                 weight: setData.weight,
                 reps: setData.reps,
                 isDone: setData.isDone || false,
-                // prefer stored breaktime, fallback to default 30
                 breaktime: setData.breaktime ?? 30,
               });
             });
@@ -147,37 +285,80 @@ export default function ActiveWorkoutScreen() {
     };
   }, []);
 
-  // Handle Set Checkbox - toggle isDone for a specific set
-  const handleSetCheck = (setIndex: number) => {
-    if (!workout) return;
+  const getRemainingRestTime = (set: ExerciseSet) => {
+    if(!set.isDone || !set.restStartedAt || !set.breaktime) return null;
 
-    const updatedSets = [...workout.exerciseSets];
-    updatedSets[setIndex].isDone = !updatedSets[setIndex].isDone;
+    const rest = set.breaktime;
+    const elapsed = (Date.now() - set.restStartedAt) / 1000;
+    const remaining = rest - elapsed;
 
-    setWorkout({
-      ...workout,
-      exerciseSets: updatedSets,
-    });
+    return remaining > 0 ? remaining : 0;
   };
 
-  // Add a set for a given exercise in active workout
-  const handleAddSet = (exerciseId: string, exerciseName?: string, breaktime?: number) => {
-      if (!workout) return;
-    const existingCount = workout.exerciseSets.filter(s => s.exerciseId === exerciseId).length;
-    const newSet: ExerciseSet = {
-      id: `set_${Date.now()}`,
-      exerciseId,
-      exerciseName: exerciseName || exercises.get(exerciseId)?.name,
-      name: `${exerciseName || exercises.get(exerciseId)?.name}Set${existingCount + 1}`,
-      breaktime: breaktime ?? 30,
-      weight: 20,
-      reps: 5,
-      isDone: false,
+  // Handle Set Checkbox   
+  const handleSetCheck = (setIndex: number) => {
+    if (!workout) {return;}
+
+    const sets = [...workout.exerciseSets];
+    const set = sets[setIndex];
+
+    const newDoneStatus = !set.isDone;
+
+    sets[setIndex] = {
+      ...set,
+      isDone: newDoneStatus,
+      restStartedAt: newDoneStatus ? Date.now() : undefined,
     };
-    const newW = { ...workout, exerciseSets: [...(workout?.exerciseSets || []), newSet] };
-    setWorkout(newW);
-    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
-  }; 
+    setWorkout({ ...workout, exerciseSets: sets });
+  };
+
+
+  //new Add Exercise in hope that multiple exercises can be added
+  const addExercise = (
+  exerciseId: string,
+  exerciseName?: string,
+  breaktime?: number
+) => {
+  if (!workout) return;
+
+  const newSet: ExerciseSet = {
+    id: `set_${Date.now()}`,
+    exerciseId,
+    exerciseName,
+    weight: 20,
+    reps: 5,
+    breaktime: breaktime ?? 30,
+    isDone: false,
+  };
+
+  const newWorkout = {
+    ...workout,
+    exerciseSets: [...workout.exerciseSets, newSet],
+  };
+
+  setWorkout(newWorkout);
+};
+
+
+  // Add a set for a given exercise in active workout
+  const handleAddSet = (exerciseId: string, exerciseName?: string) => {
+  if (!workout) return;
+
+  const newSet: ExerciseSet = {
+    id: `set_${Date.now()}`,
+    exerciseId,
+    exerciseName,
+    weight: 20,
+    reps: 5,
+    breaktime: 30,
+    isDone: false,
+  };
+
+  setWorkout({
+    ...workout,
+    exerciseSets: [...workout.exerciseSets, newSet],
+  });
+};
 
   // Discard Workout
   const handleDiscardWorkout = () => {
@@ -257,12 +438,28 @@ export default function ActiveWorkoutScreen() {
 
   // Handle exercise returned from AddExercise (single-select)
   useEffect(() => {
+    if (!selectedExerciseId) return;
+
+
+    addExercise(selectedExerciseId, selectedExerciseName, Number(selectedBreakTime));
+
+    router.setParams({ selectedExerciseId: undefined, selectedExerciseName: undefined, selectedBreakTime: undefined });
+  },[selectedExerciseId, selectedExerciseName, selectedBreakTime]);
+
+
+  /*useEffect(() => {
+
+  //Old AddExercise/Set
     if (selectedExerciseId) {
       handleAddSet(selectedExerciseId, selectedExerciseName, Number(selectedBreakTime));
       // clear params to avoid duplicates
       router.setParams({ selectedExerciseId: undefined, selectedExerciseName: undefined, selectedBreakTime: undefined });
     }
   }, [selectedExerciseId, selectedExerciseName, selectedBreakTime]);
+  */
+  
+  
+  
   // Update a set value
   const handleUpdateSet = (index: number, key: 'weight' | 'reps', value: string) => {
     if (!workout) return;

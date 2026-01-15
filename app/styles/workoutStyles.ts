@@ -3,6 +3,56 @@ import { Colors, DarkColors } from "./theme";
 import { topBarStyles } from './topBarStyles';
 
 export const workoutStyles = StyleSheet.create({
+
+exerciseCard: {
+  backgroundColor: "#111",
+  padding: 12,
+  borderRadius: 10,
+  marginHorizontal: 16,
+  marginBottom: 16,
+},
+exerciseTitle: {
+  color: "#fff",
+  fontSize: 16,
+  fontWeight: "bold",
+  marginBottom: 8,
+},
+setRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  paddingVertical: 6,
+},
+setEditRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 8,
+  marginBottom: 8,
+},
+setLabel: {
+  color: "#aaa",
+  width: 50,
+},
+input: {
+  backgroundColor: "#222",
+  color: "#fff",
+  padding: 6,
+  borderRadius: 6,
+  width: 60,
+  textAlign: "center",
+},
+addSetButton: {
+  marginTop: 8,
+  padding: 8,
+  borderRadius: 6,
+  backgroundColor: "#2b2b2b",
+  alignItems: "center",
+},
+addSetButtonText: {
+  color: "#fff",
+  fontWeight: "600",
+},
+
+    //Old Styles
     container: {
         marginTop: 30,
         flex: 1,
