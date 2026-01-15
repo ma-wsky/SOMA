@@ -78,7 +78,43 @@ export const exerciseStyles = StyleSheet.create({
         fontSize: 16,
     },
 
+    picWrapper: {
+        marginTop: 40,
+        alignItems: "center",
+    },
+    picture: {
+        width:150,
+        height:150,
+        borderRadius: 75,
+        borderWidth: 4,
+        borderColor: 'black',
+        resizeMode: 'cover',
+    },
+    picText: {
+        color: "black",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    textOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 32,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 
+    layout: {
+        marginTop: 20,
+        flex: 1,
+        gap: 25,
+        backgroundColor: Colors.background,
+    },
+    wrapper: {
+        alignItems: "flex-start",
+        marginHorizontal: 30,
+    },
     text: {
         fontSize: 18,
         fontWeight: "bold",
@@ -90,50 +126,7 @@ export const exerciseStyles = StyleSheet.create({
         borderColor: Colors.iconInactive,
         //width: 250,
     },
-    wrapper: {
-        alignItems: "flex-start",
-        marginHorizontal: 30,
-    },
     input: {
         flex: 1,
-    },
-    layout: {
-        marginTop: 20,
-        flex: 1,
-        gap: 25,
-        backgroundColor: Colors.background,
-    },
-    picture: {
-        height: 130,
-        width: 130,
-        borderRadius: 20,
-        backgroundColor: Colors.black,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    picWrapper: {
-        marginTop: 40,
-        alignItems: "center",
-    },
-    picText: {
-        color: "black",
-    },
-    image: {
-        width:150,
-        height:150,
-        borderRadius: 75,
-        borderWidth: 4,
-        borderColor: 'black',
-        resizeMode: 'cover',
-    },
-    textOverlay: {
-        // Positioniert den Text absolut über dem Bild
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
 })
