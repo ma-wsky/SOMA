@@ -35,7 +35,7 @@ export default function WorkoutItem({workout, onPress}: Props) {
             <Pressable
                 onPress={() => {router.push({pathname: "/screens/workout/SingleWorkoutInfoScreen", params: {id: workout.id}})}}
             >
-                <Text style={styles.title}>{workout.name}</Text>
+                <Text style={styles.itemTitle}>{workout.name}</Text>
                 <Text style={{color: "#aaa", fontSize: 12, marginTop: 4}}>
                     {workout.exerciseSets.length} Sets
                 </Text>
@@ -49,7 +49,7 @@ export default function WorkoutItem({workout, onPress}: Props) {
                     {borderColor: pressed ? Colors.secondary : Colors.primary}
                 ]}
             >
-                <Text style={styles.buttonText}>Training starten</Text>
+                <Text style={styles.itemButtonText}>Training starten</Text>
             </Pressable>
         </View>
     );

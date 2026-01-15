@@ -264,7 +264,7 @@ export default function SingleWorkoutInfoScreen() {
 
   if (!workout) {
     return (
-      <View style={workoutStyles.container}>
+      <View style={workoutStyles.itemContainer}>
         <TopBar
           leftButtonText={"Zurück"}
           titleText={"Training Info"}
@@ -279,7 +279,7 @@ export default function SingleWorkoutInfoScreen() {
   const canSave = isEditMode && !!workout?.name && (workout.exerciseSets?.length ?? 0) > 0;
 
   return (
-    <View style={workoutStyles.container}>
+    <View style={workoutStyles.itemContainer}>
       <TopBar
         leftButtonText={isEditMode ? "Abbrechen" : "Zurück"}
         titleText={isEditMode ? "Training bearbeiten" : "Training Info"}

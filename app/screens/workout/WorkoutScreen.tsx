@@ -42,8 +42,8 @@ export default function WorkoutScreen() {
           ]}
         >
           <View style={styles.bigButtonTextWrapper}>
-            <Text style={styles.buttonText}>Leeres Training starten</Text>
-            <Ionicons name={"add-outline"} size={24} color="#fff" />
+            <Text style={styles.itemTitle}>Leeres Training starten</Text>
+            <Ionicons name={"add-outline"} size={styles.itemTitle.fontSize} color={styles.itemTitle.color} />
           </View>
         </Pressable>
       </View>
@@ -54,7 +54,7 @@ export default function WorkoutScreen() {
         placeholderTextColor="white"
         value={filter}
         onChangeText={setFilter}
-        style={styles.search}
+        style={styles.searchbar}
       />
 
       {/* Saved Workouts List */}
@@ -84,8 +84,8 @@ export default function WorkoutScreen() {
           ]}
         >
           <View style={styles.bigButtonTextWrapper}>
-            <Text style={styles.buttonText}>Training erstellen</Text>
-            <Ionicons name={"add-outline"} size={24} color="#fff" />
+            <Text style={styles.itemTitle}>Training erstellen</Text>
+            <Ionicons name={"add-outline"} size={styles.itemTitle.fontSize} color={styles.itemTitle.color} />
           </View>
         </Pressable>
       </View>

@@ -112,7 +112,7 @@ export default function WorkoutHistoryScreen() {
   };
 
   return (
-    <View style={workoutStyles.container}>
+    <View style={workoutStyles.itemContainer}>
       <TopBar
         leftButtonText={"Zurück"}
         titleText={"Workout-Verlauf"}

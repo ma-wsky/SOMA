@@ -1,7 +1,13 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from "./theme";
+import { Colors, DarkColors } from "./theme";
+import { topBarStyles } from './topBarStyles';
 
 export const workoutStyles = StyleSheet.create({
+    container: {
+        marginTop: 30,
+        flex: 1,
+        backgroundColor: Colors.background,
+    },
     itemContainer: {
         gap: 10,
         padding:12,
@@ -54,7 +60,7 @@ export const workoutStyles = StyleSheet.create({
     },
     
     //Active Workout
-    exerciseName: {
+    workoutName: {
         fontSize: 16,
         fontWeight: "bold",
         color: "#222",
@@ -87,30 +93,22 @@ export const workoutStyles = StyleSheet.create({
         fontWeight: "bold",
     },
 
-    topBarButton: {
-        width: 100,
-        paddingVertical: 8,
-        borderRadius: 10,
-        alignItems: "center",
-        borderWidth: 2,
-        borderColor: Colors.primary,
-    },
-    topBarButtonText: {
-        color: "white",
-        fontWeight: "bold",
-        fontSize: 16,
-    },
+    topBarButton: topBarStyles.button,
+    topBarButtonText: topBarStyles.buttonText,
 
-    exerciseButton:{
+    topBarText: topBarStyles.text,
+    topBarContainer:topBarStyles.container,
+
+    addExerciseButton:{
         padding: 8,
         borderRadius: 6,
         backgroundColor: Colors.primary,
     },
-    exerciseButtonText:{
+    addExerciseButtonText:{
         color: Colors.black,
         fontWeight: "bold",
     },
-    
+
     checkbox: {
         width: 24,
         height: 24,
@@ -128,12 +126,12 @@ export const workoutStyles = StyleSheet.create({
     
     sheetContainer: {
         flex: 1,
-        backgroundColor: 'grey',
+        backgroundColor: Colors.background,
     },
     sheetContainerContent: {
         flex: 1,
-        padding: 36,
-        alignItems: 'center',
+        padding: 10,
+        backgroundColor: Colors.darkBackground,
     },
 
 

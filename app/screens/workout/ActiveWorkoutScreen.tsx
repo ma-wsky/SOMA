@@ -4,8 +4,7 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  FlatList,
-  StyleSheet,
+  FlatList
 } from "react-native";
 import { showAlert, showConfirm } from "@/app/utils/alertHelper";
 import { setActiveWorkout, clearActiveWorkout } from "@/app/utils/activeWorkoutStore";
@@ -13,7 +12,7 @@ import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from "firebase/firestore";
 import { auth, db } from "@/app/firebaseConfig";
-import { workoutStyles } from "@/app/styles/workoutStyles";
+import { workoutStyles as styles } from "@/app/styles/workoutStyles";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { TopBar } from "@/app/components/TopBar";
@@ -338,7 +337,7 @@ export default function ActiveWorkoutScreen() {
       .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const snapPoints = ['98%'];
+  const snapPoints = ['99%'];
 
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -363,11 +362,6 @@ export default function ActiveWorkoutScreen() {
       setActiveWorkout({ id: workout?.id ?? null, startTime: workout?.startTime ?? Date.now(), setsCount: workout?.exerciseSets.length ?? 0 });
     } else {
       setIsMinimized(false);
-      /*try {
-        router.replace({ pathname: '/(tabs)/HomeScreenProxy' });
-      } catch (e) {
-        console.warn('Failed to clear home overlay param', e);
-      }*/
       clearActiveWorkout();
     }
   }, [workout]);
@@ -387,13 +381,18 @@ export default function ActiveWorkoutScreen() {
 
   const canSaveActive = isEditMode && !!workout?.name && (workout.exerciseSets?.length ?? 0) > 0;
 
+
+  //TODO Meh lösung: Leerzeichen
+  const timerString = `Aktives Training \n      ${formatTime(elapsedTime)}`;
+
   return (
     <GestureHandlerRootView style={styles.sheetContainer}>
       <BottomSheet index={1} snapPoints={snapPoints} ref={bottomSheetRef} onChange={handlesSheetChanges} enablePanDownToClose={true}>
       <BottomSheetView style={styles.sheetContainerContent}>
       <TopBar
         leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
-        titleText={isEditMode ? "Training bearbeiten" : "Aktives Training"}
+
+        titleText={isEditMode ? "Training bearbeiten" : timerString}
         rightButtonText={isEditMode ? "Speichern" : "Fertig"}
         onLeftPress={isEditMode ? () => setIsEditMode(false) : handleDiscardWorkout}
         onRightPress={isEditMode ? handleSaveChanges : handleFinishWorkout}
@@ -410,13 +409,13 @@ export default function ActiveWorkoutScreen() {
               if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
             }}
             placeholder="Name des Trainings"
-            placeholderTextColor="#666"
+            placeholderTextColor='#000'
             style={{ backgroundColor: '#111', color: '#fff', padding: 8, borderRadius: 8 }}
           />
         </View>
       ) : (
         <View style={{ paddingHorizontal: 20, width: '100%', marginTop: 8 }}>
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>{workout.name || 'Aktives Training'}</Text>
+          <Text style={styles.workoutName}>{workout.name !== 'Aktives Training'}</Text>
         </View>
       )}
 
@@ -433,18 +432,12 @@ export default function ActiveWorkoutScreen() {
         </View>
       ) : (
         <View style={{ paddingHorizontal: 20, width: '100%', marginTop: 8 }}>
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>{workout.name || 'Aktives Training'}</Text>
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>{workout.name !== 'Aktives Training'}</Text>
         </View>
-      )}
-
-      {/* Timer */}
-      <View style={styles.timerSection}>
-        <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
-      </View>
+      )};
 
       {/* Exercise Sets List */}
-      {workout.exerciseSets.length > 0 ? (
-        isEditMode ? (
+      {isEditMode ? (
           // Group sets by exercise with edit controls (scrollable)
           <ScrollView style={{ maxHeight: 420, width: '100%' }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}>
             {Array.from(
@@ -525,13 +518,11 @@ export default function ActiveWorkoutScreen() {
                 key={setIndex}
                 onPress={() => !isEditMode && handleSetCheck(setIndex)}
                 disabled={isEditMode}
-                style={[styles.setItem, set.isDone && styles.setItemDone]}
-              >
+                style={styles.setItem}>
                 {!isEditMode && (
                   <View
                     style={[
-                      styles.checkbox,
-                      set.isDone && styles.checkboxDone,
+                      styles.checkbox
                     ]}
                   >
                     {set.isDone && (
@@ -540,13 +531,12 @@ export default function ActiveWorkoutScreen() {
                   </View>
                 )}
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.exerciseName}>
+                  <Text style={styles.workoutName}>
                     {set.exerciseName || set.exerciseId}
                   </Text>
                   <Text
                     style={[
-                      styles.setText,
-                      set.isDone && styles.setTextDone,
+                      styles.setText
                     ]}
                   >
                     {set.reps} Wiederholungen @ {set.weight}kg
@@ -556,13 +546,8 @@ export default function ActiveWorkoutScreen() {
             )}
           />
         )
-      ) : (
-        <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 40 }}>
-          <Text style={{ color: "#aaa", textAlign: "center", fontSize: 16 }}>
-            Freies Training - Keine vordefinierten Übungen
-          </Text>
-        </ScrollView>
-      )}
+      }
+      
 
         {/* Add set button: show after last set of each exercise */}
         {workout.exerciseSets.map((set, i) => {
@@ -633,8 +618,4 @@ export default function ActiveWorkoutScreen() {
 
       </GestureHandlerRootView>
   );
-}
-
-const styles = StyleSheet.create({
-  
-});
+};

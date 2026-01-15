@@ -4,7 +4,7 @@ import { Colors } from "./theme";
 export const topBarStyles = StyleSheet.create({
     container: {
         flexDirection:"row",
-        justifyContent:"space-around",
+        justifyContent: "space-around",
         alignItems: "center",
         marginTop: 40,
     },
@@ -17,7 +17,7 @@ export const topBarStyles = StyleSheet.create({
         borderColor: Colors.primary,
     },
     buttonText: {
-        color: "white",
+        color: Colors.black,
         fontWeight: "bold",
         fontSize: 16,
     },
