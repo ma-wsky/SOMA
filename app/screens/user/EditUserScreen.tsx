@@ -102,7 +102,7 @@ export default function EditUserScreen() {
 
             if (image) {
                 const path = `users/${uid}/profile_${Date.now()}.jpg`;
-                const downloadURL = await uploadImage(image, uid);
+                const downloadURL = await uploadImage(image, path);
                 if (downloadURL) {
                     finalPhotoUrl = downloadURL;
                 }
