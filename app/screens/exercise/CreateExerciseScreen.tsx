@@ -123,15 +123,11 @@ export default function CreateExerciseScreen() {
                     equipment: inputEquipment,
                     instructions: inputInstructions,
                 })
-<<<<<<< HEAD:app/screens/exercise/CreateExerciseScreen.tsx
-                router.replace("./screens/workout/ExerciseScreen");
-=======
 
                 // upload image
                 if (hasImage) await uploadImage(image);
 
-                router.replace("/screens/workout/ExerciseScreen");
->>>>>>> fc2a4086804297ba3bf3e2502412f878b63171e1:app/screens/workout/CreateExerciseScreen.tsx
+                router.replace("/screens/exercise/ExerciseScreen");
                 Alert.alert("Gespeichert", "Deine Änderungen wurden übernommen.");
 
             }else{
