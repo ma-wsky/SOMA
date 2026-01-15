@@ -5,6 +5,7 @@ import ExerciseItem from "./ExerciseItem";
 interface Props {
     exercises: Exercise[];
     filter?: string,
+    category?: string,
     onItemPress?: (exercise: Exercise) => void;
 }
 
@@ -20,12 +21,18 @@ type ListItem =
     | { type: "divider"; title: string }
     | { type: "exercise"; data: Exercise };
 
-export default function ExerciseList({ exercises, filter="", onItemPress }: Props) {
+export default function ExerciseList({ exercises, filter="", category="", onItemPress }: Props) {
 
     const listData: ListItem[] = useMemo(() => {
-        const filtered = exercises.filter(e =>
-            e.name.toLowerCase().includes(filter.toLowerCase())
-        );
+        const filtered = exercises.filter(e => {
+            const matchesSearch = filter.toLowerCase() === "" ||
+                e.name.toLowerCase().includes(filter.toLowerCase());
+
+            const matchesCategory = category === "Alle" ||
+                e.muscleGroup?.toLowerCase().includes(category.toLowerCase());
+
+            return matchesSearch && matchesCategory;
+        });
 
         const favoriteExercises = filtered.filter(e => e.isFavorite);
         const ownExercises = filtered.filter(e => e.isOwn && !e.isFavorite);
@@ -49,7 +56,7 @@ export default function ExerciseList({ exercises, filter="", onItemPress }: Prop
         }
 
         return data;
-    }, [exercises, filter]);
+    }, [exercises, filter, category]);
 
     console.log(exercises);
     return (
@@ -79,6 +86,7 @@ export default function ExerciseList({ exercises, filter="", onItemPress }: Prop
                 );
             }}
             contentContainerStyle={ styles.listContent }
+            keyboardDismissMode="on-drag"
 
             // No Exercises found
             ListEmptyComponent={() => (

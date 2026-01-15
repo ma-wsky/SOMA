@@ -7,6 +7,44 @@ export const exerciseStyles = StyleSheet.create({
         flex: 1,
         justifyContent: 'flex-start',
     },
+    searchBar:{
+        padding:10,
+        color: 'white',
+        fontSize:20,
+        backgroundColor:'black',
+        marginTop:20,
+        marginHorizontal: 20,
+        marginBottom: 10,
+        borderRadius: 50,
+    },
+
+    filterTagContainer: {
+        height: 50,
+    },
+    filterTagList: {
+        paddingHorizontal: 20,
+        marginBottom: 10,
+        alignItems: 'center',
+        gap: 10,
+    },
+    filterTag: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: Colors.iconInactive,
+    },
+    filterTagActive: {
+        backgroundColor: Colors.primary,
+    },
+    filterTagText: {
+        color: Colors.white,
+        fontWeight: '500',
+    },
+    filterTagTextActive: {
+        fontWeight: 'bold',
+    },
+
+
     text: {
         fontSize: 18,
         fontWeight: "bold",
