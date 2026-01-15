@@ -10,12 +10,23 @@ export const workoutStyles = StyleSheet.create({
         marginHorizontal: 20,
         borderRadius: 10,
     },
-    title: {
+    itemTitle: {
         fontSize: 22,
         fontWeight: "bold",
         color: "white",
     },
-    search:{
+    itemButton: {
+        paddingVertical: 8,
+        marginHorizontal: 30,
+        borderRadius: 10,
+        alignItems: "center",
+    },
+    itemButtonText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    searchbar:{
         padding:10,
         color: 'white',
         fontSize:20,
@@ -24,7 +35,7 @@ export const workoutStyles = StyleSheet.create({
         borderRadius: 50,
 
     },
-    button: {
+    startButton: {
         paddingVertical: 8,
         borderRadius: 10,
         alignItems: "center",
@@ -41,20 +52,90 @@ export const workoutStyles = StyleSheet.create({
         marginLeft: 30,
         gap: 80,
     },
-    itemButton: {
+    
+    //Active Workout
+    exerciseName: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: "#222",
+    },
+    setTitles:{
+        flexDirection: "row",
+        alignItems: "center",
+        padding: 12,
+    },
+    setItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        padding: 12,
+        backgroundColor: "#111",
+        borderRadius: 8,
+        marginBottom: 8,
+    },
+    setText: {
+        fontSize: 14,
+        color: "#aaa",
+    },
+    setButton:{
+        backgroundColor: "#aaa",
+        padding: 8,
+        borderRadius: 6,
+        marginLeft: 8,
+    },
+    setButtonText:{
+        color: Colors.black,
+        fontWeight: "bold",
+    },
+
+    topBarButton: {
+        width: 100,
         paddingVertical: 8,
-        marginHorizontal: 30,
         borderRadius: 10,
         alignItems: "center",
+        borderWidth: 2,
+        borderColor: Colors.primary,
     },
-    buttonText: {
+    topBarButtonText: {
         color: "white",
         fontWeight: "bold",
         fontSize: 16,
     },
-    container: {
-        marginTop: 30,
-        flex: 1,
-        backgroundColor: Colors.background,
+
+    exerciseButton:{
+        padding: 8,
+        borderRadius: 6,
+        backgroundColor: Colors.primary,
     },
+    exerciseButtonText:{
+        color: Colors.black,
+        fontWeight: "bold",
+    },
+    
+    checkbox: {
+        width: 24,
+        height: 24,
+        borderRadius: 6,
+        borderWidth: 2,
+        borderColor: "#666",
+        marginRight: 12,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    checkboxDone: {
+        backgroundColor: "#4CAF50",
+        borderColor: "#4CAF50",
+    },
+    
+    sheetContainer: {
+        flex: 1,
+        backgroundColor: 'grey',
+    },
+    sheetContainerContent: {
+        flex: 1,
+        padding: 36,
+        alignItems: 'center',
+    },
+
+
+    
 })
