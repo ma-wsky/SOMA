@@ -44,6 +44,40 @@ export const exerciseStyles = StyleSheet.create({
         fontWeight: 'bold',
     },
 
+    exerciseListContainer: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        marginTop: 20,
+    },
+    divider: {
+        marginVertical: 12,
+    },
+    dividerText: {
+        fontWeight: "600",
+        color: "#666"
+    },
+    line: {
+        flex: 1,
+        borderBottomColor: 'gray',
+        borderBottomWidth: 2,
+        height: 1,
+        backgroundColor: "#ccc",
+        marginTop: 4
+    },
+    listContent: {
+        marginHorizontal: 16,
+    },
+
+
+    noExFound: {
+        marginTop: 40,
+        alignItems: 'center',
+    },
+    noExFoundText: {
+        color: "#666",
+        fontSize: 16,
+    },
+
 
     text: {
         fontSize: 18,
