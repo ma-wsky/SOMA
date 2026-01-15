@@ -185,7 +185,7 @@ export default function ActiveWorkoutScreen() {
     showConfirm("Training verwerfen", "Möchten Sie dieses Training wirklich verwerfen?", () => {
       clearActiveWorkout();
       if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
-      router.back();
+        router.push("../..//(tabs)/WorkoutScreenProxy")
     }, { confirmText: "Verwerfen", cancelText: "Abbrechen" });
   };
 
@@ -232,7 +232,8 @@ export default function ActiveWorkoutScreen() {
         showAlert("Erfolg", "Training gespeichert");
         clearActiveWorkout();
         if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
-        router.back();
+        router.push("../..//(tabs)/WorkoutScreenProxy")
+
       } catch (e) {
         console.error("Fehler beim Speichern:", e);
         showAlert("Fehler", "Training konnte nicht gespeichert werden");

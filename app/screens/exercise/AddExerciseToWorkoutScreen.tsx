@@ -22,7 +22,6 @@ export default function AddExerciseToWorkoutScreen() {
         const workoutId = workoutEditId;
         if (!workoutId) {return;}
 
-        
         setSelectedId(exercise.id);
 
         if (returnTo === 'active'){
@@ -32,6 +31,10 @@ export default function AddExerciseToWorkoutScreen() {
             router.push({ pathname: "/screens/workout/EditWorkoutScreen", params: { workoutEditId: workoutId, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name, selectedBreakTime: breakTime } });
             return;
         }
+    };
+
+    const goToInfo = (exercise: any) => {
+        router.push({ pathname: "/screens/exercise/SingleExerciseInfoScreen", params: { id: exercise.id } });
     };
 
     return (
@@ -69,7 +72,9 @@ export default function AddExerciseToWorkoutScreen() {
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
-                onItemPress={(exercise) => addExercise(exercise)}
+                onItemPress={(exercise) => goToInfo(exercise)}
+                onAddToWorkout={(exercise) => addExercise(exercise)}
+                showAddButton={true}
             />
 
             {/* Loading Overlay */}

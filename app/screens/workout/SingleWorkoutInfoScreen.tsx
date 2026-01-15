@@ -98,7 +98,7 @@ export default function SingleWorkoutInfoScreen() {
         <TopBar
           leftButtonText={"Zurück"}
           titleText={"Training Info"}
-          onLeftPress={() => router.back()}
+          onLeftPress={() => router.push("../..//(tabs)/WorkoutScreenProxy")}
         />
         <Text>Workout nicht gefunden</Text>
         <LoadingOverlay visible={loading} />
@@ -111,7 +111,7 @@ export default function SingleWorkoutInfoScreen() {
       <TopBar
         leftButtonText={"Zurück"}
         titleText={"Training Info"}
-        onLeftPress={() => router.back()}
+        onLeftPress={() => router.push("../..//(tabs)/WorkoutScreenProxy")}
       />
 
         <Text>TEXT IST WEIß</Text>
@@ -124,10 +124,10 @@ export default function SingleWorkoutInfoScreen() {
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
         renderItem={({ item: set }) => (
           <View style={{ backgroundColor: "#222", borderRadius: 10, padding: 14, marginBottom: 12 }}>
-            <Text style={{ fontSize: 16, fontWeight: "bold", color: "#fff" }}>
+            <Text style={{ fontSize: 16, fontWeight: "bold", color: "#222" }}>
               {set.exerciseName || set.exerciseId}
             </Text>
-            <Text style={{ fontSize: 14, color: "#aaa", marginTop: 8 }}>
+            <Text style={{ fontSize: 14, color: "#6e6d6d", marginTop: 8 }}>
               {set.reps} Wiederholungen @ {set.weight}kg
             </Text>
             {set.isDone && (

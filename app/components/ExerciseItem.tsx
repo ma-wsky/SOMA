@@ -7,6 +7,7 @@ interface Props {
     exercise: Exercise;
     onPress?: (exercise: Exercise) => void;
     onAddToWorkout?: (exercise: Exercise) => void;
+    showAddButton?: boolean;
 }
 
 type Exercise = {
@@ -17,7 +18,7 @@ type Exercise = {
     isGlobal?: boolean;
 };
 
-export default function ExerciseItem({ exercise, onPress, onAddToWorkout }: Props) {
+export default function ExerciseItem({ exercise, onPress, onAddToWorkout, showAddButton = false }: Props) {
     return (
         <Pressable
             onPress={() => onPress?.(exercise)}
@@ -29,7 +30,7 @@ export default function ExerciseItem({ exercise, onPress, onAddToWorkout }: Prop
                 <Text style={styles.muscle}>{exercise.muscleGroup}</Text>
               </View>
 
-              {onAddToWorkout ? (
+              {showAddButton && onAddToWorkout ? (
                 <Pressable onPress={() => onAddToWorkout?.(exercise)} style={styles.addButton}>
                   <Ionicons name="add" size={20} color={Colors.primary} />
                 </Pressable>

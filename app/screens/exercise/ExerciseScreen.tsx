@@ -35,6 +35,7 @@ export default function ExerciseScreen() {
                 exercises={exercises}
                 filter={filter}
                 onItemPress={(exercise) => router.push({ pathname: "/screens/exercise/SingleExerciseInfoScreen", params: { id: exercise.id }})}
+                showAddButton={false}
             />
 
             <Pressable
