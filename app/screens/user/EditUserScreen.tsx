@@ -1,227 +1,241 @@
 import { useRouter } from "expo-router";
-import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView, Pressable, Alert } from "react-native";
+import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView, Pressable, Alert, Image } from "react-native";
 import { useState, useEffect } from 'react';
 import { auth, db } from "../../firebaseConfig";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { Colors } from "../../styles/theme";
-import { userStyles as styles } from "../../styles/userStyles";
+import { userStyles } from "../../styles/userStyles";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import * as ImagePicker from 'expo-image-picker';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { UserButton } from "../../components/user/userButton"
+import { validateEmail } from "../../utils/user/validateEmail"
 
+const EditRow = ({ label, value, onChangeText, placeholder, keyboardType = "default", isPressable = false, onPress = () => {} }: any) => (
+    <View style={userStyles.rowWrapper}>
+        <Text style={userStyles.text}>{label}</Text>
+        <View style={userStyles.EditFieldWrapper}>
+            {isPressable ? (
+                <Pressable onPress={onPress} style={userStyles.input}>
+                    <Text style={[userStyles.input, !value && { color: '#999' }]}>{value || placeholder}</Text>
+                </Pressable>
+            ) : (
+                <TextInput
+                    style={userStyles.input}
+                    placeholder={placeholder}
+                    value={value}
+                    onChangeText={onChangeText}
+                    keyboardType={keyboardType}
+                />
+            )}
+        </View>
+    </View>
+);
 
 export default function EditUserScreen() {
 
     const router = useRouter();
-
     const [loading, setLoading] = useState(false);
 
-    const [currentName, setCurrentName] = useState<string>("");
-    const [inputName, setInputName] = useState<string>("");
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        birthdate: "",
+        weight: "",
+        height: "",
+        profilePicture: ""
+    });
 
-    const [currentMail, setCurrentMail] = useState<string>("");
-    const [inputMail, setInputMail] = useState<string>("");
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [dateObject, setDateObject] = useState(new Date());
 
-    const [currentBirthdate, setCurrentBirthdate] = useState<string>("");
-    const [inputBirthdate, setInputBirthdate] = useState<string>("");
+    const takePhoto = async ()=> {
+        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
-    const [currentWeight, setCurrentWeight] = useState<string>("");
-    const [inputWeight, setInputWeight] = useState<string>("");
+        if (permissionResult.granted === false){
+            Alert.alert("Kamera", "Zugriff verweigert");
+            return;
+        }
 
-    const [currentHeight, setCurrentHeight] = useState<string>("");
-    const [inputHeight, setInputHeight] = useState<string>("");
+        const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.5,
+        });
+
+        if (!result.canceled){
+            await handleUpload(result.assets[0].uri);
+        }
+    }
+
+    const handleUpload = async (uri:string)=> {
+        try {
+            setLoading(true);
+
+            const response = await fetch(uri);
+            const blob = await response.blob();
+
+            const storage = getStorage();
+            const filename = `photos/${Date.now()}.jpg`;
+            const storageRef = ref(storage, filename);
+
+            await uploadBytes(storageRef, blob);
+            const url = await getDownloadURL(storageRef);
+
+            setFormData(prev => ({ ...prev, profilePicture: url }));
+            await updateDoc(doc(db, "users", auth.currentUser!.uid), { profilePicture: url });
+        } catch (error) {
+            console.error(error);
+            Alert.alert("Upload Fehler", "Bild konnte nicht gespeichert werden.");
+        } finally {
+            setLoading(false);
+        }
+    }
 
 
     useEffect(() => {
         const loadUserData = async () => {
-            setLoading(true);
             const user = auth.currentUser;
             if (!user) {
                 console.error("Kein User angemeldet.");
-                setLoading(false);
                 return;
             }
+            setLoading(true);
 
             try {
-                const ref = doc(db, "users", user.uid);
-                const snapshot = await getDoc(ref);
+                const docRef = doc(db, "users", user.uid);
+                const snapshot = await getDoc(docRef);
 
                 if (snapshot.exists()) {
                     const data = snapshot.data();
-                    setCurrentName(data.name || "");
-                    setInputName(data.name || "");
+                    setFormData({
+                        name: data.name || "",
+                        email: data.email || "",
+                        birthdate: data.birthdate || "",
+                        weight: data.weight?.toString() || "",
+                        height: data.height?.toString() || "",
+                        profilePicture: data.profilePicture || ""
+                    });
 
-                    setCurrentMail(data.email || "");
-                    setInputMail(data.email || "");
-
-                    setCurrentBirthdate(data.birthdate || "");
-                    setInputBirthdate(data.birthdate || "");
-
-                    setCurrentWeight(data.weight || "");
-                    setInputWeight(data.weight || "");
-
-                    setCurrentHeight(data.height || "");
-                    setInputHeight(data.height || "");
+                    if (data.birthdate) {
+                        const parts = data.birthdate.split('.');
+                        if (parts.length === 3) {
+                            const parsedDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                            setDateObject(parsedDate);
+                        }
+                    }
                 }
             } catch (e) {
                 console.error("Fehler beim Laden:", e);
+                Alert.alert("Fehler", "Daten konnten nicht geladen werden.");
+            }finally {
+                setLoading(false);
             }
-
-            setLoading(false);
         };
-
         loadUserData();
     }, []);
 
     const saveChanges = async () => {
-
-        setLoading(true);
-
-        const user = auth.currentUser;
-        if (!user) return;
-
-        const uid = auth.currentUser?.uid;
-        if (!uid) {
-            console.error("No UID found – user is not logged in.");
+        if (!validateEmail(formData.email)){
+            Alert.alert("Eingabe prüfen", "Bitte gib eine gültige E-Mail-Adresse ein.");
             return;
         }
-        const userRef = doc(db, "users", uid);
-
-        const updates: any = {};
-
-        if (inputName !== currentName) updates.name = inputName;
-        if (inputMail !== currentMail) updates.email = inputMail;
-        if (inputBirthdate !== currentBirthdate) updates.birthdate = inputBirthdate;
-        if (inputWeight !== currentWeight) updates.weight = inputWeight;
-        if (inputHeight !== currentHeight) updates.height = inputHeight;
-        updates.updatedAt = serverTimestamp();
-
+        setLoading(true);
         try {
-            await updateDoc(userRef, updates);
-
-            Alert.alert("Gespeichert", "Deine Änderungen wurden übernommen.");
+            const userRef = doc(db, "users", auth.currentUser!.uid);
+            await updateDoc(userRef, {
+                ...formData,
+                updatedAt: serverTimestamp(),
+            });
+            Alert.alert("Erfolg", "Profil aktualisiert.");
         } catch (e) {
-            console.error("Update-Fehler:", e);
-            Alert.alert("Fehler", "Die Änderungen konnten nicht gespeichert werden.");
-        }finally {
+            Alert.alert("Fehler", "Speichern fehlgeschlagen.");
+        } finally {
             setLoading(false);
+            router.replace("/(tabs)/UserScreenProxy");
         }
-
-        router.replace("/(tabs)/UserScreenProxy");
     }
 
     return (
-        // for scrolling up screen when opening keyboard
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
-        >
-            {/* Closing Keyboard when pressing outside */}
+        // iOS verschiebt, Android passt Höhe an
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-
-                {/* Scrolling Screen while Keyboard open */}
-                <ScrollView
-                    contentContainerStyle={{ flexGrow: 1, padding: 10 }}
-                    keyboardShouldPersistTaps="handled"
-                >
+                <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 10 }} keyboardShouldPersistTaps="handled">
                     {/* Screen */}
-                    <View style={styles.container}>
+                    <View style={userStyles.editUserContainer}>
 
                         {/* Save Button */}
-                        <View style={styles.buttonWrapper}>
-                            <Pressable
-                                onPress={saveChanges}
-                                style={({ pressed }) => [
-                                    styles.button,
-                                    {backgroundColor: pressed ? Colors.secondary : Colors.primary},
-                                    {borderColor: pressed ? Colors.secondary : Colors.primary}
-                                ]}
-                            >
-                                <Text style={styles.buttonText}>Speichern</Text>
-                            </Pressable>
+                        <View style={userStyles.buttonWrapper}>
+                            <UserButton title="Speichern" onPress={saveChanges}/>
                         </View>
 
                         {/* Profile Picture */}
-                        <View style={styles.circleWrapper}>
-                            <View style={styles.circle}></View>
-                        </View>
+                        <Pressable onPress={takePhoto} style={userStyles.profilePictureWrapper}>
+                            <Image
+                                source={formData.profilePicture ? { uri: formData.profilePicture } : require('../../assets/default-profile-picture/default-profile-picture.jpg')}
+                                style={userStyles.profilePicture}
+                            />
+                        </Pressable>
 
                         {/* Layout of Infos */}
-                        <View style={styles.layout}>
+                        <View style={userStyles.layout}>
+                            <EditRow
+                                label="Name"
+                                value={formData.name}
+                                onChangeText={(t:any) => setFormData({...formData, name: t})}
+                                placeholder="Name"/>
 
-                            {/* Name */}
-                            <View style={styles.wrapper}>
-                                <Text style={styles.text}>Name</Text>
+                            <EditRow
+                                label="E-Mail"
+                                value={formData.email}
+                                onChangeText={(t:any) => setFormData({...formData, email: t})}
+                                placeholder="E-Mail"/>
 
-                                <View style={styles.fieldWrapper}>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={currentName || "Name eingeben"}
-                                        value={inputName}
-                                        onChangeText={setInputName}/>
-                                </View>
+                            <View style={userStyles.line}/>
 
-                            </View>
+                            <EditRow
+                                label="Geburtsdatum"
+                                value={formData.birthdate}
+                                isPressable
+                                onPress={() => setShowDatePicker(true)}
+                                placeholder="Datum wählen"/>
 
-                            {/* E-Mail */}
-                            <View style={styles.wrapper}>
-                                <Text style={styles.text}>E-Mail</Text>
+                            <EditRow
+                                label="Gewicht"
+                                value={formData.weight}
+                                onChangeText={(t:any) => setFormData({...formData, weight: t})}
+                                placeholder="kg"
+                                keyboardType="numeric"/>
 
-                                <View style={styles.fieldWrapper}>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={currentMail || "E-Mail eingeben"}
-                                        value={inputMail}
-                                        onChangeText={setInputMail}/>
-                                </View>
-                            </View>
-
-                            <View style={styles.line}/>
-
-                            {/* Birthdate */}
-                            <View style={styles.wrapper}>
-                                <Text style={styles.text}>Geburtsdatum</Text>
-
-                                <View style={styles.fieldWrapper}>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={currentBirthdate || "Datum eingeben"}
-                                        value={inputBirthdate}
-                                        onChangeText={setInputBirthdate}/>
-                                </View>
-                            </View>
-
-                            {/* Weight */}
-                            <View style={styles.wrapper}>
-                                <Text style={styles.text}>Gewicht</Text>
-
-                                <View style={styles.fieldWrapper}>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={currentWeight || "Gewicht eingeben"}
-                                        value={inputWeight}
-                                        onChangeText={setInputWeight}
-                                        keyboardType="numeric"/>
-                                </View>
-                            </View>
-
-                            {/* Height */}
-                            <View style={styles.wrapper}>
-                                <Text style={styles.text}>Größe</Text>
-
-                                <View style={styles.fieldWrapper}>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={currentHeight || "Größe eingeben"}
-                                        value={inputHeight}
-                                        onChangeText={setInputHeight}
-                                        keyboardType="numeric"/>
-                                </View>
-                            </View>
-
-                            {/* Loading Overlay */}
-                            <LoadingOverlay visible={loading} />
-
+                            <EditRow
+                                label="Größe"
+                                value={formData.height}
+                                onChangeText={(t:any) => setFormData({...formData, height: t})}
+                                placeholder="cm"
+                                keyboardType="numeric"/>
                         </View>
+
+                        {showDatePicker && (
+                            <DateTimePicker
+                                value={dateObject}
+                                mode="date"
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                maximumDate={new Date()}
+                                onChange={(event, date) => {
+                                    if (Platform.OS === 'android') setShowDatePicker(false);
+                                    if (date) {
+                                        setDateObject(date);
+                                        const fmt = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                        setFormData({...formData, birthdate: fmt});
+                                    }
+                                }}
+                            />
+                        )}
                     </View>
+
+                    {/* Loading Overlay */}
+                    <LoadingOverlay visible={loading} />
+
                 </ScrollView>
             </TouchableWithoutFeedback>
         </KeyboardAvoidingView>

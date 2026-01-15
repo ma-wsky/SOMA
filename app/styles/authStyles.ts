@@ -9,18 +9,30 @@ export const authStyles = StyleSheet.create({
         marginHorizontal: 40,
         paddingTop: 200,
     },
+
     titleWrapper: {
         marginBottom: 100,
         alignItems: "center",
     },
-    inputs: {
+    titleText: {
+        fontSize: 40,
+        fontWeight: "condensedBold",
+        alignSelf: "center",
+    },
+    appnameText: {
+        fontSize: 45,
+        fontWeight: "bold",
+        alignSelf: "center",
+    },
+
+    authInputsWrapper: {
         marginBottom: 30,
     },
-    input: {
+    authInputText: {
         flex: 1,
         height: 40,
     },
-    inputRow:{
+    authInputRow: {
         flexDirection: "row",
         alignItems: "center",
         borderWidth: 1,
@@ -29,35 +41,33 @@ export const authStyles = StyleSheet.create({
         paddingHorizontal: 10,
         marginVertical: 5,
     },
-    title: {
-        fontSize: 40,
-        fontWeight: "condensedBold",
-        alignSelf: "center",
-    },
-    appname: {
-        fontSize: 45,
-        fontWeight: "bold",
-        alignSelf: "center",
-    },
-    text:{
-        fontSize: 18,
-    },
-    smallText: {
-        fontSize: 16,
-        fontWeight: "100",
-    },
-    icon:{
+
+    authIcon: {
         marginRight: 10,
     },
     eyeIcon: {
         marginLeft: 8,
     },
-    line: {
+
+    dividerWrapper: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+        alignItems: "center",
+        marginVertical: 10,
+    },
+    dividerLine: {
         flex: 1,
         borderBottomColor: 'gray',
         borderBottomWidth: 1,
         marginVertical: "5%",
         marginHorizontal:5
+    },
+    dividerText: {
+        fontSize: 18,
+    },
+
+    buttonWrapper: {
+        gap: 8,
     },
     button: {
         paddingVertical: 8,
@@ -65,6 +75,11 @@ export const authStyles = StyleSheet.create({
         alignItems: "center",
         borderWidth: 2,
         borderColor: Colors.primary,
+    },
+    buttonText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 16,
     },
     secondaryBotton: {
         paddingVertical: 8,
@@ -74,23 +89,9 @@ export const authStyles = StyleSheet.create({
         backgroundColor: 'transparent',
         borderWidth: 2,
     },
-    buttonText: {
-        color: "white",
-        fontWeight: "bold",
-        fontSize: 16,
-    },
     secondaryButtonText: {
         fontSize: 16,
         fontWeight: "bold",
         color: Colors.primary,
     },
-    buttonWrapper: {
-      gap: 8,
-    },
-    admin: {
-        paddingVertical: 8,
-        borderRadius: 10,
-        alignItems: "center",
-        marginTop: 100,
-    }
 })
