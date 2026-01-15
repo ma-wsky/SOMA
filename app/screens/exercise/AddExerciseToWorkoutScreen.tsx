@@ -28,7 +28,7 @@ export default function AddExerciseToWorkoutScreen() {
             router.push({ pathname: "/screens/workout/ActiveWorkoutScreen", params: { workoutEditId: workoutId, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name, selectedBreakTime: breakTime } });
             return;
         } else if (returnTo === 'edit'){
-            router.push({ pathname: "/screens/workout/EditWorkoutScreen", params: { workoutEditId: workoutId, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name, selectedBreakTime: breakTime } });
+            router.push({ pathname: "/screens/workout/SingleWorkoutInfoScreen", params: { workoutEditId: workoutId, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name, selectedBreakTime: breakTime } });
             return;
         }
     };

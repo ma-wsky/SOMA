@@ -221,7 +221,6 @@ export default function ActiveWorkoutScreen() {
             exerciseName: set.exerciseName || null,
             name: set.name || null,
             breaktime: set.breaktime ?? 30,
-            weight: set.weight,
             reps: set.reps,
             isDone: set.isDone || false,
           });

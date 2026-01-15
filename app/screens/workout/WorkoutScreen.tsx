@@ -73,7 +73,10 @@ export default function WorkoutScreen() {
       <View style={{ marginHorizontal: 20, marginBottom: 20 }}>
         <Pressable
           onPress={() => {
-            router.push("/screens/workout/EditWorkoutScreen");
+            router.push({
+              pathname: "/screens/workout/SingleWorkoutInfoScreen",
+              params: { workoutEditId: `temp_${Date.now()}` },
+            });
           }}
           style={({ pressed }) => [
             styles.bigButton,
