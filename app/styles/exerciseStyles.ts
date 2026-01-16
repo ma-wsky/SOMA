@@ -124,9 +124,93 @@ export const exerciseStyles = StyleSheet.create({
         borderWidth: 2,
         borderRadius: 10,
         borderColor: Colors.iconInactive,
-        //width: 250,
     },
     input: {
         flex: 1,
+    },
+
+    // ExerciseItem
+    itemButton: {
+        padding: 12,
+        marginVertical: 4,
+        borderRadius: 10,
+        backgroundColor: Colors.black,
+    },
+    name: {
+        fontSize: 20,
+        fontWeight: "600",
+        color: Colors.white,
+    },
+    muscle: {
+        color: Colors.gray,
+        marginTop: 2
+    },
+    itemPicture: {
+        width: 50,
+        height: 50,
+        borderRadius: 8,
+    },
+    itemContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingRight: 20,
+    },
+    textContainer:{
+        flex: 1,
+        marginLeft: 20,
+    },
+
+    // exercise info
+    infoNameFavIconWrapper: {
+        marginTop: 20,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 30,
+    },
+    infoName: {
+        fontSize: 26,
+        fontWeight: "bold",
+        color: Colors.black,
+        flex: 1,
+    },
+    infoMuscleWrapper: {
+        alignSelf: "flex-start",
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        marginLeft: 30,
+        borderRadius: 20,
+        backgroundColor: Colors.iconInactive,
+    },
+    infoMuscle: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: Colors.white,
+    },
+    instructionWrapper: {
+        flex: 1,
+        marginTop: 25,
+        paddingHorizontal: 30,
+        marginBottom: 30,
+    },
+    instructionBox: {
+        flex: 1,
+        borderWidth: 2,
+        borderColor: Colors.gray,
+        borderRadius: 20,
+        paddingHorizontal: 5,
+        paddingVertical: 10,
+    },
+    instructionTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: Colors.black,
+        marginBottom: 8,
+    },
+    instructionText: {
+        fontSize: 16,
+        lineHeight: 24,
+        color: "#444",
+        marginLeft: 15,
     },
 })

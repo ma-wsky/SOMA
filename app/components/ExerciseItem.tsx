@@ -1,48 +1,38 @@
-import { Pressable, Text, StyleSheet } from "react-native";
-import { Colors } from "../styles/theme"
-
+import { Pressable, Text, Image, View } from "react-native";
+import { exerciseStyles } from "@/app/styles/exerciseStyles"
+import { Exercise } from "@/app/types/Exercise"
 
 interface Props {
     exercise: Exercise;
     onPress?: (exercise: Exercise) => void;
 }
 
-type Exercise = {
-    id: string;
-    name: string;
-    muscleGroup?: string;
-    ownerId?: string | null;
-    isGlobal?: boolean;
-};
-
 export default function ExerciseItem({ exercise, onPress }: Props) {
     return (
         <Pressable
             onPress={() => onPress?.(exercise)}
-            style={styles.button}>
+            style={({ pressed }) => [
+                exerciseStyles.itemButton,
+                { opacity: pressed ? 0.7 : 1.0 }
+            ]}
+        >
+            <View style={exerciseStyles.itemContainer}>
+                {/* picture */}
+                <Image
+                    source={
+                        exercise.image
+                            ? { uri: exercise.image }
+                            : require('@/app/assets/default-exercise-picture/default-exercise-picture.jpg')
+                    }
+                    style={exerciseStyles.itemPicture}
+                />
 
-            <Text style={styles.name}>{exercise.name}</Text>
+                <View style={exerciseStyles.textContainer}>
+                    <Text style={exerciseStyles.name}>{exercise.name}</Text>
 
-            <Text style={styles.muscle}>{exercise.muscleGroup}</Text>
-
+                    <Text style={exerciseStyles.muscle}>{exercise.muscleGroup || "k.A."}</Text>
+                </View>
+            </View>
         </Pressable>
     );
 }
-
-const styles = StyleSheet.create({
-    button: {
-        padding: 12,
-        marginVertical: 4,
-        borderRadius: 10,
-        backgroundColor: Colors.black,
-    },
-    name: {
-        fontSize: 20,
-        fontWeight: "600",
-        color: "#fff"
-    },
-    muscle: {
-        color: "#aaa",
-        marginTop: 2
-    },
-})

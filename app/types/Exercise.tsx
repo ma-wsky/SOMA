@@ -4,4 +4,11 @@ export type Exercise = {
     muscleGroup?: string;
     isFavorite: boolean;
     isOwn: boolean;
+    // item
+    ownerId?: string | null;
+    isGlobal?: boolean;
+    image?: string;
+    // info
+    equipment?: string;
+    instructions?: string;
 };
