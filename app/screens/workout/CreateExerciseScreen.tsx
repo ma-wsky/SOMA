@@ -5,135 +5,75 @@ import { TopBar } from "../../components/TopBar"
 import { auth, db } from "../../firebaseConfig";
 import { collection, addDoc, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
 import LoadingOverlay from "../../components/LoadingOverlay";
-import { exerciseStyles as styles } from "../../styles/exerciseStyles";
-import * as ImagePicker from 'expo-image-picker';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { exerciseStyles } from "../../styles/exerciseStyles";
+import { useImagePicker } from "@/app/hooks/useImagePicker"
+import { uploadImage } from "@/app/utils/uploadImage"
 
 
 export default function CreateExerciseScreen() {
 
     const [loading, setLoading] = useState(false);
-
-    const[inputName, setInputName] = useState<string>("");
-    const[inputMuscles, setInputMuscles] = useState<string>("");
-    const[inputEquipment, setInputEquipment] = useState<string>("");
-    const[inputInstructions, setInputInstructions] = useState<string>("");
-    const [image, setImage] = useState<string>(require('../../assets/default-exercise-picture/default-exercise-picture.jpg'));
+    const [formData, setFormData] = useState({
+        name: "",
+        muscles: "",
+        equipment: "",
+        instructions: ""
+    });
+    const { image, pickImage } = useImagePicker();
     const [hasImage, setHasImage] = useState<boolean>(false);
 
-    const takePhoto = async ()=> {
-
-        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-        if (permissionResult.granted === false){
-            alert("Kamerazugriff verweigert!");
-            return;
-        }
-
-        const result = await ImagePicker.launchCameraAsync({
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 0.5,
-        });
-
-        if (!result.canceled){
-            setImage(result.assets[0].uri);
-            setHasImage(true);
-            //uploadImage(result.assets[0].uri);
-        }
-    }
-
-    const uploadImage = async (uri:string)=> {
-        try {
-            // 1. URI in Blob umwandeln
-            const response = await fetch(uri);
-            const blob = await response.blob();
-
-            // 2. Referenz in Firebase Storage erstellen
-            const storage = getStorage();
-            const filename = `exercises/${inputName}.jpg`;
-            const storageRef = ref(storage, filename);
-
-            // 3. Hochladen
-            await uploadBytes(storageRef, blob);
-
-            console.log("Upload erfolgreich!");
-
-            // 4. Download-URL erhalten (optional, um sie in der DB zu speichern)
-            const downloadURL = await getDownloadURL(storageRef);
-            console.log("Bild verfügbar unter:", downloadURL);
-
-            const user = auth.currentUser;
-            if (!user) return;
-
-            const userExerciseCollection = collection(db, "users", user.uid, "exercises");
-            const q = query(
-                userExerciseCollection,
-                where("name", "==", inputName),
-            );
-            const snapshot = await getDocs(q);
-
-            const docRef = doc(userExerciseCollection, snapshot.docs[0].id);
-
-            await updateDoc(docRef, {
-                image: downloadURL,
-            })
-
-            console.log("URL im User-Feld gespeichert!");
-        } catch (error) {
-            console.error(error);
-            alert("Upload fehlgeschlagen.");
-        }
+    const handleTakePhoto = async () => {
+        const uri = await pickImage();
+        if (uri) setHasImage(true);
     }
 
     const saveChanges = async () => {
 
-        setLoading(true);
-
-        const user = auth.currentUser;
-        if (!user) return;
+        if (formData.name.trim() === "") {
+            Alert.alert("Fehler", "Bitte gib einen Namen für die Übung ein.");
+            return;
+        }
 
         const uid = auth.currentUser?.uid;
-        if (!uid) {
-            console.error("No UID found – user is not logged in.");
-            return;
-        }
 
-        if(inputName == ""){
-            Alert.alert("Fehler", "Name darf nicht leer sein");
-            setLoading(false);
+        if (!uid) {
+            console.error("No UID found.");
             return;
         }
+        setLoading(true);
 
         try {
-
             const userExerciseCollection = collection(db, "users", uid, "exercises");
 
             const q = query(
                 userExerciseCollection,
-                where("name", "==", inputName),
+                where("name", "==", formData.name.trim()),
             );
             const snapshot = await getDocs(q);
+
+            let downloadURL = null;
+            if (hasImage && image) {
+                const path = `users/${uid}/exercises/${Date.now()}.jpg`;
+                downloadURL = await uploadImage(image, path);
+            }
 
             if(snapshot.empty){
                 await addDoc(userExerciseCollection, {
                     isGlobal: false,
-                    name: inputName,
-                    muscleGroup: inputMuscles,
-                    equipment: inputEquipment,
-                    instructions: inputInstructions,
-                })
+                    name: formData.name.trim(),
+                    muscleGroup: formData.muscles,
+                    equipment: formData.equipment,
+                    instructions: formData.instructions,
+                    image: downloadURL,
+                    createdAt: new Date()
+                });
 
-                // upload image
-                if (hasImage) await uploadImage(image);
-
-                router.replace("/screens/workout/ExerciseScreen");
-                Alert.alert("Gespeichert", "Deine Änderungen wurden übernommen.");
-
+                Alert.alert("Erfolg", "Übung wurde erstellt.");
+                router.back();
             }else{
                 Alert.alert(
                     "Übung ändern",
-                    `Es existiert bereits eine Übung mit dem Namen "${inputName}". Möchten Sie die Übung aktualisieren?`,
+                    `Es existiert bereits eine Übung mit dem Namen "${formData.name}". Möchten Sie die Übung aktualisieren?`,
                     [
                         {
                             text: "Abbrechen",
@@ -147,48 +87,51 @@ export default function CreateExerciseScreen() {
                                 const docRef = doc(userExerciseCollection, snapshot.docs[0].id);
                                 const updates: any = {};
 
-                                if (inputMuscles !== data.muscleGroup && inputMuscles !== "") updates.muscleGroup = inputMuscles;
-                                if (inputEquipment !== data.equipment && inputEquipment !== "") updates.equipment = inputEquipment;
-                                if (inputInstructions !== data.instructions && inputInstructions !== "") updates.instructions = inputInstructions;
+                                if (formData.muscles !== data.muscleGroup && formData.muscles !== "") updates.muscleGroup = formData.muscles;
+                                if (formData.equipment !== data.equipment && formData.equipment !== "") updates.equipment = formData.equipment;
+                                if (formData.instructions !== data.instructions && formData.instructions !== "") updates.instructions = formData.instructions;
+                                if (hasImage && image) {
+                                    const path = `users/${uid}/exercises/${Date.now()}.jpg`;
+                                    downloadURL = await uploadImage(image, path);
+                                    updates.image = downloadURL;
+                                }
 
                                 if(Object.keys(updates).length > 0){
                                     await updateDoc(docRef, updates);
                                 }
 
-                                router.replace("/screens/workout/ExerciseScreen");
                                 Alert.alert("Gespeichert", "Deine Änderungen wurden übernommen.");
+                                router.back();
                             },
                         },
                     ],
                     { cancelable: true }
                 );
             }
-
         } catch (e) {
-            console.error("Update-Fehler:", e);
-            Alert.alert("Fehler", "Die Änderungen konnten nicht gespeichert werden.");
+            console.error(e);
+            Alert.alert("Fehler", "Speichern fehlgeschlagen.");
         }finally {
             setLoading(false);
         }
-
     }
 
+    const handleInputChange = (field: string, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
     return (
-        // for scrolling up screen when opening keyboard
         <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
         >
-            {/* Closing Keyboard when pressing outside */}
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-
-                {/* Scrolling Screen while Keyboard open */}
                 <ScrollView
                     contentContainerStyle={{ flexGrow: 1, padding: 10 }}
                     keyboardShouldPersistTaps="handled"
                 >
                     {/* Screen */}
-                    <View style={styles.container}>
+                    <View style={exerciseStyles.container}>
 
                         {/* Top Bar */}
                         <TopBar leftButtonText={"Zurück"}
@@ -196,88 +139,82 @@ export default function CreateExerciseScreen() {
                                 rightButtonText={"Speichern"}
                                 onLeftPress={() => router.back()}
                                 onRightPress={saveChanges}
-                        ></TopBar>
+                        />
 
                         {/* Exercise Picture */}
-                        <View style={styles.picWrapper}>
+                        <View style={exerciseStyles.picWrapper}>
                             <Pressable
+                                onPress={handleTakePhoto}
                                 style={({pressed}) => [
                                     { opacity: pressed ? 0.7 : 1.0 },
                                 ]}
-                                onPress={takePhoto}>
-
+                            >
                                 <Image
-                                    source={
-                                        typeof image === 'string'
-                                            ? { uri: image }
-                                            : image
-                                    }
-                                    style={styles.image}/>
+                                    source={image ? { uri: image } : require('../../assets/default-exercise-picture/default-exercise-picture.jpg')}
+                                    style={exerciseStyles.picture}/>
 
-                                {/* Die Bedingung für den Text: Nur anzeigen, wenn KEIN Bild da ist */}
-                                {typeof image !== 'string' && (
-                                    <View style={styles.textOverlay}>
-                                        <Text style={styles.picText}>click to add pic</Text>
+                                {!hasImage && (
+                                    <View style={exerciseStyles.textOverlay}>
+                                        <Text style={exerciseStyles.picText}>klicke zum hinzufügen</Text>
                                     </View>
                                 )}
-
                             </Pressable>
-
                         </View>
 
                         {/* Layout of Infos */}
-                        <View style={styles.layout}>
+                        <View style={exerciseStyles.layout}>
 
                             {/* Name */}
-                            <View style={styles.wrapper}>
-                                <Text style={styles.text}>Name</Text>
+                            <View style={exerciseStyles.wrapper}>
+                                <Text style={exerciseStyles.text}>Name</Text>
 
-                                <View style={styles.fieldWrapper}>
+                                <View style={exerciseStyles.fieldWrapper}>
                                     <TextInput
-                                        style={styles.input}
+                                        style={exerciseStyles.input}
                                         placeholder={"Name der Übung eingeben"}
-                                        value={inputName}
-                                        onChangeText={setInputName}/>
+                                        value={formData.name}
+                                        onChangeText={(val) => handleInputChange("name", val)}/>
                                 </View>
                             </View>
 
                             {/* Muskeln */}
-                            <View style={styles.wrapper}>
-                                <Text style={styles.text}>Muskeln</Text>
+                            <View style={exerciseStyles.wrapper}>
+                                <Text style={exerciseStyles.text}>Muskeln</Text>
 
-                                <View style={styles.fieldWrapper}>
+                                <View style={exerciseStyles.fieldWrapper}>
                                     <TextInput
-                                        style={styles.input}
+                                        style={exerciseStyles.input}
                                         placeholder={"welche Muskeln trainiert diese Übung"}
-                                        value={inputMuscles}
-                                        onChangeText={setInputMuscles}/>
+                                        value={formData.muscles}
+                                        onChangeText={(val) => handleInputChange("muscles", val)}/>
                                 </View>
                             </View>
 
                             {/* Equipment */}
-                            <View style={styles.wrapper}>
-                                <Text style={styles.text}>Ausrüstung</Text>
+                            <View style={exerciseStyles.wrapper}>
+                                <Text style={exerciseStyles.text}>Ausrüstung</Text>
 
-                                <View style={styles.fieldWrapper}>
+                                <View style={exerciseStyles.fieldWrapper}>
                                     <TextInput
-                                        style={styles.input}
+                                        style={exerciseStyles.input}
                                         placeholder={"Ausrüstung angeben"}
-                                        value={inputEquipment}
-                                        onChangeText={setInputEquipment}/>
+                                        value={formData.equipment}
+                                        onChangeText={(val) => handleInputChange("equipment", val)}/>
                                 </View>
                             </View>
 
                             {/* Instructions */}
-                            <View style={styles.wrapper}>
-                                <Text style={styles.text}>Anleitung</Text>
+                            <View style={exerciseStyles.wrapper}>
+                                <Text style={exerciseStyles.text}>Anleitung</Text>
 
-                                <View style={styles.fieldWrapper}>
+                                <View style={exerciseStyles.fieldWrapper}>
                                     <TextInput
-                                        style={styles.input}
+                                        style={exerciseStyles.input}
                                         placeholder={"Anleitung angeben"}
-                                        value={inputInstructions}
-                                        onChangeText={setInputInstructions}
-                                        multiline/>
+                                        value={formData.instructions}
+                                        onChangeText={(val) => handleInputChange("instructions", val)}
+                                        multiline
+                                    />
                                 </View>
                             </View>
 
