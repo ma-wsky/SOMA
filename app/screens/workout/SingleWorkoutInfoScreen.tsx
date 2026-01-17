@@ -9,6 +9,7 @@ import LoadingOverlay from "@/app/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { showAlert, showConfirm } from "@/app/utils/alertHelper";
 import { workoutStyles as styles } from "@/app/styles/workoutStyles";
+import { Colors } from "@/app/styles/theme";
 import { NumberStepper, newStyles, secondsToMinSec, minSecToSeconds } from "@/app/components/NumberStepper";
 
 type ExerciseSet = {
@@ -53,6 +54,7 @@ export default function SingleWorkoutInfoScreen() {
   
   //TODO WHY !! ?
 
+
   // Overlay State
     const [activeOverlay, setActiveOverlay] = useState<OverlayTypes>("none");
     const [targetSetIndex, setTargetSetIndex] = useState<number | null>(null);
@@ -61,7 +63,6 @@ export default function SingleWorkoutInfoScreen() {
     //TempData for Overlay
     const [tempSetData, setTempSetData] = useState({weight:0,reps:0});
     const [tempBreakTime, setTempBreakTime] =useState({ mins: 0, secs: 0 });
-    
 
 
   // Initialize edit key and start
@@ -230,13 +231,16 @@ export default function SingleWorkoutInfoScreen() {
   // --- Render Functions ---
   const renderCard = (exerciseId: string, sets: ExerciseSet[]) => (
     <View key={exerciseId} style={styles.exerciseCard}>
-      <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10}}>
+      <View style={styles.exerciseCardHeader}>
+
+        <Text style={{fontSize: 22,fontWeight: "bold",color: "white", marginRight:8}}>Pic </Text>
+
         <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
-        {/* Wecker Icon für Breaktime */}
+
         <Pressable onPress={() => openBreaktime(exerciseId, sets[0].breaktime || 30)}>
-          <View style={{flexDirection: 'row', alignItems: 'center', backgroundColor: '#333', padding: 6, borderRadius: 6}}>
-             <Ionicons name="alarm-outline" size={20} color="#fff" />
-             <Text style={{color: '#ccc', marginLeft: 4, fontSize: 12}}>{sets[0].breaktime || 30}s</Text>
+          <View style={{flexDirection: 'row', alignItems: 'center',padding:8}}>
+             <Ionicons name="alarm-outline" size={20} color={Colors.primary} />
+             <Text style={{color: Colors.primary, marginLeft: 4, fontSize: 12}}>{sets[0].breaktime || 30}s</Text>
           </View>
         </Pressable>
       </View>
@@ -444,7 +448,7 @@ export default function SingleWorkoutInfoScreen() {
   const canSave = isEditMode && !!workout?.name && (workout.exerciseSets?.length ?? 0) > 0;
 
   return (
-    <View style={styles.itemContainer}>
+    <View style={styles.container}>
       <TopBar
         leftButtonText={isEditMode ? "Abbrechen" : "Zurück"}
         titleText={workout.name || "Training Info"}
@@ -456,7 +460,7 @@ export default function SingleWorkoutInfoScreen() {
       <ScrollView contentContainerStyle={{padding: 16, paddingBottom: 100}}>
         {isEditMode && (
            <View style={{marginBottom: 16}}>
-             <Text style={{color: '#aaa', marginBottom: 4}}>Name</Text>
+             <Text style={{color: '#FFFFFF', marginBottom: 4}}>Name</Text>
              <TextInput value={workout.name || ""} onChangeText={t => setWorkout({...workout, name: t})} style={{backgroundColor: '#222', color: 'white', padding: 10, borderRadius: 8}} />
            </View>
         )}

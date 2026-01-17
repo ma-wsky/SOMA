@@ -6,31 +6,50 @@ export const workoutStyles = StyleSheet.create({
 
     //New experimental :/
     exerciseCard: {
-    backgroundColor: "#111",
     padding: 12,
     borderRadius: 10,
     marginHorizontal: 16,
     marginBottom: 16,
     },
+    exerciseCardHeader:{
+    backgroundColor: Colors.black,
+    padding: 12,
+    borderRadius: 10,
+    marginHorizontal: 0,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    },
     exerciseTitle: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginLeft:0,
+    flex:1
     },
 
     setRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 6,
+    marginHorizontal: 12,
+    marginVertical: 4,
+    borderColor: Colors.black,
+    borderWidth: 1,
+    padding: 6,
+
     },
     setEditRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 6,
+    marginHorizontal: 12,
+
     },
-    setLabel: {
-    color: "#aaa",
+    setText: {
+    
+    color: Colors.black,
     width: 50,
     },
 

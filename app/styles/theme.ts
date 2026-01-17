@@ -7,6 +7,8 @@ export const Colors = {
     iconActive: "#fff",
     iconInactive: "#333",
     black: "#000",
+    white: "#ffffff",
+    textPlaceholder: "#666",
 };
 
 export const DarkColors = {
