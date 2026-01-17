@@ -248,6 +248,12 @@ export default function SingleWorkoutInfoScreen() {
           <Text style={styles.setTextHeader}>Satz</Text>
           <Text style={styles.setTextHeader}>Gewicht (kg)</Text>
           <Text style={styles.setTextHeader}>Wiederholungen</Text>
+          {isEditMode && (
+            <View style={{flexDirection: 'row', gap: 15}}>
+              <Text style={styles.setTextHeader}></Text>
+              <Text style={styles.setTextHeader}></Text>
+            </View>
+          )}
 
           </View>
       {sets.map((set) => {
@@ -257,17 +263,17 @@ export default function SingleWorkoutInfoScreen() {
           <View key={idx} style={isEditMode ? styles.setEditRow : styles.setRow}>
             <Text style={styles.setText}>{sets.indexOf(set) + 1}</Text>
             <Text style={styles.setText}>{set.weight}</Text>
-            <Text style={styles.setText}>{set.reps}</Text>
+            <Text style={styles.setText}>{    set.reps}</Text>
             
             {isEditMode && (
-              <View style={{flexDirection: 'row', gap: 15}}>
+              <View style={{flexDirection: 'row', gap: 15, flexGrow:0}}>
                  {/* Pen Icon */}
                  <Pressable onPress={() => openEditSet(idx, set)}>
-                    <Ionicons name="pencil" size={22} color="#007AFF" />
+                    <Ionicons name="pencil" size={22} color={Colors.black} />
                  </Pressable>
                  {/* Trash */}
                  <Pressable onPress={() => handleRemoveSet(idx)}>
-                    <Ionicons name="trash" size={22} color="#ff4444" />
+                    <Ionicons name="trash" size={22} color={Colors.black} />
                  </Pressable>
               </View>
             )}
@@ -277,7 +283,7 @@ export default function SingleWorkoutInfoScreen() {
 
       {isEditMode && (
          <Pressable onPress={() => openAddSet(exerciseId, sets[0].exerciseName || "")} style={styles.addSetButton}>
-           <Text style={styles.addSetButtonText}>+ Satz hinzufügen</Text>
+           <Text style={styles.addSetButtonText}>Satz hinzufügen  +</Text>
          </Pressable>
       )}
     </View>
@@ -466,9 +472,9 @@ export default function SingleWorkoutInfoScreen() {
       
       <ScrollView contentContainerStyle={{padding: 16, paddingBottom: 100}}>
         {isEditMode && (
-           <View style={{marginBottom: 16}}>
-             <Text style={{color: '#FFFFFF', marginBottom: 4}}>Name</Text>
-             <TextInput value={workout.name || ""} onChangeText={t => setWorkout({...workout, name: t})} style={{backgroundColor: '#222', color: 'white', padding: 10, borderRadius: 8}} />
+           <View style={{padding:16}}>
+             <Text style={{color: Colors.black, width:800, marginBottom: 4,fontSize:24}}>Trainingsname:</Text>
+             <TextInput value={workout.name || ""} onChangeText={t => setWorkout({...workout, name: t})} style={{backgroundColor: Colors.background, color: Colors.black, padding: 10, borderRadius: 8,borderColor:Colors.black,borderWidth:1}} />
            </View>
         )}
 
@@ -476,7 +482,7 @@ export default function SingleWorkoutInfoScreen() {
 
         {isEditMode && (
            <Pressable onPress={() => router.push({pathname: "/screens/exercise/AddExerciseToWorkoutScreen", params: {returnTo: "info"}})} style={[styles.addExerciseButton, {marginTop: 20}]}>
-             <Text style={styles.addExerciseButtonText}>+ Übung hinzufügen</Text>
+             <Text style={styles.addExerciseButtonText}>Übung hinzufügen  +</Text>
            </Pressable>
         )}
       </ScrollView>

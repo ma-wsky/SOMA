@@ -90,6 +90,17 @@ export const workoutStyles = StyleSheet.create({
     fontWeight: "600",
     },
 
+    addExerciseButton:{
+        padding: 8,
+        borderRadius: 6,
+        backgroundColor: Colors.primary,
+        alignItems: "center",
+
+    },
+    addExerciseButtonText:{
+        color: Colors.black,
+        fontWeight: "bold",
+    },
     //Old Styles
     container: {
         marginTop: 30,
@@ -194,15 +205,7 @@ export const workoutStyles = StyleSheet.create({
     topBarContainer:topBarStyles.container,
 
 
-    addExerciseButton:{
-        padding: 8,
-        borderRadius: 6,
-        backgroundColor: Colors.primary,
-    },
-    addExerciseButtonText:{
-        color: Colors.black,
-        fontWeight: "bold",
-    },
+    
 
     checkbox: {
         width: 24,
@@ -231,7 +234,6 @@ export const workoutStyles = StyleSheet.create({
 
         height: "100%",
         gap: 20,
-    
     },
 
 

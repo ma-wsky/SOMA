@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     },
     breakTimeInput: {
         backgroundColor: Colors.black,
-        color: Colors.textPlaceholder,
+        color: Colors.white,
         padding: 10,
         borderRadius: 8,
         fontSize: 16,
