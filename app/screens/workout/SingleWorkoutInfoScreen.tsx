@@ -388,7 +388,7 @@ export default function SingleWorkoutInfoScreen() {
       <View style={styles.setRowHeader}>
           <Text style={styles.setTextHeader}>Satz</Text>
           <Text style={styles.setTextHeader}>Gewicht (kg)</Text>
-          <Text style={styles.setTextHeader}>Wiederholungen</Text>
+          <Text style={styles.setTextHeader}>Wdh.</Text>
           {isEditMode && <View style={{width: 50}}/>}
           </View>
 
@@ -452,7 +452,6 @@ export default function SingleWorkoutInfoScreen() {
               <View>
                 <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={2.5} />
                 <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={v => setTempSetData({...tempSetData, reps: v})} step={1} />
-                 {/* Keine 'Erledigt' Checkbox hier, da dies nur der Info Screen ist */}
               </View>
             )}
           </View>

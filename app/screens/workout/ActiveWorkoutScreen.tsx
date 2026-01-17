@@ -141,32 +141,6 @@ export default function ActiveWorkoutScreen() {
     return map;
   };
 
-/*
-  //new Add Exercise in hope that multiple exercises can be added
-  const addExercise = (exerciseId: string, exerciseName: string, breaktime?: number) => {
-    if (!workout) return;
-
-    router.push({pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
-      params: { workoutEditId: editIdRef.current, returnTo: "active" }})
-
-    const newSet: ExerciseSet = {
-      id: `set_${Date.now()}`,
-      exerciseId,
-      exerciseName,
-      weight: 20,
-      reps: 5,
-      breaktime: breaktime ?? 30,
-      isDone: false,
-    };
-
-    const newWorkout = {
-      ...workout,
-      exerciseSets: [...workout.exerciseSets, newSet],
-    };
-
-    setWorkout(newWorkout);
-  };*/
-
 
   // Handle Return from AddExercise
   useEffect(() => {
@@ -480,7 +454,8 @@ export default function ActiveWorkoutScreen() {
 
     return(
       <ScrollView contentContainerStyle={{paddingBottom: 120}}>
-        <View>
+        <Text style={{color: Colors.black, width:800, marginBottom:10,fontSize:24, marginLeft: 30,}}>{workout?.name}</Text>
+
         {Object.entries(groupedSets).map(([exerciseId, sets]) => 
           renderExerciseCard(exerciseId, sets, false))}
 
@@ -489,14 +464,10 @@ export default function ActiveWorkoutScreen() {
           onPress={() => {setIsEditMode(true);}}
           style={styles.topBarLikeButton}
         >
-
           <Text style={styles.topBarButtonText}>Bearbeiten</Text>
         </Pressable>
         </View>
       
-
-
-</View>
       </ScrollView>
     );
   };
@@ -506,7 +477,13 @@ export default function ActiveWorkoutScreen() {
 
     return(
       <ScrollView contentContainerStyle={{paddingBottom: 120}}>
-        <View>
+        <View style={{padding:16}}>
+          <Text style={{color: Colors.black, width:800, marginBottom: 4,fontSize:24}}>Trainingsname:</Text>
+          <TextInput 
+            value={workout?.name ||""} 
+            onChangeText={t => setWorkout(prev => prev ? {...prev, name:t} : null)} 
+            style={{backgroundColor: Colors.background, color: Colors.black, padding: 10, borderRadius: 8,borderColor:Colors.black,borderWidth:1}} />
+        </View>
         {Object.entries(groupedSets).map(([exerciseId, sets]) =>
           renderExerciseCard(exerciseId, sets, true))}
 
@@ -517,8 +494,6 @@ export default function ActiveWorkoutScreen() {
 
           <Text style={styles.addExerciseButtonText}>Übung hinzufügen +</Text>
         </Pressable>
-
-        </View>
       </ScrollView>
     );
   };
@@ -544,7 +519,9 @@ export default function ActiveWorkoutScreen() {
       <View style={styles.setRowHeader}>
           <Text style={styles.setTextHeader}>Satz</Text>
           <Text style={styles.setTextHeader}>Gewicht (kg)</Text>
-          <Text style={styles.setTextHeader}>Wiederholungen</Text>
+          <Text style={styles.setTextHeader}>Wdh.</Text>
+          <Text style={styles.setTextHeader}>Erledigt</Text>
+
           {isEditMode && <View style={{width: 50}}/>}
           </View>
 
@@ -552,9 +529,10 @@ export default function ActiveWorkoutScreen() {
         const globalIndex = workout!.exerciseSets.indexOf(set);
         return (
           <View key={globalIndex} style={isEditMode ? styles.setEditRow : styles.setRow}>
-            <Text style={styles.setText}>Satz {sets.indexOf(set) + 1}</Text>
+            <Text style={styles.setText}>{sets.indexOf(set) + 1}</Text>
             <Text style={styles.setText}>{set.weight}</Text>
             <Text style={styles.setText}>{set.reps}</Text>
+            <Text style={styles.setText}>Checkbox</Text>
 
             {isEditMode && (
               <View style={{flexDirection: 'row', gap: 15, flexGrow:0}}>
@@ -566,6 +544,7 @@ export default function ActiveWorkoutScreen() {
                 </Pressable>
               </View>
             )}
+
           </View>
         );
       })}
@@ -606,6 +585,7 @@ export default function ActiveWorkoutScreen() {
               <View>
                 <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={2.5} />
                 <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={v => setTempSetData({...tempSetData, reps: v})} step={1} />
+                <Text style={styles.setText}> TODO Checkbox implementieren</Text>
               </View>
             )}
           </View>
@@ -668,14 +648,12 @@ export default function ActiveWorkoutScreen() {
             onRightPress={() =>isEditMode ? handleSaveChanges() : handleFinishWorkout()}
           />
 
-
           {isEditMode ? renderEditMode() : renderViewMode()}
           <LoadingOverlay visible={loading} />
           {renderOverlays()}
         
         </BottomSheetView>
       </BottomSheet>
-    
     </GestureHandlerRootView>
   );
 
