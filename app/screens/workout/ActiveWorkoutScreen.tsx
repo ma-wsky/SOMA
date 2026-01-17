@@ -502,7 +502,7 @@ export default function ActiveWorkoutScreen() {
 
   const handlesSheetChanges = useCallback((index: number) => {
     console.log('handleSheetChanges', index);
-    if (index !== 1) {
+    if (index === -1) {
       setIsMinimized(true);
       try {
         // keep the home overlay for UI
