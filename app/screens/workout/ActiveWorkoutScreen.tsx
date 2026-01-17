@@ -19,11 +19,13 @@ import { TopBar } from "@/app/components/TopBar";
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { NumberStepper, newStyles, secondsToMinSec, minSecToSeconds } from "@/app/components/NumberStepper";
+import {Colors} from "@/app/styles/theme"
+
 // New Firebase structure
 type ExerciseSet = {
   id?: string;
   exerciseId: string;
-  exerciseName?: string;
+  exerciseName: string;
   name?: string;
   weight: number;
   reps: number;
@@ -52,7 +54,7 @@ export default function ActiveWorkoutScreen() {
   const { id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime } = useLocalSearchParams();//<{ id?: string; selectedExerciseId?: string; selectedExerciseName?: string; workoutEditId?: string; selectedBreakTime?: string }>();
   const [loading, setLoading] = useState(false);
   const [workout, setWorkout] = useState<Workout | null>(null);
-  const editIdRef = useRef<string | string[]>(null);  
+  const editIdRef = useRef<string>(null);  
   const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
   const [isEditMode, setIsEditMode] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -75,6 +77,8 @@ export default function ActiveWorkoutScreen() {
     if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
   };
 
+
+
   //Overlays
   const openBreakTimeOverlay = (exerciseId: string, currentSeconds: number) => {
     setTargetExerciseId(exerciseId);
@@ -86,17 +90,14 @@ export default function ActiveWorkoutScreen() {
     if (!workout || !targetExerciseId) return;
     const newSeconds = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
     
-    const newSets = workout.exerciseSets.map(s => 
-      s.exerciseId === targetExerciseId ? { ...s, breaktime: newSeconds } : s
-    );
-    
+    const newSets = workout.exerciseSets.map(s =>s.exerciseId === targetExerciseId ? { ...s, breaktime: newSeconds } : s);
     updateWorkoutState({ ...workout, exerciseSets: newSets });
     setActiveOverlay("none");
   };
 
   const openEditSetOverlay = (index: number, set: ExerciseSet) => {
     setTargetSetIndex(index);
-    setTempSetData({ weight: set.weight, reps: set.reps, isDone: set.isDone || false });
+    setTempSetData({ weight: set.weight, reps: set.reps, isDone: !!set.isDone });
     setActiveOverlay("editSet");
   };
 
@@ -113,20 +114,14 @@ export default function ActiveWorkoutScreen() {
 
     if (activeOverlay === "editSet" && targetSetIndex !== null) {
       newSets[targetSetIndex] = {
-        ...newSets[targetSetIndex],
-        weight: tempSetData.weight,
-        reps: tempSetData.reps,
-        isDone: tempSetData.isDone
-      };
+        ...newSets[targetSetIndex],...tempSetData};
     } else if (activeOverlay === "addSet" && targetExerciseId) {
       newSets.push({
         id: 'set_${Date.now()}',
         exerciseId: targetExerciseId,
         exerciseName: targetExerciseName || "Unbekannt",
-        weight: tempSetData.weight,
-        reps: tempSetData.reps,
-        breaktime: 30,
-        isDone: tempSetData.isDone
+        ...tempSetData,
+        breaktime: 30
       });
     }
 
@@ -147,250 +142,69 @@ export default function ActiveWorkoutScreen() {
   };
 
 
-  const renderViewMode = () => {
-    const groupedSets = groupSetsByExercise(workout!.exerciseSets);
-
-    return(
-      <ScrollView contentContainerStyle={{paddingBottom: 120}}>
-        <View>
-        {Object.entries(groupedSets).map(([exerciseId, sets]) => 
-          renderExerciseCard(exerciseId, sets, false))}
-
-        <View style={{alignItems: "center"}}>
-        <Pressable
-          onPress={() => {setIsEditMode(true);}}
-          style={styles.topBarLikeButton}
-        >
-
-          <Text style={styles.topBarButtonText}>Bearbeiten</Text>
-        </Pressable>
-        </View>
-      
-
-
-</View>
-      </ScrollView>
-    );
-  };
-
-  const renderEditMode =() => {
-    const groupedSets = groupSetsByExercise(workout!.exerciseSets);
-
-    return(
-      <ScrollView contentContainerStyle={{paddingBottom: 120}}>
-        <View>
-        {Object.entries(groupedSets).map(([exerciseId, sets]) =>
-          renderExerciseCard(exerciseId, sets, true))}
-
-        <Pressable
-          onPress={() => addExercise("", undefined, 30)}
-          style={styles.addExerciseButton}
-        >
-
-          <Text style={styles.addExerciseButtonText}>+ Übung hinzufügen</Text>
-        </Pressable>
-
-        </View>
-      </ScrollView>
-    );
-  };
-
-
-  const renderSetEditMode = (set: ExerciseSet, index: number) => (
-    <View key={index} style={styles.setEditRow}>
-      <Text style={styles.setText}>Satz {index + 1}</Text>
-      <Text style={[styles.setText, {color: '#aaa'}]}>{set.weight}kg x {set.reps}</Text>
-      
-      <View style={{flexDirection: 'row', gap: 15}}>
-        {/* Stift Icon -> Öffnet Overlay */}
-        <Pressable onPress={() => openEditSetOverlay(index, set)}>
-          <Ionicons name="pencil" size={22} color="#007AFF" />
-        </Pressable>
-        {/* Trash Icon */}
-        <Pressable onPress={() => handleRemoveSet(index)}>
-          <Ionicons name="trash" size={22} color="#ff4444" />
-        </Pressable>
-      </View>
-    </View>
-  );
-
-
-
-  const renderSetViewMode = (set: ExerciseSet, index: number) => {
-    
-    return(
-      <Pressable key={index} onPress={() => handleSetCheck(index)} style={styles.setRow}>
-      <Text style={styles.setText}>{index + 1}</Text>
-      <Text style={styles.setText}>{set.weight} kg</Text>
-      <Text style={styles.setText}>{set.reps} Wdh</Text>
-      <View style={[styles.checkbox, set.isDone && styles.checkboxDone]}>
-        {set.isDone && <Ionicons name="checkmark" size={16} color="#fff" />}
-      </View>
-    </Pressable>
-    );
-  };
-
-
-  /*const renderExerciseViewCard = (exerciseId: string, sets: ExerciseSet[]) => (
-    <View key={exerciseId} style={styles.exerciseCard}>
-      <Text style={styles.exerciseTitle}>
-        {sets[0].exerciseName}
-      </Text>
-
-      {sets.map((set, idx) => renderSetViewRow(set, workout!.exerciseSets.indexOf(set)))}
-
-    </View>
-  );
-
-  const renderExerciseEditCard = (exerciseId: string, sets: ExerciseSet[]) => (
-    <View key={exerciseId} style={styles.exerciseCard}> 
-      <Text style={styles.exerciseTitle}>
-        {sets[0].exerciseName}
-      </Text>
-
-      {sets.map((set)=>
-      renderSetEditMode(set, workout!.exerciseSets.indexOf(set)))}
-
-      <Pressable
-        onPress={() => handleAddSet(exerciseId, sets[0].exerciseName)}
-        style={styles.addSetButton}
-      >
-
-        <Text style={styles.addSetButtonText}>+ Satz hinzufügen</Text>
-      </Pressable>
-    </View>
-  );*/
-
-  const renderExerciseCard = (exerciseId: string, sets: ExerciseSet[], isEditing: boolean) => (
-    <View key={exerciseId} style={styles.exerciseCard}>
-      <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10}}>
-        <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
-        {/* Wecker Icon */}
-        <Pressable onPress={() => openBreakTimeOverlay(exerciseId, sets[0].breaktime || 30)}>
-          <View style={{flexDirection: 'row', alignItems: 'center', backgroundColor: '#333', padding: 6, borderRadius: 6}}>
-             <Ionicons name="alarm-outline" size={20} color="#fff" />
-             <Text style={{color: '#ccc', marginLeft: 4, fontSize: 12}}>{sets[0].breaktime || 30}s</Text>
-          </View>
-        </Pressable>
-      </View>
-
-      {sets.map((set) => {
-         const globalIndex = workout!.exerciseSets.indexOf(set);
-         return isEditing 
-            ? renderSetEditMode(set, globalIndex) 
-            : renderSetViewMode(set, globalIndex);
-      })}
-
-      {isEditing && (
-        <Pressable onPress={() => openAddSetOverlay(exerciseId, sets[0].exerciseName || "")} style={styles.addSetButton}>
-          <Text style={styles.addSetButtonText}>+ Satz hinzufügen</Text>
-        </Pressable>
-      )}
-    </View>
-  );
-
-  const renderActiveOverlay = () => {
-    if (activeOverlay === 'none') return null;
-
-    const isBreaktime = activeOverlay === 'breaktime';
-    const isEdit = activeOverlay === 'editSet';
-    const isAdd = activeOverlay === 'addSet';
-
-    return (
-      <Modal visible={true} transparent animationType="fade" onRequestClose={() => setActiveOverlay('none')}>
-        <View style={newStyles.overlay}>
-          <View style={newStyles.content}>
-            {/* Header */}
-            <View style={newStyles.header}>
-              <Pressable onPress={() => setActiveOverlay('none')}>
-                 <Text style={{color: '#ff4444', fontSize: 16}}>Abbrechen</Text>
-              </Pressable>
-              <Text style={newStyles.headerTitle}>
-                {isBreaktime ? "Pause" : (isEdit ? "Satz bearbeiten" : "Satz hinzufügen")}
-              </Text>
-              <Pressable style={newStyles.saveButton} onPress={isBreaktime ? saveBreakTime : saveSetData}>
-                <Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text>
-              </Pressable>
-            </View>
-
-            {/* Content */}
-            {isBreaktime ? (
-              <View>
-                 <View style={newStyles.timeInputContainer}>
-                    <TextInput 
-                      style={newStyles.timeInput} 
-                      keyboardType="numeric" 
-                      value={tempBreakTime.mins.toString()} 
-                      onChangeText={(v) => setTempBreakTime({...tempBreakTime, mins: Number(v)})} 
-                    />
-                    <Text style={newStyles.label}>Min</Text>
-                    <TextInput 
-                      style={newStyles.timeInput} 
-                      keyboardType="numeric" 
-                      value={tempBreakTime.secs.toString()} 
-                      onChangeText={(v) => setTempBreakTime({...tempBreakTime, secs: Number(v)})} 
-                    />
-                    <Text style={newStyles.label}>Sek</Text>
-                 </View>
-              </View>
-            ) : (
-              <View>
-                <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={(v) => setTempSetData({...tempSetData, weight: v})} step={2.5} />
-                <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={(v) => setTempSetData({...tempSetData, reps: v})} step={1} />
-                
-                {/* Checkbox "Erledigt" nur für Active Workout */}
-                <Pressable style={newStyles.checkboxRow} onPress={() => setTempSetData({...tempSetData, isDone: !tempSetData.isDone})}>
-                  <Ionicons name={tempSetData.isDone ? "checkbox" : "square-outline"} size={24} color={tempSetData.isDone ? "#4CAF50" : "white"} />
-                  <Text style={{color: 'white', marginLeft: 10, fontSize: 16}}>Satz erledigt</Text>
-                </Pressable>
-              </View>
-            )}
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-  
-  //Timer
-  useEffect(() => {
-    timerRef.current = setInterval(() => setElapsedTime((prev) => prev + 1), 1000) as unknown as NodeJS.Timeout;
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, []);
-
-  // Set Checkbox (Main View)
-  const handleSetCheck = (setIndex: number) => {
+  //new Add Exercise in hope that multiple exercises can be added
+  const addExercise = (exerciseId: string, exerciseName: string, breaktime?: number) => {
     if (!workout) return;
-    const sets = [...workout.exerciseSets];
-    const newDone = !sets[setIndex].isDone;
-    sets[setIndex] = { ...sets[setIndex], isDone: newDone, restStartedAt: newDone ? Date.now() : undefined };
-    updateWorkoutState({ ...workout, exerciseSets: sets });
+
+    router.push({pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
+      params: { workoutEditId: editIdRef.current, returnTo: "active" }})
+
+    const newSet: ExerciseSet = {
+      id: `set_${Date.now()}`,
+      exerciseId,
+      exerciseName,
+      weight: 20,
+      reps: 5,
+      breaktime: breaktime ?? 30,
+      isDone: false,
+    };
+
+    const newWorkout = {
+      ...workout,
+      exerciseSets: [...workout.exerciseSets, newSet],
+    };
+
+    setWorkout(newWorkout);
   };
 
-  // Remove Set
-  const handleRemoveSet = (index: number) => {
-    if (!workout) return;
-    const newSets = workout.exerciseSets.filter((_, i) => i !== index);
-    updateWorkoutState({ ...workout, exerciseSets: newSets });
-  };
 
   // Handle Return from AddExercise
   useEffect(() => {
-    if (!selectedExerciseId) return;
-    if (!workout) return;
-    // Hinzufügen eines Initialsatzes
-    const newSet: ExerciseSet = {
+    if (selectedExerciseId &&workout) {
+
+      const foundName = selectedExerciseName || exercises.get(selectedExerciseId as string)?.name || "Unbekannte Übung";
+
+      // New Set
+      const newSet: ExerciseSet = {
       id: `set_${Date.now()}`,
       exerciseId: selectedExerciseId as string,
-      exerciseName: selectedExerciseName as string,
+      exerciseName: foundName as string,
       weight: 20, reps: 10, breaktime: Number(selectedBreakTime) || 30, isDone: false
     };
-    updateWorkoutState({ ...workout, exerciseSets: [...workout.exerciseSets, newSet] });
-    router.setParams({ selectedExerciseId: undefined });
-  }, [selectedExerciseId]);
+
+    const newWorkout = {...workout, exerciseSets: [...workout.exerciseSets,newSet]};
+    updateWorkoutState(newWorkout);
+
+
+    /*setWorkout(newWorkout);
+    if(editIdRef.current){
+      require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newWorkout);
+    }*/
+
+    router.setParams({ selectedExerciseId: undefined,
+      selectedExerciseName: undefined,
+      selectedBreakTime: undefined
+     });
+
+     setIsEditMode(true);
+    }
+  }, [selectedExerciseId, workout, exercises]);
+
+
 
   // Lade Workout beim Start
   useEffect(() => {
-    const loadWorkout = async () => {
+    const loadWorkoutData = async () => {
       setLoading(true);
       try {
         const user = auth.currentUser;
@@ -404,9 +218,39 @@ export default function ActiveWorkoutScreen() {
         });
         setExercises(exercisesMap);
 
+        const currentEditId = (workoutEditId|| id|| `temp_${Date.now()}`) as string;
+        editIdRef.current=currentEditId;
+
+        //comment from here
+
+        const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(currentEditId);
+        
+        if (draft) {
+          setWorkout(draft);
+        } else if (id) {
+          const userRef = doc(db, "users", user.uid, "workouts", id as string);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            const setsSnap = await getDocs(collection(userRef, "exerciseSets"));
+            const exerciseSets: ExerciseSet[] = setsSnap.docs.map(d => ({ id: d.id, ...d.data() } as ExerciseSet));
+            setWorkout({ id: userSnap.id, ...userSnap.data(), exerciseSets, startTime: Date.now() } as Workout);
+          }
+        } else {
+          setWorkout({ date: new Date().toISOString(), exerciseSets: [], startTime: Date.now() });
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadWorkoutData();
+  }, [id]);
+
+/*
         if (id != null) {
           // Wenn ID vorhanden, lade gespeichertes Workout
-          editIdRef.current = workoutEditId || id;
+          editIdRef.current = workoutEditId as string|| id as string;
 
           const userRef = doc(db, "users", user.uid, "workouts", id as string);
           const userSnap = await getDoc(userRef);
@@ -445,7 +289,7 @@ export default function ActiveWorkoutScreen() {
           }
         } else {
           // Leeres Workout (freies Training)
-          editIdRef.current = workoutEditId || `temp_${Date.now()}`;
+          editIdRef.current = workoutEditId as string || `temp_${Date.now()}`;
 
           const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editIdRef.current);
           if (draft) {
@@ -467,137 +311,40 @@ export default function ActiveWorkoutScreen() {
     };
 
     loadWorkout();
-  }, [id]);
+  }, [id]);*/
 
 
-  //new Add Exercise in hope that multiple exercises can be added
-  const addExercise = (exerciseId: string, exerciseName?: string, breaktime?: number) => {
-  if (!workout) return;
-
-  router.push({pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
-    params: { workoutEditId: editIdRef.current, returnTo: "active" }})
-
-  const newSet: ExerciseSet = {
-    id: `set_${Date.now()}`,
-    exerciseId,
-    exerciseName,
-    weight: 20,
-    reps: 5,
-    breaktime: breaktime ?? 30,
-    isDone: false,
-  };
-
-  const newWorkout = {
-    ...workout,
-    exerciseSets: [...workout.exerciseSets, newSet],
-  };
-
-  setWorkout(newWorkout);
-};
-
-
-  /*
-  // Timer
+  
+  //Timer
   useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setElapsedTime((prev) => prev + 1);
-    }, 1000) as unknown as NodeJS.Timeout;
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    timerRef.current = setInterval(() => setElapsedTime((prev) => prev + 1), 1000) as unknown as NodeJS.Timeout;
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
-  const getRemainingRestTime = (set: ExerciseSet) => {
-    if(!set.isDone || !set.restStartedAt || !set.breaktime) return null;
-
-    const rest = set.breaktime;
-    const elapsed = (Date.now() - set.restStartedAt) / 1000;
-    const remaining = rest - elapsed;
-
-    return remaining > 0 ? remaining : 0;
-  };
-
-  // Handle Set Checkbox   
+  // Set Checkbox (Main View)
   const handleSetCheck = (setIndex: number) => {
-    if (!workout) {return;}
-
-    const sets = [...workout.exerciseSets];
-    const set = sets[setIndex];
-
-    const newDoneStatus = !set.isDone;
-
-    sets[setIndex] = {
-      ...set,
-      isDone: newDoneStatus,
-      restStartedAt: newDoneStatus ? Date.now() : undefined,
-    };
-    setWorkout({ ...workout, exerciseSets: sets });
-  };
-  
-
-
-  
-
-
-  // Add a set for a given exercise in active workout
-  const handleAddSet = (exerciseId: string, exerciseName?: string) => {
-  if (!workout) return;
-
-  const newSet: ExerciseSet = {
-    id: `set_${Date.now()}`,
-    exerciseId,
-    exerciseName,
-    weight: 20,
-    reps: 5,
-    breaktime: 30,
-    isDone: false,
-  };
-
-  setWorkout({
-    ...workout,
-    exerciseSets: [...workout.exerciseSets, newSet],
-  });
-};
-
-
-// Handle exercise returned from AddExercise (single-select)
-  useEffect(() => {
-    if (!selectedExerciseId) return;
-
-
-    addExercise(selectedExerciseId, selectedExerciseName, Number(selectedBreakTime));
-
-    router.setParams({ selectedExerciseId: undefined, selectedExerciseName: undefined, selectedBreakTime: undefined });
-  },[selectedExerciseId, selectedExerciseName, selectedBreakTime]);
-
-
-  // Update a set value
-  const handleUpdateSet = (index: number, key: 'weight' | 'reps', value: string) => {
     if (!workout) return;
-    const updatedSets = [...workout.exerciseSets];
-    const numValue = parseInt(value) || 0;
-    updatedSets[index][key] = numValue;
-    const newW = { ...workout, exerciseSets: updatedSets };
-    setWorkout(newW);
-    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
+    const sets = [...workout.exerciseSets];
+    const newDone = !sets[setIndex].isDone;
+    sets[setIndex] = { ...sets[setIndex], isDone: newDone, restStartedAt: newDone ? Date.now() : undefined };
+    updateWorkoutState({ ...workout, exerciseSets: sets });
   };
 
-// Remove a set
+  // Remove Set
   const handleRemoveSet = (index: number) => {
-    const newW = { ...workout!, exerciseSets: workout!.exerciseSets.filter((_, i) => i !== index) };
-    setWorkout(newW);
-    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
+    if (!workout) return;
+    const newSets = workout.exerciseSets.filter((_, i) => i !== index);
+    updateWorkoutState({ ...workout, exerciseSets: newSets });
   };
 
-*/
+
 
   // Discard Workout
   const handleDiscardWorkout = () => {
     showConfirm("Training verwerfen", "Möchten Sie dieses Training wirklich verwerfen?", () => {
       clearActiveWorkout();
       if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
-        router.push("../..//(tabs)/WorkoutScreenProxy")
+        router.navigate("../..//(tabs)/WorkoutScreenProxy")
     }, { confirmText: "Verwerfen", cancelText: "Abbrechen" });
   };
 
@@ -663,28 +410,12 @@ export default function ActiveWorkoutScreen() {
     }
   }, [workout]);
 
-  
-
-  /*useEffect(() => {
-
-  //Old AddExercise/Set
-    if (selectedExerciseId) {
-      handleAddSet(selectedExerciseId, selectedExerciseName, Number(selectedBreakTime));
-      // clear params to avoid duplicates
-      router.setParams({ selectedExerciseId: undefined, selectedExerciseName: undefined, selectedBreakTime: undefined });
-    }
-  }, [selectedExerciseId, selectedExerciseName, selectedBreakTime]);
-  */
-  
-  
-  
-  
 
   // Edit mode - save changes (persist full sets)
   const handleSaveChanges = async () => {
     if (!workout) return;
     if (!workout.name || workout.exerciseSets.length === 0) {
-      showAlert("Fehler", "Bitte geben Sie einen Namen ein und fügen Sie mindestens einen Satz hinzu");
+      showAlert("Fehler", "Bitte geben Sie einen Trainingsnamen ein und fügen Sie mindestens einen Satz hinzu.");
       return;
     }
 
@@ -772,6 +503,207 @@ export default function ActiveWorkoutScreen() {
     }
   }, [workout]);
 
+  const renderViewMode = () => {
+    const groupedSets = groupSetsByExercise(workout!.exerciseSets);
+
+    return(
+      <ScrollView contentContainerStyle={{paddingBottom: 120}}>
+        <View>
+        {Object.entries(groupedSets).map(([exerciseId, sets]) => 
+          renderExerciseCard(exerciseId, sets, false))}
+
+        <View style={{alignItems: "center"}}>
+        <Pressable
+          onPress={() => {setIsEditMode(true);}}
+          style={styles.topBarLikeButton}
+        >
+
+          <Text style={styles.topBarButtonText}>Bearbeiten</Text>
+        </Pressable>
+        </View>
+      
+
+
+</View>
+      </ScrollView>
+    );
+  };
+
+  const renderEditMode =() => {
+    const groupedSets = groupSetsByExercise(workout!.exerciseSets);
+
+    return(
+      <ScrollView contentContainerStyle={{paddingBottom: 120}}>
+        <View>
+        {Object.entries(groupedSets).map(([exerciseId, sets]) =>
+          renderExerciseCard(exerciseId, sets, true))}
+
+        <Pressable
+          onPress={() => addExercise("", "", 30)}
+          style={styles.addExerciseButton}
+        >
+
+          <Text style={styles.addExerciseButtonText}>+ Übung hinzufügen</Text>
+        </Pressable>
+
+        </View>
+      </ScrollView>
+    );
+  };
+
+
+  const renderSetEditMode = (set: ExerciseSet, index: number) => (
+    <View key={index} style={styles.setEditRow}>
+      <Text style={styles.setText}>Satz {index + 1}</Text>
+      <Text style={[styles.setText, {color: '#aaa'}]}>{set.weight}kg x {set.reps}</Text>
+      
+      <View style={{flexDirection: 'row', gap: 15}}>
+        {/* Stift Icon -> Öffnet Overlay */}
+        <Pressable onPress={() => openEditSetOverlay(index, set)}>
+          <Ionicons name="pencil" size={22} color="#007AFF" />
+        </Pressable>
+        {/* Trash Icon */}
+        <Pressable onPress={() => handleRemoveSet(index)}>
+          <Ionicons name="trash" size={22} color="#ff4444" />
+        </Pressable>
+      </View>
+    </View>
+  );
+
+
+
+  const renderSetViewMode = (set: ExerciseSet, index: number) => {
+    
+    return(
+      <Pressable key={index} onPress={() => handleSetCheck(index)} style={styles.setRow}>
+      <Text style={styles.setText}>{index + 1}</Text>
+      <Text style={styles.setText}>{set.weight} kg</Text>
+      <Text style={styles.setText}>{set.reps} Wdh</Text>
+      <View style={[styles.checkbox, set.isDone && styles.checkboxDone]}>
+        {set.isDone && <Ionicons name="checkmark" size={16} color="#fff" />}
+      </View>
+    </Pressable>
+    );
+  };
+
+  const renderExerciseCard = (exerciseId: string, sets: ExerciseSet[], isEditing: boolean) => (
+    <View key={exerciseId} style={styles.exerciseCard}>
+      <View style={styles.exerciseCardHeader}>
+
+        <Text style={{fontSize: 22,fontWeight: "bold",color: "white", marginRight:8}}>Pic </Text>
+
+
+        <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
+
+        <Pressable onPress={() => openBreakTimeOverlay(exerciseId, sets[0].breaktime || 30)}>
+          <View style={{flexDirection: 'row', alignItems: 'center',padding:8}}>
+            <Ionicons name="alarm-outline" size={20} color={Colors.primary} />
+            <Text style={{color: Colors.primary, marginLeft: 4, fontSize: 12}}>{sets[0].breaktime || 30}s</Text>
+          </View>
+        </Pressable>
+      </View>
+
+
+      <View style={styles.setRowHeader}>
+          <Text style={styles.setTextHeader}>Satz</Text>
+          <Text style={styles.setTextHeader}>Gewicht (kg)</Text>
+          <Text style={styles.setTextHeader}>Wiederholungen</Text>
+          {isEditMode && <View style={{width: 50}}/>}
+          </View>
+
+      {sets.map((set) => {
+        const globalIndex = workout!.exerciseSets.indexOf(set);
+        return (
+          <View key={globalIndex} style={isEditMode ? styles.setEditRow : styles.setRow}>
+            <Text style={styles.setText}>Satz {sets.indexOf(set) + 1}</Text>
+            <Text style={styles.setText}>{set.weight}</Text>
+            <Text style={styles.setText}>{set.reps}</Text>
+
+            {isEditMode && (
+              <View style={{flexDirection: 'row', gap: 15, flexGrow:0}}>
+                <Pressable onPress={() => openEditSetOverlay(globalIndex, set)}>
+                    <Ionicons name="pencil" size={22} color={Colors.black} />
+                </Pressable>
+                <Pressable onPress={() => handleRemoveSet(globalIndex)}>
+                    <Ionicons name="trash" size={22} color={Colors.black} />
+                </Pressable>
+              </View>
+            )}
+          </View>
+        );
+      })}
+
+      {isEditing && (
+        <Pressable onPress={() => openAddSetOverlay(exerciseId, sets[0].exerciseName)} style={styles.addSetButton}>
+          <Text style={styles.addSetButtonText}>Satz hinzufügen +</Text>
+        </Pressable>
+      )}
+    </View>
+  );
+
+  //TODO STILL LOOKING AT IT
+  const renderOverlays = () => {
+    if (activeOverlay === 'none') return null;
+    const isBreaktime = activeOverlay === 'breaktime';
+    const isEdit = activeOverlay === 'editSet';
+    const isAdd = activeOverlay === 'addSet';
+
+    return (
+      <Modal visible={true} transparent animationType="fade" onRequestClose={() => setActiveOverlay('none')}>
+        <View style={newStyles.overlay}>
+          <View style={newStyles.content}>
+            <View style={newStyles.header}>
+              <Pressable onPress={() => setActiveOverlay('none')}><Text style={{color: '#ff4444'}}>Abbrechen</Text></Pressable>
+              <Text style={newStyles.headerTitle}>{isBreaktime ? "Pausenzeit" : (isEdit ? "Satz bearbeiten" : "Satz hinzufügen")}</Text>
+              <Pressable style={newStyles.saveButton} onPress={saveModalChanges}><Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text></Pressable>
+            </View>
+
+            {isBreaktime ? (
+              <View style={newStyles.timeInputContainer}>
+                  <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.mins.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, mins: Number(v)})} />
+                  <Text style={newStyles.label}>Min</Text>
+                  <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.secs.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, secs: Number(v)})} />
+                  <Text style={newStyles.label}>Sek</Text>
+              </View>
+            ) : (
+              <View>
+                <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={2.5} />
+                <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={v => setTempSetData({...tempSetData, reps: v})} step={1} />
+                 {/* Keine 'Erledigt' Checkbox hier, da dies nur der Info Screen ist */}
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  const saveModalChanges = () => {
+    if(!workout) return;
+
+    setWorkout(prev => {
+      if(!prev)return null;
+
+      let newSets = [...workout.exerciseSets];
+
+      if (activeOverlay === 'breaktime' && targetExerciseId) {
+      const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
+      newSets = newSets.map(s => s.exerciseId === targetExerciseId ? {...s, breaktime: secs} : s);
+      }
+      else if (activeOverlay === 'editSet' && targetSetIndex !== null) {
+        newSets[targetSetIndex] = { ...newSets[targetSetIndex], weight: tempSetData.weight, reps: tempSetData.reps };
+      }
+      else if (activeOverlay === 'addSet' && targetExerciseId) {
+        newSets.push({
+            id: `set_${Date.now()}`, exerciseId: targetExerciseId, exerciseName: targetExerciseName || "",
+            weight: tempSetData.weight, reps: tempSetData.reps, breaktime: 30, isDone: false
+        });
+      }
+      return {...prev, exerciseSets:newSets};
+    });
+    setActiveOverlay('none');
+  };
+
   if (!workout) {
     return (
       <GestureHandlerRootView style={styles.sheetContainer}>
@@ -785,11 +717,8 @@ export default function ActiveWorkoutScreen() {
     );
   }
 
-  const canSaveActive = isEditMode && !!workout?.name && (workout.exerciseSets?.length ?? 0) > 0;
-
-
   //TODO Meh lösung: Leerzeichen
-  const timerString = `Aktives Training \n      ${formatTime(elapsedTime)}`;
+  const timerString = `  Dauer\n${formatTime(elapsedTime)}`;
 
   return (
     <GestureHandlerRootView style={styles.sheetContainer}>
@@ -797,17 +726,56 @@ export default function ActiveWorkoutScreen() {
         <BottomSheetView style={styles.sheetContainerContent}>
           <TopBar
             leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
-            titleText={isEditMode ? "Training bearbeiten" : `Aktives Training \n ${formatTime(elapsedTime)}`}
+            titleText={isEditMode ? "Training bearbeiten" : timerString}
             rightButtonText={isEditMode ? "Speichern" : "Fertig"}
-            onLeftPress={isEditMode ? () => setIsEditMode(false) : handleDiscardWorkout}
-            onRightPress={isEditMode ? handleSaveChanges : handleFinishWorkout}
+            onLeftPress={() => isEditMode ? setIsEditMode(false) : handleDiscardWorkout()}
+            onRightPress={() =>isEditMode ? handleSaveChanges() : handleFinishWorkout()}
           />
+
+          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+            {Object.entries(groupSetsByExercise(workout?.exerciseSets || [])).map(([id, sets]) => 
+              renderExerciseCard(id, sets, isEditMode)
+            )}
+
+            {!isEditMode && (
+                <Pressable style={styles.topBarLikeButton} onPress={() => setIsEditMode(true)}>
+                    <Text style={styles.addExerciseButtonText}>Bearbeiten</Text>
+                </Pressable>
+            )}
+
+            {isEditMode && (
+              <Pressable 
+                style={styles.addExerciseButton} 
+                onPress={() => router.push({ pathname: "/screens/exercise/AddExerciseToWorkoutScreen", params: { returnTo: "active", workoutEditId: editIdRef.current } })}
+              >
+                <Text style={styles.addExerciseButtonText}>Übung hinzufügen +</Text>
+              </Pressable>
+            )}
+          </ScrollView>
+        </BottomSheetView>
+      </BottomSheet>
+
+    
+
+      <LoadingOverlay visible={loading} />
+    </GestureHandlerRootView>
+  );
+
+
+
+
+};
+
+
+//--------------------------------------------------
+/*
+
           {isEditMode ? renderEditMode() : renderViewMode()}
           <LoadingOverlay visible={loading} />
           {renderActiveOverlay()}
         </BottomSheetView>
       </BottomSheet>
-      {isMinimized && ( <View /> /* Dein Minimized View Code */ )}
+      {isMinimized && ( <View />  )}//Dein Minimized View Code  )}
     </GestureHandlerRootView>
   );
-};
+};*/

@@ -213,17 +213,17 @@ export default function SingleWorkoutInfoScreen() {
     if(!workout) return;
 
     setWorkout(prev => {
-       if(!prev)return null;
+      if(!prev)return null;
 
       let newSets = [...workout.exerciseSets];
 
       if (activeOverlay === 'breaktime' && targetExerciseId) {
-       const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
-       newSets = newSets.map(s => s.exerciseId === targetExerciseId ? {...s, breaktime: secs} : s);
-      } 
+      const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
+      newSets = newSets.map(s => s.exerciseId === targetExerciseId ? {...s, breaktime: secs} : s);
+      }
       else if (activeOverlay === 'editSet' && targetSetIndex !== null) {
         newSets[targetSetIndex] = { ...newSets[targetSetIndex], weight: tempSetData.weight, reps: tempSetData.reps };
-      } 
+      }
       else if (activeOverlay === 'addSet' && targetExerciseId) {
         newSets.push({
             id: `set_${Date.now()}`, exerciseId: targetExerciseId, exerciseName: targetExerciseName || "",
@@ -379,8 +379,8 @@ export default function SingleWorkoutInfoScreen() {
 
         <Pressable onPress={() => openBreaktime(exerciseId, sets[0].breaktime || 30)}>
           <View style={{flexDirection: 'row', alignItems: 'center',padding:8}}>
-             <Ionicons name="alarm-outline" size={20} color={Colors.primary} />
-             <Text style={{color: Colors.primary, marginLeft: 4, fontSize: 12}}>{sets[0].breaktime || 30}s</Text>
+            <Ionicons name="alarm-outline" size={20} color={Colors.primary} />
+            <Text style={{color: Colors.primary, marginLeft: 4, fontSize: 12}}>{sets[0].breaktime || 30}s</Text>
           </View>
         </Pressable>
       </View>
@@ -403,12 +403,12 @@ export default function SingleWorkoutInfoScreen() {
             
             {isEditMode && (
               <View style={{flexDirection: 'row', gap: 15, flexGrow:0}}>
-                 <Pressable onPress={() => openEditSet(idx, set)}>
+                <Pressable onPress={() => openEditSet(idx, set)}>
                     <Ionicons name="pencil" size={22} color={Colors.black} />
-                 </Pressable>
-                 <Pressable onPress={() => handleRemoveSet(idx)}>
+                </Pressable>
+                <Pressable onPress={() => handleRemoveSet(idx)}>
                     <Ionicons name="trash" size={22} color={Colors.black} />
-                 </Pressable>
+                </Pressable>
               </View>
             )}
           </View>
@@ -416,9 +416,9 @@ export default function SingleWorkoutInfoScreen() {
       })}
 
       {isEditMode && (
-         <Pressable onPress={() => openAddSet(exerciseId, sets[0].exerciseName || "")} style={styles.addSetButton}>
-           <Text style={styles.addSetButtonText}>Satz hinzufügen  +</Text>
-         </Pressable>
+        <Pressable onPress={() => openAddSet(exerciseId, sets[0].exerciseName || "")} style={styles.addSetButton}>
+          <Text style={styles.addSetButtonText}>Satz hinzufügen  +</Text>
+        </Pressable>
       )}
     </View>
   );
@@ -442,18 +442,18 @@ export default function SingleWorkoutInfoScreen() {
             </View>
 
             {isBreaktime ? (
-               <View style={newStyles.timeInputContainer}>
+              <View style={newStyles.timeInputContainer}>
                   <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.mins.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, mins: Number(v)})} />
                   <Text style={newStyles.label}>Min</Text>
                   <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.secs.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, secs: Number(v)})} />
                   <Text style={newStyles.label}>Sek</Text>
-               </View>
+              </View>
             ) : (
-               <View>
-                 <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={2.5} />
-                 <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={v => setTempSetData({...tempSetData, reps: v})} step={1} />
+              <View>
+                <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={2.5} />
+                <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={v => setTempSetData({...tempSetData, reps: v})} step={1} />
                  {/* Keine 'Erledigt' Checkbox hier, da dies nur der Info Screen ist */}
-               </View>
+              </View>
             )}
           </View>
         </View>
@@ -470,27 +470,27 @@ export default function SingleWorkoutInfoScreen() {
         leftButtonText={isEditMode ? "Abbrechen" : "Zurück"}
         titleText={workout.name || "Training Info"}
         rightButtonText={isEditMode ? "Speichern" : "Bearbeiten"}
-        onLeftPress={() => isEditMode ? setIsEditMode(false) : router.back()}
+        onLeftPress={() => isEditMode ? setIsEditMode(false) : router.navigate("../..//(tabs)/WorkoutScreenProxy")}
         onRightPress={() => isEditMode ? handleSaveWorkout() : setIsEditMode(true)}
       />
       
       <ScrollView contentContainerStyle={{padding: 16, paddingBottom: 100}}>
         {isEditMode && (
-           <View style={{padding:16}}>
-             <Text style={{color: Colors.black, width:800, marginBottom: 4,fontSize:24}}>Trainingsname:</Text>
-             <TextInput 
-             value={workout.name || ""} 
-             onChangeText={t => setWorkout(prev => prev ? {...prev, name:t} : null)} 
-             style={{backgroundColor: Colors.background, color: Colors.black, padding: 10, borderRadius: 8,borderColor:Colors.black,borderWidth:1}} />
-           </View>
+          <View style={{padding:16}}>
+            <Text style={{color: Colors.black, width:800, marginBottom: 4,fontSize:24}}>Trainingsname:</Text>
+            <TextInput 
+            value={workout.name || ""} 
+            onChangeText={t => setWorkout(prev => prev ? {...prev, name:t} : null)} 
+            style={{backgroundColor: Colors.background, color: Colors.black, padding: 10, borderRadius: 8,borderColor:Colors.black,borderWidth:1}} />
+          </View>
         )}
 
         {Object.entries(groupSetsByExercise(workout.exerciseSets)).map(([id, sets]) => renderCard(id, sets))}
 
         {isEditMode && (
-           <Pressable onPress={addExercise} style={[styles.addExerciseButton, {marginTop: 20}]}>
-             <Text style={styles.addExerciseButtonText}>Übung hinzufügen  +</Text>
-           </Pressable>
+          <Pressable onPress={addExercise} style={[styles.addExerciseButton, {marginTop: 20}]}>
+            <Text style={styles.addExerciseButtonText}>Übung hinzufügen  +</Text>
+          </Pressable>
         )}
       </ScrollView>
 
