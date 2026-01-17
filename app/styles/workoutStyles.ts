@@ -8,15 +8,14 @@ export const workoutStyles = StyleSheet.create({
     exerciseCard: {
     padding: 12,
     borderRadius: 10,
-    marginHorizontal: 16,
-    marginBottom: 16,
+    marginHorizontal: 10,
     },
     exerciseCardHeader:{
     backgroundColor: Colors.black,
     padding: 12,
     borderRadius: 10,
     marginHorizontal: 0,
-    marginBottom: 16,
+    marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -27,6 +26,19 @@ export const workoutStyles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft:0,
     flex:1
+    },
+
+    setRowHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+    marginHorizontal: 10,
+
+    },
+    setTextHeader:{
+        color: Colors.black,
+        fontSize: 18,
+        fontWeight: "700",
     },
 
     setRow: {
@@ -45,10 +57,14 @@ export const workoutStyles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 6,
     marginHorizontal: 12,
+    marginVertical: 4,
+    borderColor: Colors.black,
+    borderWidth: 1,
+    padding: 6,
+
 
     },
     setText: {
-    
     color: Colors.black,
     width: 50,
     },
@@ -149,10 +165,6 @@ export const workoutStyles = StyleSheet.create({
         backgroundColor: "#111",
         borderRadius: 8,
         marginBottom: 8,
-    },
-    setText: {
-        fontSize: 14,
-        color: "#aaa",
     },
     setButton:{
         backgroundColor: "#aaa",

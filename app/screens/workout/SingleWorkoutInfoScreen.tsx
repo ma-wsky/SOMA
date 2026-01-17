@@ -244,13 +244,20 @@ export default function SingleWorkoutInfoScreen() {
           </View>
         </Pressable>
       </View>
+      <View style={styles.setRowHeader}>
+          <Text style={styles.setTextHeader}>Satz</Text>
+          <Text style={styles.setTextHeader}>Gewicht (kg)</Text>
+          <Text style={styles.setTextHeader}>Wiederholungen</Text>
 
+          </View>
       {sets.map((set) => {
         const idx = workout!.exerciseSets.indexOf(set);
+        
         return (
           <View key={idx} style={isEditMode ? styles.setEditRow : styles.setRow}>
-            <Text style={styles.setText}>Satz {sets.indexOf(set) + 1}</Text>
-            <Text style={[styles.setText, {color: '#aaa'}]}>{set.weight}kg x {set.reps}</Text>
+            <Text style={styles.setText}>{sets.indexOf(set) + 1}</Text>
+            <Text style={styles.setText}>{set.weight}</Text>
+            <Text style={styles.setText}>{set.reps}</Text>
             
             {isEditMode && (
               <View style={{flexDirection: 'row', gap: 15}}>
