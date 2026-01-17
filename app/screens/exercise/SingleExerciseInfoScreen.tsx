@@ -114,6 +114,7 @@ export default function SingleExerciseInfoScreen() {
     return (
         <View style={exerciseStyles.container}>
 
+
             {/* Top Bar */}
             <TopBar leftButtonText={"Zurück"}
                     titleText={"Übung Info"}

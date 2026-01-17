@@ -3,11 +3,12 @@ export const Colors = {
     primary: "#AB8FFF",
     secondary: "#8A70CC",
     background: "#fff",
+    darkBackground: "#757575",
     iconActive: "#fff",
     iconInactive: "#333",
     icon: "#555",
     black: "#000",
-    white: "#fff",
+    white: "#ffffff",
     gray: "#aaa",
 };
 

@@ -4,19 +4,21 @@ import ExerciseItem from "@/app/components/ExerciseItem";
 import { exerciseStyles } from "@/app/styles/exerciseStyles";
 import { Exercise } from "@/app/types/Exercise"
 
+interface Props {
+    exercises: Exercise[];
+    filter?: string,
+    category?: string,
+
+    onItemPress?: (exercise: Exercise) => void;
+    onAddToWorkout?: (exercise: Exercise) => void;
+    showAddButton?: boolean;
+}
 
 type ListItem =
     | { type: "divider"; title: string }
     | { type: "exercise"; data: Exercise };
 
-interface Props {
-    exercises: Exercise[];
-    filter?: string,
-    category?: string,
-    onItemPress?: (exercise: Exercise) => void;
-}
-
-export default function ExerciseList({ exercises=[], filter="", category="Alle", onItemPress }: Props) {
+export default function ExerciseList({ exercises, filter="",category="Alle", onItemPress, onAddToWorkout, showAddButton = false}: Props) {
 
     const listData = useMemo(() => {
 
@@ -73,7 +75,9 @@ export default function ExerciseList({ exercises=[], filter="", category="Alle",
         return (
             <ExerciseItem
                 exercise={item.data}
-                onPress={() => onItemPress?.(item.data)}
+                onPress={()=> onItemPress && onItemPress(item.data)}
+                onAddToWorkout={onAddToWorkout}
+                showAddButton={showAddButton}
             />
         );
     }

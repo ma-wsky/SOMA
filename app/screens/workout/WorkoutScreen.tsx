@@ -1,81 +1,124 @@
-import { Text,TextInput, FlatList, View, Pressable } from "react-native";
+import { Text, TextInput, View, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import WorkoutItem from "../../components/WorkoutItem";
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import WorkoutList from "../../components/WorkoutList";
 import { workoutStyles as styles } from "../../styles/workoutStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";
-
-
-const EXAMPLEWORKOUTS = [
-    {id:"1", name: "Push"},
-    {id:"2", name: "Pull"},
-    {id:"3", name: "Legs"},
-];
+import { useLoadWorkouts } from "@/app/hooks/useLoadWorkouts";
+import LoadingOverlay from "../../components/LoadingOverlay";
+import { doc, deleteDoc, collection } from "firebase/firestore";
+import { auth, db } from "@/app/firebaseConfig";
+import { showAlert } from "@/app/utils/alertHelper";
 
 export default function WorkoutScreen() {
-    //case insensitiv ?
-    const router = useRouter();
-    const [filter, setFilter] = useState("");
+  const router = useRouter();
+  const [filter, setFilter] = useState("");
+  const [hasActiveWorkout, setHasActiveWorkout] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { workouts, loading: workoutsLoading, refetch } = useLoadWorkouts();
 
-    const filteredWorkout = EXAMPLEWORKOUTS.filter(workout => {
-        return workout.name.toLowerCase().includes(filter.toLowerCase());
-    });
+  // When this tab is focused, open the ActiveWorkoutScreen if there is an active workout stored
+  useFocusEffect(
+    useCallback(() => {
+      try {
+        const active = require("@/app/utils/activeWorkoutStore").getActiveWorkout();
+        if (active?.id) {
+          router.push({ pathname: '/screens/workout/ActiveWorkoutScreen', params: { id: active.id } });
+        }
+      } catch (e) {
+        console.warn('Error checking active workout on focus', e);
+      }
+    }, [])
+  );
 
+  const handleDeleteWorkout = async (workoutId: string) => {
+    setLoading(true);
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        showAlert("Fehler", "Sie müssen angemeldet sein");
+        return;
+      }
 
-    return (
-        <View style={styles.container}>
+      const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
+      await deleteDoc(workoutRef);
 
-            {/* EmptyWorkout Button */}
-            <View style={{marginHorizontal: 20,}}>
-                <Pressable
-                    onPress={() => {router.push("/screens/workout/ActiveWorkoutScreen")}}
-                    style={({ pressed }) => [
-                        styles.bigButton,
-                        {backgroundColor: pressed ? "#333" : "#000"},
-                    ]}
-                >
-                    <View style={styles.bigButtonTextWrapper}>
-                        <Text style={styles.buttonText}>Leeres Training starten</Text>
-                        <Ionicons
-                            name={"add-outline"}
-                            size={24}
-                            color="#fff"
-                        />
-                    </View>
-                </Pressable>
-            </View>
+      showAlert("Erfolg", "Training gelöscht");
+      // Refresh the list
+      refetch?.();
+    } catch (e) {
+      console.error("Fehler beim Löschen:", e);
+      showAlert("Fehler", "Training konnte nicht gelöscht werden");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            {/* Search Bar */}
-            <TextInput placeholder={"Training suchen..."}
-                       placeholderTextColor='white'
-                       value={filter}
-                       onChangeText={setFilter}
-                       style={styles.search}/>
+  return (
+    <View style={styles.container}>
+      {/* EmptyWorkout Button */}
+      <View style={{ marginHorizontal: 20 }}>
+        <Pressable
+          onPress={() => {
+            router.push("/screens/workout/ActiveWorkoutScreen");
+          }}
+          style={({ pressed }) => [
+            styles.bigButton,
+            { backgroundColor: pressed ? "#333" : "#000" },
+          ]}
+        >
+          <View style={styles.bigButtonTextWrapper}>
+            <Text style={styles.itemTitle}>Leeres Training starten</Text>
+            <Ionicons name={"add-outline"} size={styles.itemTitle.fontSize} color={styles.itemTitle.color} />
+          </View>
+        </Pressable>
+      </View>
 
-            {/* Saved Workouts List */}
-            <FlatList data={filteredWorkout} keyExtractor={(item) => item.id}
-                      renderItem={({ item }) => (<WorkoutItem workout={item}/>)}/>
+      {/* Search Bar */}
+      <TextInput
+        placeholder={"Training suchen..."}
+        placeholderTextColor="white"
+        value={filter}
+        onChangeText={setFilter}
+        style={styles.searchbar}
+      />
 
-            {/* create Workout Button */}
-            <View style={{marginHorizontal: 20,}}>
-                <Pressable
-                    onPress={() => {router.push("/screens/workout/EditWorkoutScreen")}}
-                    style={({ pressed }) => [
-                        styles.bigButton,
-                        {backgroundColor: pressed ? "#333" : "#000"},
-                    ]}
-                >
-                    <View style={styles.bigButtonTextWrapper}>
-                        <Text style={styles.buttonText}>Training erstellen</Text>
-                        <Ionicons
-                            name={"add-outline"}
-                            size={24}
-                            color="#fff"
-                        />
-                    </View>
+      {/* Saved Workouts List */}
+      <WorkoutList
+        workouts={workouts}
+        filter={filter}
+        onItemPress={(workout) =>
+          router.push({
+            pathname: "/screens/workout/SingleWorkoutInfoScreen",
+            params: { id: workout.id },
+          })
+        }
+        onDelete={handleDeleteWorkout}
+      />
 
-                </Pressable>
-            </View>
-        </View>
-    );
+      {/* create Workout Button */}
+      <View style={{ marginHorizontal: 20, marginBottom: 20 }}>
+        <Pressable
+          onPress={() => {
+            router.push({
+              pathname: "/screens/workout/SingleWorkoutInfoScreen",
+              params: { workoutEditId: `temp_${Date.now()}` },
+            });
+          }}
+          style={({ pressed }) => [
+            styles.bigButton,
+            { backgroundColor: pressed ? "#333" : "#000" },
+          ]}
+        >
+          <View style={styles.bigButtonTextWrapper}>
+            <Text style={styles.itemTitle}>Training erstellen</Text>
+            <Ionicons name={"add-outline"} size={styles.itemTitle.fontSize} color={styles.itemTitle.color} />
+          </View>
+        </Pressable>
+      </View>
+
+      <LoadingOverlay visible={loading || workoutsLoading} />
+    </View>
+  );
 }

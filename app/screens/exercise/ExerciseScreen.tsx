@@ -66,9 +66,11 @@ export default function ExerciseScreen() {
                 filter={filter}
                 category={selectedCategory}
                 onItemPress={(exercise) => router.push({
-                    pathname: "/screens/workout/SingleExerciseInfoScreen",
+                    pathname: "/screens/exercise/SingleExerciseInfoScreen",
                     params: { id: exercise.id }
                 })}
+                showAddButton={false}
+
             />
 
             {/* Loading Overlay */}
