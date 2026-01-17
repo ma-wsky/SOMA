@@ -18,6 +18,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { TopBar } from "@/app/components/TopBar";
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { secondsToMinSec,minSecToSeconds } from "@/app/components/NumberStepper";
 
 // New Firebase structure
 type ExerciseSet = {
@@ -46,18 +47,94 @@ type Exercise = {
   muscleGroup?: string;
 };
 
+type OverlayTypes = "none" | "breaktime" | "editSet" | "addSet";
+
 export default function ActiveWorkoutScreen() {
-  const { id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime } = useLocalSearchParams<{ id?: string; selectedExerciseId?: string; selectedExerciseName?: string; workoutEditId?: string; selectedBreakTime?: string }>();
+  const { id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime } = useLocalSearchParams();//<{ id?: string; selectedExerciseId?: string; selectedExerciseName?: string; workoutEditId?: string; selectedBreakTime?: string }>();
   const [loading, setLoading] = useState(false);
   const [workout, setWorkout] = useState<Workout | null>(null);
   const editIdRef = useRef<string | null>(null);  
-  const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
+//  const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
   const [isEditMode, setIsEditMode] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Overlay State
+  const [activeOverlay, setActiveOverlay] = useState<OverlayTypes>("none");
+  const [targetSetIndex, setTargetSetIndex] = useState<number | null>(null);
+  const [targetExerciseId, setTargetExerciseId] = useState<string | null>(null);
+  const [targetExerciseName, setTargetExerciseName] = useState<string | null>(null);
+
+
+  //TempData for Overlay
+  const [tempSetData, setTempSetData] = useState({weight:0,reps:0,isDone:false});
+  const [tempBreakTime, setTempBreakTime] =useState({ mins: 0, secs: 0 });
   
-  
+
+  const updateWorkoutState = (newW: Workout) => {
+    setWorkout(newW);
+    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
+  };
+
+  //Overlays
+  const openBreakTimeOverlay = (exerciseId: string, currentSeconds: number) => {
+    setTargetExerciseId(exerciseId);
+    setTempBreakTime(secondsToMinSec(currentSeconds));
+    setActiveOverlay("breaktime");
+  };
+
+  const saveBreakTime = () => {
+    if (!workout || !targetExerciseId) return;
+    const newSeconds = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
+    
+    const newSets = workout.exerciseSets.map(s => 
+      s.exerciseId === targetExerciseId ? { ...s, breaktime: newSeconds } : s
+    );
+    
+    updateWorkoutState({ ...workout, exerciseSets: newSets });
+    setActiveOverlay("none");
+  };
+
+  const openEditSetOverlay = (index: number, set: ExerciseSet) => {
+    setTargetSetIndex(index);
+    setTempSetData({ weight: set.weight, reps: set.reps, isDone: set.isDone || false });
+    setActiveOverlay("editSet");
+  };
+
+  const openAddSetOverlay = (exerciseId: string, exerciseName: string) => {
+    setTargetExerciseId(exerciseId);
+    setTargetExerciseName(exerciseName);
+    setTempSetData({ weight: 20, reps: 10, isDone: false });
+    setActiveOverlay("addSet");
+  };
+
+  const saveSetData = () => {
+    if (!workout) return;
+    let newSets = [...workout.exerciseSets];
+
+    if (activeOverlay === "editSet" && targetSetIndex !== null) {
+      newSets[targetSetIndex] = {
+        ...newSets[targetSetIndex],
+        weight: tempSetData.weight,
+        reps: tempSetData.reps,
+        isDone: tempSetData.isDone
+      };
+    } else if (activeOverlay === "addSet" && targetExerciseId) {
+      newSets.push({
+        id: 'set_${Date.now()}',
+        exerciseId: targetExerciseId,
+        exerciseName: targetExerciseName || "Unbekannt",
+        weight: tempSetData.weight,
+        reps: tempSetData.reps,
+        breaktime: 30,
+        isDone: tempSetData.isDone
+      });
+    }
+
+    updateWorkoutState({ ...workout, exerciseSets: newSets });
+    setActiveOverlay("none");
+  };
+
 
   const groupSetsByExercise = (sets: ExerciseSet[]) => {
     const map: { [exerciseId: string]: ExerciseSet[] } = {};

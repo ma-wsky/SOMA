@@ -1,6 +1,14 @@
 import { View, Text, Pressable, TextInput, Modal, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
+//hilfsfunk
+export const secondsToMinSec = (totalSeconds: number) => ({
+  mins: Math.floor(totalSeconds / 60),
+  secs: totalSeconds % 60,
+});
+export const minSecToSeconds = (mins: string | number, secs: string | number) => 
+  (Number(mins) || 0) * 60 + (Number(secs) || 0);
+
 export const NumberStepper = ({ 
   value, 
   onChange, 
