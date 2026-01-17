@@ -1,11 +1,13 @@
 import { router } from "expo-router";
-import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView, Pressable, Alert } from "react-native";
+import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView, Pressable, Alert, Image } from "react-native";
 import { useState } from "react";
 import { TopBar } from "../../components/TopBar"
 import { auth, db } from "../../firebaseConfig";
 import { collection, addDoc, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { exerciseStyles as styles } from "../../styles/exerciseStyles";
+import * as ImagePicker from 'expo-image-picker';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 
 export default function CreateExerciseScreen() {
@@ -16,7 +18,73 @@ export default function CreateExerciseScreen() {
     const[inputMuscles, setInputMuscles] = useState<string>("");
     const[inputEquipment, setInputEquipment] = useState<string>("");
     const[inputInstructions, setInputInstructions] = useState<string>("");
+    const [image, setImage] = useState<string>(require('../../assets/default-exercise-picture/default-exercise-picture.jpg'));
+    const [hasImage, setHasImage] = useState<boolean>(false);
 
+    const takePhoto = async ()=> {
+
+        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+        if (permissionResult.granted === false){
+            alert("Kamerazugriff verweigert!");
+            return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.5,
+        });
+
+        if (!result.canceled){
+            setImage(result.assets[0].uri);
+            setHasImage(true);
+            //uploadImage(result.assets[0].uri);
+        }
+    }
+
+    const uploadImage = async (uri:string)=> {
+        try {
+            // 1. URI in Blob umwandeln
+            const response = await fetch(uri);
+            const blob = await response.blob();
+
+            // 2. Referenz in Firebase Storage erstellen
+            const storage = getStorage();
+            const filename = `exercises/${inputName}.jpg`;
+            const storageRef = ref(storage, filename);
+
+            // 3. Hochladen
+            await uploadBytes(storageRef, blob);
+
+            console.log("Upload erfolgreich!");
+
+            // 4. Download-URL erhalten (optional, um sie in der DB zu speichern)
+            const downloadURL = await getDownloadURL(storageRef);
+            console.log("Bild verfügbar unter:", downloadURL);
+
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const userExerciseCollection = collection(db, "users", user.uid, "exercises");
+            const q = query(
+                userExerciseCollection,
+                where("name", "==", inputName),
+            );
+            const snapshot = await getDocs(q);
+
+            const docRef = doc(userExerciseCollection, snapshot.docs[0].id);
+
+            await updateDoc(docRef, {
+                image: downloadURL,
+            })
+
+            console.log("URL im User-Feld gespeichert!");
+        } catch (error) {
+            console.error(error);
+            alert("Upload fehlgeschlagen.");
+        }
+    }
 
     const saveChanges = async () => {
 
@@ -55,7 +123,11 @@ export default function CreateExerciseScreen() {
                     equipment: inputEquipment,
                     instructions: inputInstructions,
                 })
-                router.replace("./screens/workout/ExerciseScreen");
+
+                // upload image
+                if (hasImage) await uploadImage(image);
+
+                router.replace("/screens/exercise/ExerciseScreen");
                 Alert.alert("Gespeichert", "Deine Änderungen wurden übernommen.");
 
             }else{
@@ -129,11 +201,28 @@ export default function CreateExerciseScreen() {
                         {/* Exercise Picture */}
                         <View style={styles.picWrapper}>
                             <Pressable
-                                style={styles.picture}
-                                onPress={()=>console.log("open camera")}
-                            >
-                                <Text style={styles.picText}>click to add pic</Text>
+                                style={({pressed}) => [
+                                    { opacity: pressed ? 0.7 : 1.0 },
+                                ]}
+                                onPress={takePhoto}>
+
+                                <Image
+                                    source={
+                                        typeof image === 'string'
+                                            ? { uri: image }
+                                            : image
+                                    }
+                                    style={styles.image}/>
+
+                                {/* Die Bedingung für den Text: Nur anzeigen, wenn KEIN Bild da ist */}
+                                {typeof image !== 'string' && (
+                                    <View style={styles.textOverlay}>
+                                        <Text style={styles.picText}>click to add pic</Text>
+                                    </View>
+                                )}
+
                             </Pressable>
+
                         </View>
 
                         {/* Layout of Infos */}

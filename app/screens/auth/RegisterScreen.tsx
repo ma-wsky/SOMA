@@ -1,13 +1,16 @@
 import {useRouter} from "expo-router";
-import { Text, View, Pressable, TextInput, TouchableOpacity, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, View, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import { useState } from "react";
 import { db, auth } from "../../firebaseConfig";
 import { createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { Colors } from "../../styles/theme";
-import { authStyles as styles } from "../../styles/authStyles";
+import { authStyles } from "../../styles/authStyles";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import { useGuestLogin } from "../../hooks/useGuestLogin";
+import { AuthButton } from "../../components/auth/authButton"
+import { DividingLine } from "../../components/auth/dividingLine";
+import { AuthInput } from "../../components/auth/authInput"
+import { getAuthErrorMessage } from "../../utils/auth/authErrors"
 
 
 export default function RegisterScreen() {
@@ -16,36 +19,40 @@ export default function RegisterScreen() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [hidden, setHidden] = useState(true);
     const [loading, setLoading] = useState(false);
+    const { isGuestLoading } = useGuestLogin();
 
     const handleRegister = async () => {
+        if (!email || !password) {
+            Alert.alert("Fehler", "Bitte fülle alle Felder aus.");
+            return;
+        }
         setLoading(true);
+
         try {
+            const currentUser = auth.currentUser;
+            let finalUser;
 
-            const user = auth.currentUser;
-
-            if (!user) {
-                Alert.alert("Fehler", "Kein Benutzer vorhanden.");
-                return;
-            }
-
-            if (user.isAnonymous){
-                const credential = EmailAuthProvider.credential(email, password);
-                await linkWithCredential(user, credential);
+            if (currentUser && currentUser.isAnonymous){
+                // gast upgrade
+                const credential = EmailAuthProvider.credential(email.trim(), password.trim());
+                const userCredential = await linkWithCredential(currentUser, credential);
+                finalUser = userCredential.user;
             } else{
-                await createUserWithEmailAndPassword(auth, email, password);
+                // neuer user
+                const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password.trim());
+                finalUser = userCredential.user;
             }
 
-            await setDoc(doc(db, "users", user.uid), {
+            await setDoc(doc(db, "users", finalUser.uid), {
                 name: "",
-                email: user.email,
+                email: email.trim().toLowerCase(),
                 birthdate: "",
                 height: null,
                 weight: null,
-                createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-            })
+                createdAt: serverTimestamp(),
+            }, { merge: true });
 
             console.log("User registered and document created.");
             Alert.alert("Geschafft!", "Registrierung erfolgreich.");
@@ -53,26 +60,8 @@ export default function RegisterScreen() {
 
         } catch (error: any) {
             console.error("Register error:", error.code);
-
-            switch (error.code) {
-                case "auth/missing-email":
-                    Alert.alert("Fehler", "Bitte E-Mail eingeben.");
-                    break;
-                case "auth/missing-password":
-                    Alert.alert("Fehler", "Bitte Passwort eingeben.");
-                    break;
-                case "auth/invalid-email":
-                    Alert.alert("Fehler", "Bitte eine gültige E-Mail-Adresse eingeben.");
-                    break;
-                case "auth/email-already-in-use":
-                    Alert.alert("Fehler", "Email ist bereits an ein Konto gebunden.");
-                    break;
-                case "auth/weak-password":
-                    Alert.alert("Fehler", "Passwort nicht stark genug.");
-                    break;
-                default:
-                    Alert.alert("Fehler", "Ein unbekannter Fehler ist aufgetreten.");
-            }
+            const message = getAuthErrorMessage(error.code);
+            Alert.alert("Fehler", message);
         }finally {
             setLoading(false);
         }
@@ -84,95 +73,56 @@ export default function RegisterScreen() {
             behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.container}>
+                <View style={authStyles.container}>
 
                     {/* Title */}
-                    <View style={styles.titleWrapper}>
-                        <Text style={styles.title}>Willkommen bei</Text>
-                        <Text style={styles.appname}>APPNAME!</Text>
+                    <View style={authStyles.titleWrapper}>
+                        <Text style={authStyles.titleText}>Willkommen bei</Text>
+                        <Text style={authStyles.appnameText}>Appname!</Text>
                     </View>
 
                     {/* Inputs */}
-                    <View style={styles.inputs}>
+                    <View style={authStyles.authInputsWrapper}>
 
                         {/* E-Mail */}
-                        <View style={styles.inputRow}>
-                            <Ionicons
-                                name="person-outline"
-                                size={28}
-                                color="#555"
-                                style={styles.icon}
-                            />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="E-Mail"
-                                value={email}
-                                onChangeText={setEmail}
-                            />
-                        </View>
+                        <AuthInput placeholder="E-Mail"
+                                   value={email}
+                                   onChangeText={setEmail}
+                                   iconName="person-outline"
+                                   keyboardType="email-address"
+                        />
 
                         {/* Password */}
-                        <View style={styles.inputRow}>
-                            <Ionicons
-                                name="lock-closed-outline"
-                                size={28}
-                                color="#555"
-                                style={styles.icon}
-                            />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Passwort"
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry={hidden}/>
+                        <AuthInput placeholder="Passwort"
+                                   value={password}
+                                   onChangeText={setPassword}
+                                   iconName="lock-closed-outline"
+                                   isPassword={true}
+                        />
 
-                            <TouchableOpacity onPress={() => setHidden(!hidden)}>
-                                <Ionicons
-                                    name={hidden ? "eye-outline" : "eye-off-outline"}
-                                    size={24}
-                                    color="#555"
-                                    style={styles.eyeIcon}
-                                />
-                            </TouchableOpacity>
-                        </View>
                     </View>
 
                     {/* Register */}
-                    <View style={styles.buttonWrapper}>
-                        <Pressable
-                            onPress={handleRegister}
-                            style={({ pressed }) => [
-                                styles.button,
-                                {backgroundColor: pressed ? Colors.secondary : Colors.primary}
-                            ]}
-                        >
-                            <Text style={styles.buttonText}>Registrieren</Text>
-                        </Pressable>
+                    <View style={authStyles.buttonWrapper}>
+                        <AuthButton title="Registrieren"
+                                    onPress={handleRegister}
+                        />
                     </View>
 
                     {/* Bereits ein Konto */}
                     <View style={{marginTop: 40,}}>
-                        <View style={{flexDirection:"row",justifyContent:"space-around",alignItems: "center"}}>
-                            <View style={styles.line}/>
-                            <Text style={styles.smallText}>Bereits ein Konto?</Text>
-                            <View style={styles.line}/>
-                        </View>
+
+                        <DividingLine text="Bereits ein Konto?" />
 
                         {/* to LoginScreen */}
-                        <Pressable
-                            onPress={() => router.replace("/screens/auth/LoginScreen")}
-                            style={({ pressed }) => [
-                                styles.secondaryBotton,
-                                {backgroundColor: pressed ? "#eee" : 'transparent'},
-                                {borderColor: pressed ? Colors.secondary : Colors.primary}
-                            ]}
-                        >
-                            <Text style={styles.secondaryButtonText}>Einloggen</Text>
-                        </Pressable>
+                        <AuthButton title="Einloggen"
+                                    onPress={() => router.replace("/screens/auth/LoginScreen")}
+                                    variant="secondary"
+                        />
                     </View>
 
                     {/* Loading Overlay */}
-                    <LoadingOverlay visible={loading} />
+                    <LoadingOverlay visible={loading || isGuestLoading} />
 
                 </View>
             </TouchableWithoutFeedback>
