@@ -28,3 +28,21 @@ export const showConfirm = (
 
   Alert.alert(title, message, buttons, { cancelable: true });
 };
+
+export const showChoice = (
+  title: string,
+  message: string | undefined,
+  options: Array<{ text: string; onPress: () => void; style?: 'default' | 'cancel' | 'destructive' }>
+) => {
+  if (Platform.OS === 'web') {
+    // For web, use simple confirm with first two options
+    if (options.length >= 2) {
+      const ok = window.confirm(`${title}${message ? `\n\n${message}` : ''}`);
+      if (ok) options[1].onPress();
+      else options[0].onPress();
+    }
+    return;
+  }
+
+  Alert.alert(title, message, options, { cancelable: true });
+};

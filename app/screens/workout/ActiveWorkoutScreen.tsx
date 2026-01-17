@@ -7,7 +7,7 @@ import {
   Modal,
   Vibration
 } from "react-native";
-import { showAlert, showConfirm } from "@/app/utils/alertHelper";
+import { showAlert, showConfirm, showChoice } from "@/app/utils/alertHelper";
 import { setActiveWorkout, clearActiveWorkout } from "@/app/utils/activeWorkoutStore";
 import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -41,6 +41,8 @@ type Workout = {
   name?: string;
   exerciseSets: ExerciseSet[];
   startTime?: number;
+  duration?: number;
+  type?: "template" | "history"; // "template" für Vorlage, "history" für nur Protokoll
 };
 
 type Exercise = {
@@ -268,11 +270,32 @@ export default function ActiveWorkoutScreen() {
 
 
   
-  //Timer
+  //Timer - persist elapsed time
   useEffect(() => {
-    timerRef.current = setInterval(() => setElapsedTime((prev) => prev + 1), 1000) as unknown as NodeJS.Timeout;
+    // Restore previous elapsed time if resuming
+    const savedTimer = require("@/app/utils/workoutTimerStore").getWorkoutTimer();
+    if (savedTimer && workout?.id === savedTimer?.workoutId) {
+      const elapsed = Math.floor((Date.now() - savedTimer.startTime) / 1000);
+      setElapsedTime(Math.max(0, elapsed));
+    }
+    
+    timerRef.current = setInterval(() => {
+      setElapsedTime((prev) => {
+        const newVal = prev + 1;
+        // Update global store
+        if (workout?.startTime) {
+          require("@/app/utils/workoutTimerStore").setWorkoutTimer({
+            startTime: workout.startTime,
+            elapsedTime: newVal,
+            workoutId: workout.id || 'temp'
+          });
+        }
+        return newVal;
+      });
+    }, 1000) as unknown as NodeJS.Timeout;
+    
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, []);
+  }, [workout?.id, workout?.startTime]);
 
   // Set Checkbox (Main View) - startet Rest Timer
   const handleSetCheck = (setIndex: number, breaktime: number) => {
@@ -333,22 +356,35 @@ export default function ActiveWorkoutScreen() {
       return;
     }
     
-    showConfirm("Training beenden", "Möchten Sie dieses Training speichern?", async () => {
-      setLoading(true);
-      try {
-        const user = auth.currentUser;
-        if (!user || !workout) return;
+    // Ask user if this should be saved as template or just as history
+    showChoice(
+      "Workout speichern",
+      "Soll dieses Workout als Vorlage gespeichert werden?",
+      [
+        { text: "Nur Protokoll", onPress: () => saveWorkoutToDatabase("history"), style: 'default' },
+        { text: "Als Vorlage", onPress: () => saveWorkoutToDatabase("template"), style: 'default' },
+      ]
+    );
+  };
 
-        // Ensure we have an id (generate for new workouts)
-        const workoutId = workout.id || Date.now().toString();
-        const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
+  const saveWorkoutToDatabase = async (type: "template" | "history") => {
+    setLoading(true);
+    try {
+      const user = auth.currentUser;
+      if (!user || !workout) return;
 
-        // Use batch write to atomically replace sets and set main doc
-        const batch = writeBatch(db);
-        batch.set(workoutRef, {
-          date: workout.date,
-          name: workout.name,
-        });
+      // Ensure we have an id (generate for new workouts)
+      const workoutId = workout.id || Date.now().toString();
+      const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
+
+      // Use batch write to atomically replace sets and set main doc
+      const batch = writeBatch(db);
+      batch.set(workoutRef, {
+        date: workout.date,
+        name: workout.name,
+        duration: elapsedTime,
+        type: type,
+      });
 
         const setsRef = collection(workoutRef, "exerciseSets");
         // Delete existing sets if any
@@ -374,6 +410,7 @@ export default function ActiveWorkoutScreen() {
 
         showAlert("Erfolg", "Training gespeichert");
         clearActiveWorkout();
+        require("@/app/utils/workoutTimerStore").clearWorkoutTimer();
         if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
         router.push("../..//(tabs)/WorkoutScreenProxy")
 
@@ -383,7 +420,6 @@ export default function ActiveWorkoutScreen() {
       } finally {
         setLoading(false);
       }
-    }, { confirmText: "Speichern", cancelText: "Abbrechen" });
   };
 
   
@@ -416,7 +452,7 @@ export default function ActiveWorkoutScreen() {
       const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
 
       const batch = writeBatch(db);
-      batch.set(workoutRef, { date: workout.date, name: workout.name || null });
+      batch.set(workoutRef, { date: workout.date, name: workout.name || null, duration: elapsedTime });
 
       const setsRef = collection(workoutRef, "exerciseSets");
       const existingSets = await getDocs(setsRef);
@@ -616,56 +652,70 @@ export default function ActiveWorkoutScreen() {
     const isBreaktime = activeOverlay === 'breaktime';
     const isEdit = activeOverlay === 'editSet';
     const isAdd = activeOverlay === 'addSet';
-    const isRestTimer = activeOverlay === 'restTimer';
-
-    // For rest timer, don't close on background press
-    const onRequestClose = isRestTimer ? () => {} : () => setActiveOverlay('none');
 
     return (
-      <Modal visible={true} transparent animationType={isRestTimer ? "slide" : "fade"} onRequestClose={onRequestClose}>
+      <Modal visible={true} transparent animationType="fade" onRequestClose={() => setActiveOverlay('none')}>
         <View style={newStyles.overlay}>
-          {isRestTimer ? (
-            <View style={[newStyles.content, {justifyContent: 'center', alignItems: 'center', paddingBottom: 100}]}>
-              <Text style={{fontSize: 24, fontWeight: 'bold', color: Colors.black, marginBottom: 20}}>Pausenzeit</Text>
-              <Text style={{fontSize: 72, fontWeight: 'bold', color: Colors.primary}}>
-                {Math.floor(restTimeRemaining / 60)}:{(restTimeRemaining % 60).toString().padStart(2, '0')}
-              </Text>
-              <Pressable 
-                style={{marginTop: 40, paddingHorizontal: 40, paddingVertical: 12, backgroundColor: Colors.black, borderRadius: 8}}
-                onPress={() => {
-                  if (restTimerRef.current) clearInterval(restTimerRef.current);
-                  require("@/app/utils/restTimerStore").clearRestTimer();
-                  setActiveOverlay('none');
-                }}
-              >
-                <Text style={{color: Colors.white, fontSize: 18, fontWeight: 'bold'}}>Fertig</Text>
-              </Pressable>
+          <View style={newStyles.content}>
+            <View style={newStyles.header}>
+              <Pressable onPress={() => setActiveOverlay('none')}><Text style={{color: '#ff4444'}}>Abbrechen</Text></Pressable>
+              <Text style={newStyles.headerTitle}>{isBreaktime ? "Pausenzeit" : (isEdit ? "Satz bearbeiten" : "Satz hinzufügen")}</Text>
+              <Pressable style={newStyles.saveButton} onPress={saveModalChanges}><Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text></Pressable>
             </View>
-          ) : (
-            <View style={newStyles.content}>
-              <View style={newStyles.header}>
-                <Pressable onPress={() => setActiveOverlay('none')}><Text style={{color: '#ff4444'}}>Abbrechen</Text></Pressable>
-                <Text style={newStyles.headerTitle}>{isBreaktime ? "Pausenzeit" : (isEdit ? "Satz bearbeiten" : "Satz hinzufügen")}</Text>
-                <Pressable style={newStyles.saveButton} onPress={saveModalChanges}><Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text></Pressable>
-              </View>
 
-              {isBreaktime ? (
-                <View style={newStyles.timeInputContainer}>
-                    <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.mins.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, mins: Number(v)})} />
-                    <Text style={newStyles.label}>Min</Text>
-                    <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.secs.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, secs: Number(v)})} />
-                    <Text style={newStyles.label}>Sek</Text>
-                </View>
-              ) : (
-                <View>
-                  <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={2.5} />
-                  <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={v => setTempSetData({...tempSetData, reps: v})} step={1} />
-                </View>
-              )}
-            </View>
-          )}
+            {isBreaktime ? (
+              <View style={newStyles.timeInputContainer}>
+                  <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.mins.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, mins: Number(v)})} />
+                  <Text style={newStyles.label}>Min</Text>
+                  <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.secs.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, secs: Number(v)})} />
+                  <Text style={newStyles.label}>Sek</Text>
+              </View>
+            ) : (
+              <View>
+                <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={2.5} />
+                <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={v => setTempSetData({...tempSetData, reps: v})} step={1} />
+              </View>
+            )}
+          </View>
         </View>
       </Modal>
+    );
+  };
+
+  // Rest Timer Bar - render as fixed bottom bar
+  const renderRestTimerBar = () => {
+    if (activeOverlay !== 'restTimer') return null;
+    
+    return (
+      <View style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: Colors.primary,
+        padding: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        zIndex: 10
+      }}>
+        <View>
+          <Text style={{color: Colors.white, fontSize: 12, fontWeight: '600'}}>Pausenzeit</Text>
+          <Text style={{color: Colors.white, fontSize: 24, fontWeight: 'bold', marginTop: 4}}>
+            {Math.floor(restTimeRemaining / 60)}:{(restTimeRemaining % 60).toString().padStart(2, '0')}
+          </Text>
+        </View>
+        <Pressable 
+          style={{paddingHorizontal: 16, paddingVertical: 8, backgroundColor: Colors.black, borderRadius: 6}}
+          onPress={() => {
+            if (restTimerRef.current) clearInterval(restTimerRef.current);
+            require("@/app/utils/restTimerStore").clearRestTimer();
+            setActiveOverlay('none');
+          }}
+        >
+          <Text style={{color: Colors.white, fontSize: 14, fontWeight: '600'}}>Fertig</Text>
+        </Pressable>
+      </View>
     );
   };
 
@@ -728,6 +778,7 @@ export default function ActiveWorkoutScreen() {
           {isEditMode ? renderEditMode() : renderViewMode()}
           <LoadingOverlay visible={loading} />
           {renderOverlays()}
+          {renderRestTimerBar()}
         
         </BottomSheetView>
       </BottomSheet>

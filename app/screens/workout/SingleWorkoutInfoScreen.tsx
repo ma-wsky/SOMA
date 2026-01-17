@@ -30,6 +30,8 @@ type Workout = {
   name?: string;
   exerciseSets: ExerciseSet[];
   startTime?: number;
+  duration?: number;
+  type?: "template" | "history";
 };
 
 type Exercise = {
@@ -318,6 +320,7 @@ export default function SingleWorkoutInfoScreen() {
         batch.set(workoutRef, {
           date: workout.date,
           name: workout.name,
+          type: "template",
         });
 
         const setsRef = collection(workoutRef, "exerciseSets");
@@ -374,6 +377,14 @@ export default function SingleWorkoutInfoScreen() {
 
 
   //Render Functions
+  const formatTime = (seconds?: number) => {
+    if (!seconds) return "—";
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
   const renderCard = (exerciseId: string, sets: ExerciseSet[]) => (
     <View key={exerciseId} style={styles.exerciseCard}>
       <View style={styles.exerciseCardHeader}>
@@ -486,6 +497,13 @@ export default function SingleWorkoutInfoScreen() {
             value={workout.name || ""} 
             onChangeText={t => setWorkout(prev => prev ? {...prev, name:t} : null)} 
             style={{backgroundColor: Colors.background, color: Colors.black, padding: 10, borderRadius: 8,borderColor:Colors.black,borderWidth:1}} />
+          </View>
+        )}
+
+        {!isEditMode && workout.duration && (
+          <View style={{padding: 12, marginBottom: 16, backgroundColor: Colors.black, borderRadius: 8}}>
+            <Text style={{color: Colors.white, fontSize: 14, marginBottom: 4}}>Letzte Dauer:</Text>
+            <Text style={{color: Colors.primary, fontSize: 18, fontWeight: 'bold'}}>{formatTime(workout.duration)}</Text>
           </View>
         )}
 

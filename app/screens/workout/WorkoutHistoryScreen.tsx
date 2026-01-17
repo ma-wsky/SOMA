@@ -1,21 +1,12 @@
-import { Text, View, Button, FlatList, Pressable, Alert } from "react-native";
+import { Text, View, ScrollView, Pressable, Share } from "react-native";
 import { useState, useEffect } from "react";
 import { useLocalSearchParams, router } from "expo-router";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { auth, db } from "@/app/firebaseConfig";
 import { TopBar } from "@/app/components/TopBar";
 import { workoutStyles } from "@/app/styles/workoutStyles";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { doc } from "firebase/firestore";
-
-type Exercise = {
-  id: string;
-  name: string;
-  muscleGroup: string;
-  equipment: string;
-  instructions: string;
-};
 
 type ExerciseSet = {
   id?: string;
@@ -28,29 +19,29 @@ type ExerciseSet = {
 
 type Workout = {
   id: string;
+  name?: string;
   date: string;
+  duration?: number;
+  type?: "template" | "history";
   exerciseSets: ExerciseSet[];
+};
+
+type GroupedExercises = {
+  [key: string]: {
+    exerciseName: string;
+    sets: ExerciseSet[];
+  };
 };
 
 export default function WorkoutHistoryScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
   const [loading, setLoading] = useState(true);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [exercisesMap, setExercisesMap] = useState<Map<string, Exercise>>(new Map());
 
   useEffect(() => {
     const loadWorkoutHistory = async () => {
       setLoading(true);
       try {
-        // Load exercises first
-        const exercisesMap = new Map<string, Exercise>();
-        const exercisesSnapshot = await getDocs(collection(db, "exercises"));
-        exercisesSnapshot.forEach((doc) => {
-          exercisesMap.set(doc.id, { id: doc.id, ...doc.data() } as Exercise);
-        });
-        setExercisesMap(exercisesMap);
-
         const user = auth.currentUser;
         if (!user || !date) {
           setWorkouts([]);
@@ -61,38 +52,49 @@ export default function WorkoutHistoryScreen() {
         // Query Workouts für diesen Tag
         const workoutsRef = collection(db, "users", user.uid, "workouts");
         const snapshot = await getDocs(workoutsRef);
-        
+
         const loadedWorkouts: Workout[] = [];
-        
+
         for (const workoutDoc of snapshot.docs) {
           const workoutData = workoutDoc.data();
-          // Filter by date if it matches
-          if (workoutData.date && workoutData.date.startsWith(date)) {
+          // Filter by date and type !== "template" (only show history)
+          if (
+            workoutData.date &&
+            workoutData.date.startsWith(date) &&
+            workoutData.type !== "template"
+          ) {
             // Load exercise sets from subcollection
-            const setsSnapshot = await getDocs(collection(workoutDoc.ref, "exerciseSets"));
+            const setsSnapshot = await getDocs(
+              collection(workoutDoc.ref, "exerciseSets")
+            );
             const sets: ExerciseSet[] = [];
             setsSnapshot.forEach((setDoc) => {
               const data = setDoc.data();
-              const exercise = exercisesMap.get(data.exerciseId);
               sets.push({
                 id: setDoc.id,
                 ...data,
-                exerciseName: exercise?.name,
               } as ExerciseSet);
             });
 
             loadedWorkouts.push({
               id: workoutDoc.id,
+              name: workoutData.name,
               date: workoutData.date,
+              duration: workoutData.duration,
+              type: workoutData.type,
               exerciseSets: sets,
             });
           }
         }
 
+        // Sort by date descending
+        loadedWorkouts.sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+
         setWorkouts(loadedWorkouts);
       } catch (e) {
         console.error("Fehler beim Laden der Workout-History:", e);
-        Alert.alert("Fehler", "Workouts konnten nicht geladen werden");
       } finally {
         setLoading(false);
       }
@@ -100,6 +102,20 @@ export default function WorkoutHistoryScreen() {
 
     loadWorkoutHistory();
   }, [date]);
+
+  const formatTime = (seconds?: number) => {
+    if (!seconds) return "0:00";
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
+        .toString()
+        .padStart(2, "0")}`;
+    }
+    return `${minutes}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -111,174 +127,348 @@ export default function WorkoutHistoryScreen() {
     });
   };
 
-  return (
-    <View style={workoutStyles.itemContainer}>
-      <TopBar
-        leftButtonText={"Zurück"}
-        titleText={"Workout-Verlauf"}
-        onLeftPress={() => router.back()}
-      />
+  const groupSetsByExercise = (sets: ExerciseSet[]): GroupedExercises => {
+    const grouped: GroupedExercises = {};
 
-      {/* Date Header */}
+    sets.forEach((set) => {
+      const exerciseId = set.exerciseId;
+      if (!grouped[exerciseId]) {
+        grouped[exerciseId] = {
+          exerciseName: set.exerciseName || exerciseId,
+          sets: [],
+        };
+      }
+      grouped[exerciseId].sets.push(set);
+    });
+
+    return grouped;
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      const message = `Workout History für ${formatDate(date || "")}`;
+      await Share.share({
+        message: message,
+      });
+    } catch (error) {
+      console.error("Fehler beim Download:", error);
+    }
+  };
+
+  const renderExerciseCard = (
+    exerciseName: string,
+    sets: ExerciseSet[]
+  ) => {
+    const completedSets = sets.filter((s) => s.isDone).length;
+
+    return (
       <View
+        key={exerciseName}
         style={{
           backgroundColor: "#222",
-          padding: 16,
-          marginBottom: 12,
-          marginHorizontal: 16,
-          marginTop: 12,
-          borderRadius: 10,
+          borderRadius: 12,
+          marginBottom: 16,
+          overflow: "hidden",
         }}
       >
-        <Text style={{ color: "#aaa", fontSize: 14, marginBottom: 4 }}>
-          Trainingsverlauf für:
-        </Text>
-        <Text style={{ color: "#fff", fontSize: 18, fontWeight: "bold" }}>
-          {date && formatDate(date)}
-        </Text>
-      </View>
-
-      {/* Workouts List */}
-      {workouts.length > 0 ? (
-        <FlatList
-          data={workouts}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{
-            padding: 16,
-            paddingTop: 0,
-            paddingBottom: 40,
+        {/* Exercise Header */}
+        <View
+          style={{
+            backgroundColor: "#AB8FFF",
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
-          renderItem={({ item: workout, index }) => (
-            <View key={index}>
-              <Pressable
-                onPress={() =>
-                  setExpandedIndex(expandedIndex === index ? null : index)
-                }
-                style={{
-                  backgroundColor: "#222",
-                  borderRadius: 10,
-                  padding: 14,
-                  marginBottom: 12,
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      color: "#fff",
-                      fontSize: 16,
-                      fontWeight: "600",
-                      marginBottom: 4,
-                    }}
-                  >
-                    Training vom {workout.date}
-                  </Text>
-                  <Text style={{ color: "#aaa", fontSize: 13 }}>
-                    📝 Sätze: {workout.exerciseSets.length}
-                  </Text>
-                  <Text style={{ color: "#aaa", fontSize: 13 }}>
-                    ✓ Abgeschlossen: {workout.exerciseSets.filter(s => s.isDone).length}/{workout.exerciseSets.length}
-                  </Text>
-                </View>
-                <Ionicons
-                  name={expandedIndex === index ? "chevron-up" : "chevron-down"}
-                  size={24}
-                  color="#fff"
-                />
-              </Pressable>
+        >
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                color: "#000",
+                fontSize: 16,
+                fontWeight: "700",
+                marginBottom: 4,
+              }}
+            >
+              {exerciseName}
+            </Text>
+            <Text style={{ color: "rgba(0,0,0,0.6)", fontSize: 12 }}>
+              {completedSets}/{sets.length} Sätze abgeschlossen
+            </Text>
+          </View>
+          <View
+            style={{
+              backgroundColor: "rgba(0,0,0,0.2)",
+              paddingVertical: 4,
+              paddingHorizontal: 8,
+              borderRadius: 6,
+            }}
+          >
+            <Text style={{ color: "#000", fontSize: 12, fontWeight: "600" }}>
+              {sets.length}
+            </Text>
+          </View>
+        </View>
 
-              {/* Expanded Details */}
-              {expandedIndex === index && (
-                <View
+        {/* Sets List */}
+        <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+          {sets.map((set, index) => (
+            <View
+              key={index}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingVertical: 10,
+                paddingHorizontal: 12,
+                backgroundColor: "#1a1a1a",
+                borderRadius: 8,
+                marginBottom: index < sets.length - 1 ? 8 : 0,
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text
                   style={{
-                    backgroundColor: "#1a1a1a",
-                    borderRadius: 10,
-                    padding: 14,
-                    marginBottom: 12,
-                    marginTop: -8,
-                    borderBottomLeftRadius: 10,
-                    borderBottomRightRadius: 10,
+                    color: "#fff",
+                    fontSize: 14,
+                    fontWeight: "600",
+                    marginBottom: 4,
                   }}
                 >
-                  {workout.exerciseSets.length > 0 ? (
-                    <View>
+                  Satz {index + 1}
+                </Text>
+                <Text
+                  style={{
+                    color: "#aaa",
+                    fontSize: 12,
+                  }}
+                >
+                  {set.reps} × {set.weight} kg
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                {set.isDone ? (
+                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                ) : (
+                  <Ionicons
+                    name="ellipse-outline"
+                    size={20}
+                    color="#666"
+                  />
+                )}
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: "#1a1a1a" }}>
+      <TopBar
+        leftButtonText="Zurück"
+        titleText="Verlauf"
+        rightButtonText="PDF"
+        onLeftPress={() => router.back()}
+        onRightPress={handleDownloadPDF}
+      />
+
+      {loading ? (
+        <LoadingOverlay visible={loading} />
+      ) : workouts.length > 0 ? (
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingVertical: 16,
+            paddingBottom: 40,
+          }}
+        >
+          {/* Date Header */}
+          <View
+            style={{
+              backgroundColor: "#222",
+              padding: 16,
+              borderRadius: 12,
+              marginBottom: 20,
+            }}
+          >
+            <Text
+              style={{
+                color: "#aaa",
+                fontSize: 12,
+                marginBottom: 4,
+                fontWeight: "600",
+              }}
+            >
+              TRAININGSVERLAUF
+            </Text>
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 18,
+                fontWeight: "700",
+                marginBottom: 12,
+              }}
+            >
+              {date && formatDate(date)}
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 16,
+                paddingTop: 12,
+                borderTopWidth: 1,
+                borderTopColor: "#333",
+              }}
+            >
+              <View>
+                <Text
+                  style={{
+                    color: "#aaa",
+                    fontSize: 11,
+                    marginBottom: 2,
+                  }}
+                >
+                  Workouts
+                </Text>
+                <Text
+                  style={{
+                    color: "#AB8FFF",
+                    fontSize: 16,
+                    fontWeight: "700",
+                  }}
+                >
+                  {workouts.length}
+                </Text>
+              </View>
+              <View>
+                <Text
+                  style={{
+                    color: "#aaa",
+                    fontSize: 11,
+                    marginBottom: 2,
+                  }}
+                >
+                  Gesamtdauer
+                </Text>
+                <Text
+                  style={{
+                    color: "#AB8FFF",
+                    fontSize: 16,
+                    fontWeight: "700",
+                  }}
+                >
+                  {formatTime(
+                    workouts.reduce((sum, w) => sum + (w.duration || 0), 0)
+                  )}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Workouts */}
+          {workouts.map((workout) => {
+            const groupedExercises = groupSetsByExercise(workout.exerciseSets);
+            const exerciseIds = Object.keys(groupedExercises);
+
+            return (
+              <View key={workout.id}>
+                {/* Workout Header */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 12,
+                  }}
+                >
+                  <View>
+                    <Text
+                      style={{
+                        color: "#fff",
+                        fontSize: 14,
+                        fontWeight: "600",
+                        marginBottom: 2,
+                      }}
+                    >
+                      {workout.name || "Training"}
+                    </Text>
+                    <Text
+                      style={{
+                        color: "#aaa",
+                        fontSize: 12,
+                      }}
+                    >
+                      {new Date(workout.date).toLocaleTimeString("de-DE", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </Text>
+                  </View>
+                  {workout.duration && (
+                    <View
+                      style={{
+                        backgroundColor: "#AB8FFF",
+                        paddingVertical: 6,
+                        paddingHorizontal: 12,
+                        borderRadius: 20,
+                      }}
+                    >
                       <Text
                         style={{
-                          color: "#fff",
-                          fontWeight: "bold",
-                          marginBottom: 12,
+                          color: "#000",
+                          fontSize: 12,
+                          fontWeight: "700",
                         }}
                       >
-                        Durchgeführte Sätze:
+                        ⏱ {formatTime(workout.duration)}
                       </Text>
-                      {workout.exerciseSets.map((set, setIdx) => (
-                        <View
-                          key={setIdx}
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            backgroundColor: "#111",
-                            padding: 10,
-                            borderRadius: 8,
-                            marginBottom: 8,
-                          }}
-                        >
-                          <View style={{flex: 1}}>
-                            <Text
-                              style={{
-                                color: "#fff",
-                                fontWeight: "600",
-                                marginBottom: 4,
-                              }}
-                            >
-                              {set.exerciseName || set.exerciseId}
-                            </Text>
-                            <Text
-                              style={{
-                                color: "#aaa",
-                                fontSize: 13,
-                              }}
-                            >
-                              {set.reps} Wiederholungen @ {set.weight}kg
-                            </Text>
-                          </View>
-                          <Ionicons
-                            name={
-                              set.isDone
-                                ? "checkmark-circle"
-                                : "ellipse-outline"
-                            }
-                            size={18}
-                            color={set.isDone ? "#4CAF50" : "#666"}
-                          />
-                        </View>
-                      ))}
                     </View>
-                  ) : (
-                    <Text style={{ color: "#aaa", textAlign: "center" }}>
-                      Keine Sätze aufgezeichnet
-                    </Text>
                   )}
                 </View>
-              )}
-            </View>
-          )}
-        />
+
+                {/* Exercise Cards */}
+                {exerciseIds.map((exerciseId) => {
+                  const exercise = groupedExercises[exerciseId];
+                  return renderExerciseCard(exercise.exerciseName, exercise.sets);
+                })}
+
+                {/* Spacing between workouts */}
+                <View style={{ height: 16 }} />
+              </View>
+            );
+          })}
+        </ScrollView>
       ) : (
         <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 12,
+          }}
         >
           <Ionicons name="calendar" size={48} color="#666" />
-          <Text style={{ color: "#aaa", fontSize: 16, marginTop: 12 }}>
-            Keine Workouts an diesem Tag\n
+          <Text
+            style={{
+              color: "#aaa",
+              fontSize: 16,
+              textAlign: "center",
+            }}
+          >
+            Keine Workouts an diesem Tag
           </Text>
         </View>
       )}
-
-      <LoadingOverlay visible={loading} />
     </View>
   );
 }

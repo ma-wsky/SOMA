@@ -7,6 +7,7 @@ interface Props {
   workouts: Workout[];
   filter?: string;
   onItemPress?: (workout: Workout) => void;
+  onDelete?: (workoutId: string) => void;
 }
 
 type Workout = {
@@ -32,7 +33,7 @@ type ExerciseSet = {
 
 type ListItem = { type: "workout"; data: Workout };
 
-export default function WorkoutList({workouts, filter = "", onItemPress}: Props) {
+export default function WorkoutList({workouts, filter = "", onItemPress, onDelete}: Props) {
   const listData: ListItem[] = useMemo(() => {
     const filtered = workouts.filter((w) =>
       w.date.toLowerCase().includes(filter.toLowerCase()),
@@ -55,6 +56,7 @@ export default function WorkoutList({workouts, filter = "", onItemPress}: Props)
             <WorkoutItem
               workout={item.data}
               onPress={() => onItemPress && onItemPress(item.data)}
+              onDelete={onDelete}
             />
           );
         }
