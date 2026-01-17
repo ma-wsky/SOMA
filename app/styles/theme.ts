@@ -9,8 +9,7 @@ export const Colors = {
     icon: "#555",
     black: "#000",
     white: "#ffffff",
-    textPlaceholder: "#666",
-
+    gray: "#aaa",
 };
 
 export const DarkColors = {

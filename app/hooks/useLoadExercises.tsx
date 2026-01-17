@@ -1,70 +1,55 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
+import { Exercise } from "@/app/types/Exercise"
 
-type Exercise = {
-    id: string;
-    name: string;
-    muscleGroup?: string;
-    isFavorite: boolean;
-    isOwn: boolean;
-};
+
 export function useLoadExercises() {
     const [exercises, setExercises] = useState<Exercise[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
         const loadExercises = async () => {
-            setLoading(true);
+
             const user = auth.currentUser;
             if (!user) {
-                console.error("Kein User angemeldet.");
                 setLoading(false);
+                setExercises([]);
                 return;
             }
+            setLoading(true);
 
             try {
-                // Globale Übungen
-                const qGlobal = collection(db, "exercises");
-
-                // User-Übungen
-                const qUser = collection(db, "users", user.uid, "exercises");
-
-                // Favoriten
-                const qFav = collection(db, "users", user.uid, "favorites");
+                const globalRef = collection(db, "exercises");
+                const userRef = collection(db, "users", user.uid, "exercises");
+                const favRef = collection(db, "users", user.uid, "favorites");
 
                 const [snapshotG, snapshotU, snapshotF] = await Promise.all([
-                    getDocs(qGlobal),
-                    getDocs(qUser),
-                    getDocs(qFav),
+                    getDocs(globalRef),
+                    getDocs(userRef),
+                    getDocs(favRef),
                 ]);
 
-                const favoriteIds = new Set(snapshotF.docs.map(d => d.id));
+                const favoriteIds = new Set(snapshotF.docs.map(doc => doc.id));
 
-                const globalExercises = snapshotG.docs.map(doc => ({
+                const mapDoc = (doc: any, isOwn: boolean): Exercise => ({
                     id: doc.id,
-                    name: doc.data().name || "unnamed",
+                    name: doc.data().name || "Unbenannte Übung",
                     ...doc.data(),
                     isFavorite: favoriteIds.has(doc.id),
-                    isOwn: false,
-                }));
+                    isOwn: isOwn,
+                    isGlobal: !isOwn,
+                });
+                const globalList = snapshotG.docs.map(doc => mapDoc(doc, false));
+                const userList = snapshotU.docs.map(doc => mapDoc(doc, true));
 
-                const userExercises = snapshotU.docs.map(doc => ({
-                    id: doc.id,
-                    name: doc.data().name || "unnamed",
-                    ...doc.data(),
-                    isFavorite: favoriteIds.has(doc.id),
-                    isOwn: true,
-                }));
-
-                setExercises([...globalExercises, ...userExercises]);
+                setExercises([...globalList, ...userList]);
             } catch (e) {
-                console.error("Fehler beim Laden:", e);
+                console.error("Fehler im useLoadExercises Hook:", e);
             } finally {
                 setLoading(false);
             }
         };
-
         loadExercises();
     }, []);
 

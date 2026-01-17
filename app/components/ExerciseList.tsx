@@ -1,37 +1,48 @@
-import { FlatList, View, Text, StyleSheet } from "react-native";
+import { FlatList, View, Text } from "react-native";
 import { useMemo } from "react";
-import ExerciseItem from "./ExerciseItem";
+import ExerciseItem from "@/app/components/ExerciseItem";
+import { exerciseStyles } from "@/app/styles/exerciseStyles";
+import { Exercise } from "@/app/types/Exercise"
 
 interface Props {
     exercises: Exercise[];
     filter?: string,
+    category?: string,
+
     onItemPress?: (exercise: Exercise) => void;
     onAddToWorkout?: (exercise: Exercise) => void;
     showAddButton?: boolean;
 }
 
-type Exercise = {
-    id: string;
-    name: string;
-    muscleGroup?: string;
-    isFavorite?: boolean;
-    isOwn?: boolean;
-};
-
 type ListItem =
     | { type: "divider"; title: string }
     | { type: "exercise"; data: Exercise };
 
-export default function ExerciseList({ exercises, filter="", onItemPress, onAddToWorkout, showAddButton = false}: Props) {
+export default function ExerciseList({ exercises, filter="",category="Alle", onItemPress, onAddToWorkout, showAddButton = false}: Props) {
 
-    const listData: ListItem[] = useMemo(() => {
-        const filtered = exercises.filter(e =>
-            e.name.toLowerCase().includes(filter.toLowerCase())
-        );
+    const listData = useMemo(() => {
 
-        const favoriteExercises = filtered.filter(e => e.isFavorite);
-        const ownExercises = filtered.filter(e => e.isOwn && !e.isFavorite);
-        const otherExercises = filtered.filter(e => !e.isOwn && !e.isFavorite);
+        const filtered = exercises.filter(ex => {
+            const matchesSearch = filter.toLowerCase() === "" ||
+                ex.name.toLowerCase().includes(filter.toLowerCase());
+
+            const matchesCategory = category === "Alle" ||
+                ex.muscleGroup?.toLowerCase().includes(category.toLowerCase());
+
+            return matchesSearch && matchesCategory;
+        });
+
+        const sortedFilter = filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+        const favoriteExercises: Exercise[] = [];
+        const ownExercises: Exercise[] = [];
+        const otherExercises: Exercise[] = [];
+
+        sortedFilter.forEach(ex => {
+            if (ex.isFavorite) favoriteExercises.push(ex);
+            else if (ex.isOwn) ownExercises.push(ex);
+            else otherExercises.push(ex);
+        })
 
         const data: ListItem[] = [];
 
@@ -39,85 +50,57 @@ export default function ExerciseList({ exercises, filter="", onItemPress, onAddT
             data.push({ type: "divider", title: "Favoriten" });
             favoriteExercises.forEach(ex => data.push({ type: "exercise", data: ex }));
         }
-
         if (ownExercises.length > 0) {
             data.push({ type: "divider", title: "Meine Übungen" });
             ownExercises.forEach(ex => data.push({ type: "exercise", data: ex }));
         }
-
         if (otherExercises.length > 0){
             data.push({ type: "divider", title: "Andere Übungen"});
             otherExercises.forEach(ex => data.push({ type: "exercise", data: ex}));
         }
 
         return data;
-    }, [exercises, filter]);
+    }, [exercises, filter, category]);
 
-    console.log(exercises);
+    const renderItem = ({ item }: { item: ListItem }) => {
+        if (item.type === "divider"){
+            return (
+                // Dividing line with Text
+                <View style={exerciseStyles.divider}>
+                    <Text style={exerciseStyles.dividerText}>{item.title}</Text>
+                    <View style={exerciseStyles.line} />
+                </View>
+            );
+        }
+        return (
+            <ExerciseItem
+                exercise={item.data}
+                onPress={()=> onItemPress && onItemPress(item.data)}
+                onAddToWorkout={onAddToWorkout}
+                showAddButton={showAddButton}
+            />
+        );
+    }
+
     return (
         <FlatList
             data={listData}
-            keyExtractor={(item, index) =>
-                item.type === "divider" ? `divider-${index}` : item.data.id
+            keyExtractor={(item) =>
+                item.type === "divider" ? `divider-${item.title}` : item.data.id
             }
-            renderItem={({ item }) => {
-
-                {/* Dividing line with Text */}
-                if (item.type === "divider") {
-                    return (
-                        <View style={ styles.divider }>
-                            <Text style={ styles.dividerText }> { item.title } </Text>
-                            <View style={ styles.line } />
-                        </View>
-                    );
-                }
-
-                {/* Exercise Item */}
-                return (
-                    <ExerciseItem
-                        exercise={item.data}
-                        onPress={()=> onItemPress && onItemPress(item.data)}
-                        onAddToWorkout={onAddToWorkout}
-                        showAddButton={showAddButton}
-                    />
-                );
-            }}
-            contentContainerStyle={ styles.listContent }
+            renderItem={renderItem}
+            contentContainerStyle={exerciseStyles.listContent}
+            keyboardDismissMode="on-drag"
 
             // No Exercises found
-            ListEmptyComponent={() => (
-                <View style={{ marginTop: 20 }}>
-                    <Text style={{ textAlign: "center", color: "#666" }}>
+            ListEmptyComponent={
+                <View style={exerciseStyles.noExFound}>
+                    <Text style={exerciseStyles.noExFoundText}>
                         Keine Übungen gefunden
                     </Text>
                 </View>
-            )}
+
+            }
         />
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'flex-start',
-        marginTop: 20,
-    },
-    divider: {
-        marginVertical: 12,
-    },
-    dividerText: {
-        fontWeight: "600",
-        color: "#666"
-    },
-    line: {
-        flex: 1,
-        borderBottomColor: 'gray',
-        borderBottomWidth: 2,
-        height: 1,
-        backgroundColor: "#ccc",
-        marginTop: 4
-    },
-    listContent: {
-        marginHorizontal: 16,
-    },
-});

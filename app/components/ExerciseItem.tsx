@@ -1,6 +1,9 @@
-import { Pressable, Text, StyleSheet, View } from "react-native";
-import { Colors } from "../styles/theme"
+import { Pressable, Text, Image, View, StyleSheet } from "react-native";
+import { exerciseStyles } from "@/app/styles/exerciseStyles"
+import { Exercise } from "@/app/types/Exercise"
 import Ionicons from '@expo/vector-icons/Ionicons';
+
+import { Colors } from "../styles/theme"
 
 
 interface Props {
@@ -10,27 +13,32 @@ interface Props {
     showAddButton?: boolean;
 }
 
-type Exercise = {
-    id: string;
-    name: string;
-    muscleGroup?: string;
-    ownerId?: string | null;
-    isGlobal?: boolean;
-};
-
 export default function ExerciseItem({ exercise, onPress, onAddToWorkout, showAddButton = false }: Props) {
     return (
         <Pressable
             onPress={() => onPress?.(exercise)}
-            style={({pressed}) => [styles.button, pressed && styles.selected]}
+            style={({ pressed }) => [
+                exerciseStyles.itemButton,
+                { opacity: pressed ? 0.7 : 1.0 }
+            ]}
         >
-            <View style={styles.row}>
-              <View style={styles.meta}>
-                <Text style={styles.name}>{exercise.name}</Text>
-                <Text style={styles.muscle}>{exercise.muscleGroup}</Text>
-              </View>
+            <View style={exerciseStyles.itemContainer}>
+                {/* picture */}
+                <Image
+                    source={
+                        exercise.image
+                            ? { uri: exercise.image }
+                            : require('@/app/assets/default-exercise-picture/default-exercise-picture.jpg')
+                    }
+                    style={exerciseStyles.itemPicture}
+                />
 
-              {showAddButton && onAddToWorkout ? (
+                <View style={exerciseStyles.textContainer}>
+                    <Text style={exerciseStyles.name}>{exercise.name}</Text>
+
+                    <Text style={exerciseStyles.muscle}>{exercise.muscleGroup || "k.A."}</Text>
+                </View>
+                {showAddButton && onAddToWorkout ? (
                 <Pressable onPress={() => onAddToWorkout?.(exercise)} style={styles.addButton}>
                   <Ionicons name="add" size={20} color={Colors.primary} />
                 </Pressable>
@@ -39,42 +47,13 @@ export default function ExerciseItem({ exercise, onPress, onAddToWorkout, showAd
         </Pressable>
     );
 }
-
 const styles = StyleSheet.create({
-    button: {
-        padding: 12,
-        marginVertical: 4,
-        borderRadius: 10,
-        backgroundColor: Colors.black,
-    },
-    selected: {
-        backgroundColor: '#333',
-        borderColor: Colors.primary,
-        borderWidth: 1,
-    },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    meta: {
-      flex: 1,
-      marginRight: 8,
-    },
+    
     addButton: {
       padding: 8,
       borderRadius: 8,
       backgroundColor: '#111',
       alignItems: 'center',
       justifyContent: 'center'
-    },
-    name: {
-        fontSize: 20,
-        fontWeight: "600",
-        color: "#fff"
-    },
-    muscle: {
-        color: "#aaa",
-        marginTop: 2
     },
 })

@@ -1,26 +1,28 @@
 import { router } from "expo-router";
-import { View, TextInput, StyleSheet, Text, Pressable } from "react-native";
+import { View, TextInput, ScrollView, Pressable, Text } from "react-native";
 import { useState } from "react";
 import { TopBar } from "../../components/TopBar"
 import ExerciseList from "../../components/ExerciseList";
 import LoadingOverlay from "../../components/LoadingOverlay";
-import {Colors} from "../../styles/theme";
 import { useLoadExercises } from "../../hooks/useLoadExercises";
+import { exerciseStyles } from "../../styles/exerciseStyles";
 
+const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "Bauch"];
 
 export default function ExerciseScreen() {
 
     const [filter, setFilter] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("Alle");
     const { exercises, loading } = useLoadExercises();
 
     return (
-        <View style={styles.container}>
+        <View style={exerciseStyles.container}>
 
             {/* Top Bar */}
             <TopBar leftButtonText={"Zurück"}
                     titleText={"Übungen"}
                     rightButtonText={"Erstellen"}
-                    onLeftPress={() => router.push("../..//(tabs)/HomeScreenProxy")}
+                    onLeftPress={() => router.push("/(tabs)/HomeScreenProxy")}
                     onRightPress={() => router.push("./CreateExerciseScreen")}
             ></TopBar>
 
@@ -29,22 +31,47 @@ export default function ExerciseScreen() {
                        placeholderTextColor='white'
                        value={filter}
                        onChangeText={setFilter}
-                       style={styles.search}/>
+                       style={exerciseStyles.searchBar}
+            />
+
+            {/* filter tags */}
+            <View style={{  }}>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={exerciseStyles.filterTagList}
+                >
+                    {CATEGORIES.map((cat) => (
+                        <Pressable
+                            key={cat}
+                            onPress={() => setSelectedCategory(cat)}
+                            style={[
+                                exerciseStyles.filterTag,
+                                selectedCategory === cat && exerciseStyles.filterTagActive
+                            ]}
+                        >
+                            <Text style={[
+                                exerciseStyles.filterTagText,
+                                selectedCategory === cat && exerciseStyles.filterTagTextActive
+                            ]}>
+                                {cat}
+                            </Text>
+                        </Pressable>
+                    ))}
+                </ScrollView>
+            </View>
 
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
-                onItemPress={(exercise) => router.push({ pathname: "/screens/exercise/SingleExerciseInfoScreen", params: { id: exercise.id }})}
+                category={selectedCategory}
+                onItemPress={(exercise) => router.push({
+                    pathname: "/screens/exercise/SingleExerciseInfoScreen",
+                    params: { id: exercise.id }
+                })}
                 showAddButton={false}
+
             />
-
-            <Pressable
-                style={{marginBottom:40, backgroundColor: Colors.primary, alignItems: "center"}}
-                onPress={async () => router.push("../AdminAddExercise")}
-
-            >
-                <Text >Dev add exercise</Text>
-            </Pressable>
 
             {/* Loading Overlay */}
             <LoadingOverlay visible={loading} />
@@ -52,19 +79,3 @@ export default function ExerciseScreen() {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'flex-start',
-    },
-    search:{
-        padding:10,
-        color: 'white',
-        fontSize:20,
-        backgroundColor:'black',
-        margin:20,
-        borderRadius: 50,
-
-    },
-})
