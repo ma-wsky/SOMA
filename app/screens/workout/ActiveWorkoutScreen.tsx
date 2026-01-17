@@ -4,9 +4,10 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  FlatList
+  Modal,
+  Vibration
 } from "react-native";
-import { showAlert, showConfirm } from "@/app/utils/alertHelper";
+import { showAlert, showConfirm, showChoice } from "@/app/utils/alertHelper";
 import { setActiveWorkout, clearActiveWorkout } from "@/app/utils/activeWorkoutStore";
 import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -18,12 +19,14 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { TopBar } from "@/app/components/TopBar";
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { NumberStepper, newStyles, secondsToMinSec, minSecToSeconds } from "@/app/components/NumberStepper";
+import {Colors} from "@/app/styles/theme"
 
 // New Firebase structure
 type ExerciseSet = {
   id?: string;
   exerciseId: string;
-  exerciseName?: string;
+  exerciseName: string;
   name?: string;
   weight: number;
   reps: number;
@@ -38,6 +41,8 @@ type Workout = {
   name?: string;
   exerciseSets: ExerciseSet[];
   startTime?: number;
+  duration?: number;
+  type?: "template" | "history"; // "template" für Vorlage, "history" für nur Protokoll
 };
 
 type Exercise = {
@@ -46,18 +51,91 @@ type Exercise = {
   muscleGroup?: string;
 };
 
+type OverlayTypes = "none" | "breaktime" | "editSet" | "addSet" | "restTimer";
+
 export default function ActiveWorkoutScreen() {
-  const { id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime } = useLocalSearchParams<{ id?: string; selectedExerciseId?: string; selectedExerciseName?: string; workoutEditId?: string; selectedBreakTime?: string }>();
+  const { id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime } = useLocalSearchParams();//<{ id?: string; selectedExerciseId?: string; selectedExerciseName?: string; workoutEditId?: string; selectedBreakTime?: string }>();
   const [loading, setLoading] = useState(false);
   const [workout, setWorkout] = useState<Workout | null>(null);
-  const editIdRef = useRef<string | null>(null);  
+  const editIdRef = useRef<string>(null);  
   const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
   const [isEditMode, setIsEditMode] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Overlay State
+  const [activeOverlay, setActiveOverlay] = useState<OverlayTypes>("none");
+  const [targetSetIndex, setTargetSetIndex] = useState<number | null>(null);
+  const [targetExerciseId, setTargetExerciseId] = useState<string | null>(null);
+  const [targetExerciseName, setTargetExerciseName] = useState<string | null>(null);
+
+
+  //TempData for Overlay
+  const [tempSetData, setTempSetData] = useState({weight:0,reps:0,isDone:false});
+  const [tempBreakTime, setTempBreakTime] =useState({ mins: 0, secs: 0 });
   
+  // Rest Timer State
+  const [restTimeRemaining, setRestTimeRemaining] = useState(0);
+  const restTimerRef = useRef<NodeJS.Timeout | null>(null);
   
+
+  const updateWorkoutState = (newW: Workout) => {
+    setWorkout(newW);
+    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
+  };
+
+
+
+  //Overlays
+  const openBreakTimeOverlay = (exerciseId: string, currentSeconds: number) => {
+    setTargetExerciseId(exerciseId);
+    setTempBreakTime(secondsToMinSec(currentSeconds));
+    setActiveOverlay("breaktime");
+  };
+
+  const saveBreakTime = () => {
+    if (!workout || !targetExerciseId) return;
+    const newSeconds = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
+    
+    const newSets = workout.exerciseSets.map(s =>s.exerciseId === targetExerciseId ? { ...s, breaktime: newSeconds } : s);
+    updateWorkoutState({ ...workout, exerciseSets: newSets });
+    setActiveOverlay("none");
+  };
+
+  const openEditSetOverlay = (index: number, set: ExerciseSet) => {
+    setTargetSetIndex(index);
+    setTempSetData({ weight: set.weight, reps: set.reps, isDone: !!set.isDone });
+    setActiveOverlay("editSet");
+  };
+
+  const openAddSetOverlay = (exerciseId: string, exerciseName: string) => {
+    setTargetExerciseId(exerciseId);
+    setTargetExerciseName(exerciseName);
+    setTempSetData({ weight: 20, reps: 10, isDone: false });
+    setActiveOverlay("addSet");
+  };
+
+  const saveSetData = () => {
+    if (!workout) return;
+    let newSets = [...workout.exerciseSets];
+
+    if (activeOverlay === "editSet" && targetSetIndex !== null) {
+      newSets[targetSetIndex] = {
+        ...newSets[targetSetIndex],...tempSetData};
+    } else if (activeOverlay === "addSet" && targetExerciseId) {
+      newSets.push({
+        id: 'set_${Date.now()}',
+        exerciseId: targetExerciseId,
+        exerciseName: targetExerciseName || "Unbekannt",
+        ...tempSetData,
+        breaktime: 30
+      });
+    }
+
+    updateWorkoutState({ ...workout, exerciseSets: newSets });
+    setActiveOverlay("none");
+  };
+
 
   const groupSetsByExercise = (sets: ExerciseSet[]) => {
     const map: { [exerciseId: string]: ExerciseSet[] } = {};
@@ -71,150 +149,44 @@ export default function ActiveWorkoutScreen() {
   };
 
 
-  const renderViewMode = () => {
-    const groupedSets = groupSetsByExercise(workout!.exerciseSets);
+  // Handle Return from AddExercise
+  useEffect(() => {
+    if (selectedExerciseId &&workout) {
 
-    return(
-      <ScrollView contentContainerStyle={{paddingBottom: 120}}>
-        <View>
-        {Object.entries(groupedSets).map(([exerciseId, sets]) => 
-          renderExerciseViewCard(exerciseId, sets))}
+      const foundName = selectedExerciseName || exercises.get(selectedExerciseId as string)?.name || "Unbekannte Übung";
 
-        <View style={{alignItems: "center"}}>
-        <Pressable
-          onPress={() => {setIsEditMode(true);}}
-          style={styles.topBarLikeButton}
-        >
+      // New Set
+      const newSet: ExerciseSet = {
+      id: `set_${Date.now()}`,
+      exerciseId: selectedExerciseId as string,
+      exerciseName: foundName as string,
+      weight: 20, reps: 10, breaktime: Number(selectedBreakTime) || 30, isDone: false
+    };
 
-          <Text style={styles.topBarButtonText}>Bearbeiten</Text>
-        </Pressable>
-        </View>
-      
+    const newWorkout = {...workout, exerciseSets: [...workout.exerciseSets,newSet]};
+    updateWorkoutState(newWorkout);
 
 
-</View>
-      </ScrollView>
-    );
-  };
+    //TODO Wieso hier - geht eig. auch ohne??
+    setWorkout(newWorkout);
+    if(editIdRef.current){
+      require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newWorkout);
+    }
 
-  const renderEditMode =() => {
-    const groupedSets = groupSetsByExercise(workout!.exerciseSets);
+    router.setParams({ selectedExerciseId: undefined,
+      selectedExerciseName: undefined,
+      selectedBreakTime: undefined
+     });
 
-    return(
-      <ScrollView contentContainerStyle={{paddingBottom: 120}}>
-        <View>
-        {Object.entries(groupedSets).map(([exerciseId, sets]) =>
-          renderExerciseEditCard(exerciseId, sets))}
+     setIsEditMode(true);
+    }
+  }, [selectedExerciseId, workout, exercises]);
 
-        <Pressable
-          onPress={() => addExercise("", undefined, 30)}
-          style={styles.addExerciseButton}
-        >
-
-          <Text style={styles.addExerciseButtonText}>+ Übung hinzufügen</Text>
-        </Pressable>
-
-        </View>
-      </ScrollView>
-    );
-  };
-
-
-  const renderSetEditMode = (set: ExerciseSet, index: number) => (
-    <View key={index} style={styles.setEditRow}>
-      <Text style={styles.setText}>Satz {index + 1}</Text>
-
-      <TextInput
-      value={set.weight.toString()}
-      onChangeText={(text) => handleUpdateSet(index, "weight", text)}
-      style={styles.input}
-      keyboardType="numeric"
-      />
-
-      <TextInput
-      value={set.reps.toString()}
-      onChangeText={(text) => handleUpdateSet(index,"reps", text)}
-      style={styles.input}
-      keyboardType="numeric"
-      />
-
-      <TextInput
-        value={(set.breaktime ?? 30).toString()}
-        keyboardType="numeric"
-        onChangeText={(v) => {
-          const secs = parseInt(v) || 0;
-          handleUpdateSet(index, "breaktime" as any, secs.toString());
-        }}
-        style={styles.input}
-        placeholder="Pause"
-      />
-
-      <Pressable onPress={() => handleRemoveSet(index)}>
-        <Ionicons name="trash" size={20} color="#ff4444" />
-      </Pressable>
-
-    </View>
-  );
-
-
-
-  const renderSetViewRow = (set: ExerciseSet, index: number) => {
-    
-    return(
-      <Pressable
-      key={index}
-      onPress={()=> handleSetCheck(index)}
-      style={styles.setRow}
-      >
-
-      <Text style={styles.setText}>{set.id}</Text>
-      <Text style={styles.setText}>{set.weight}</Text>
-      <Text style={styles.setText}>{set.reps}</Text>
-
-      <View style={[styles.checkbox, set.isDone && styles.checkboxDone]}>
-        {set.isDone && <Ionicons name="checkmark" size={16} color="#fff" />}
-      </View>
-
-      </Pressable>
-    );
-  };
-
-
-  const renderExerciseViewCard = (exerciseId: string, sets: ExerciseSet[]) => (
-    <View key={exerciseId} style={styles.exerciseCard}>
-      <Text style={styles.exerciseTitle}>
-        {sets[0].exerciseName}
-      </Text>
-
-      {sets.map((set, idx) => renderSetViewRow(set, workout!.exerciseSets.indexOf(set)))}
-
-    </View>
-  );
-
-  const renderExerciseEditCard = (exerciseId: string, sets: ExerciseSet[]) => (
-    <View key={exerciseId} style={styles.exerciseCard}> 
-      <Text style={styles.exerciseTitle}>
-        {sets[0].exerciseName}
-      </Text>
-
-      {sets.map((set)=>
-      renderSetEditMode(set, workout!.exerciseSets.indexOf(set)))}
-
-      <Pressable
-        onPress={() => handleAddSet(exerciseId, sets[0].exerciseName)}
-        style={styles.addSetButton}
-      >
-
-        <Text style={styles.addSetButtonText}>+ Satz hinzufügen</Text>
-      </Pressable>
-    </View>
-  );
-  
 
 
   // Lade Workout beim Start
   useEffect(() => {
-    const loadWorkout = async () => {
+    const loadWorkoutData = async () => {
       setLoading(true);
       try {
         const user = auth.currentUser;
@@ -228,11 +200,14 @@ export default function ActiveWorkoutScreen() {
         });
         setExercises(exercisesMap);
 
-        if (id) {
-          // Wenn ID vorhanden, lade gespeichertes Workout
-          editIdRef.current = workoutEditId || id;
+        const currentEditId = (workoutEditId|| id|| `temp_${Date.now()}`) as string;
+        editIdRef.current=currentEditId;
 
-          const userRef = doc(db, "users", user.uid, "workouts", id);
+        if (id != null) {
+          // Wenn ID vorhanden, lade gespeichertes Workout
+          editIdRef.current = workoutEditId as string|| id as string;
+
+          const userRef = doc(db, "users", user.uid, "workouts", id as string);
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
             const workoutData = userSnap.data() as Omit<Workout, 'id' | 'exerciseSets'>;
@@ -269,7 +244,7 @@ export default function ActiveWorkoutScreen() {
           }
         } else {
           // Leeres Workout (freies Training)
-          editIdRef.current = workoutEditId || `temp_${Date.now()}`;
+          editIdRef.current = workoutEditId as string || `temp_${Date.now()}`;
 
           const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editIdRef.current);
           if (draft) {
@@ -290,121 +265,126 @@ export default function ActiveWorkoutScreen() {
       }
     };
 
-    loadWorkout();
+    loadWorkoutData();
   }, [id]);
 
-  // Timer
+
+  
+  //Timer - persist elapsed time
   useEffect(() => {
+    // Restore previous elapsed time if resuming
+    const savedTimer = require("@/app/utils/workoutTimerStore").getWorkoutTimer();
+    if (savedTimer && workout?.id === savedTimer?.workoutId) {
+      const elapsed = Math.floor((Date.now() - savedTimer.startTime) / 1000);
+      setElapsedTime(Math.max(0, elapsed));
+    }
+    
     timerRef.current = setInterval(() => {
-      setElapsedTime((prev) => prev + 1);
+      setElapsedTime((prev) => {
+        const newVal = prev + 1;
+        // Update global store
+        if (workout?.startTime) {
+          require("@/app/utils/workoutTimerStore").setWorkoutTimer({
+            startTime: workout.startTime,
+            elapsedTime: newVal,
+            workoutId: workout.id || 'temp'
+          });
+        }
+        return newVal;
+      });
     }, 1000) as unknown as NodeJS.Timeout;
+    
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [workout?.id, workout?.startTime]);
 
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
-
-  const getRemainingRestTime = (set: ExerciseSet) => {
-    if(!set.isDone || !set.restStartedAt || !set.breaktime) return null;
-
-    const rest = set.breaktime;
-    const elapsed = (Date.now() - set.restStartedAt) / 1000;
-    const remaining = rest - elapsed;
-
-    return remaining > 0 ? remaining : 0;
-  };
-
-  // Handle Set Checkbox   
-  const handleSetCheck = (setIndex: number) => {
-    if (!workout) {return;}
-
+  // Set Checkbox (Main View) - startet Rest Timer
+  const handleSetCheck = (setIndex: number, breaktime: number) => {
+    if (!workout) return;
     const sets = [...workout.exerciseSets];
-    const set = sets[setIndex];
-
-    const newDoneStatus = !set.isDone;
-
-    sets[setIndex] = {
-      ...set,
-      isDone: newDoneStatus,
-      restStartedAt: newDoneStatus ? Date.now() : undefined,
-    };
-    setWorkout({ ...workout, exerciseSets: sets });
+    const newDone = !sets[setIndex].isDone;
+    sets[setIndex] = { ...sets[setIndex], isDone: newDone, restStartedAt: newDone ? Date.now() : undefined };
+    updateWorkoutState({ ...workout, exerciseSets: sets });
+    
+    // Wenn Satz erledigt wird, starte Rest-Timer
+    if (newDone && breaktime > 0) {
+      Vibration.vibrate(200);
+      startRestTimer(breaktime);
+    }
   };
 
-
-  //new Add Exercise in hope that multiple exercises can be added
-  const addExercise = (exerciseId: string, exerciseName?: string, breaktime?: number) => {
-  if (!workout) return;
-
-  router.push({pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
-    params: { workoutEditId: editIdRef.current, returnTo: "active" }})
-
-  const newSet: ExerciseSet = {
-    id: `set_${Date.now()}`,
-    exerciseId,
-    exerciseName,
-    weight: 20,
-    reps: 5,
-    breaktime: breaktime ?? 30,
-    isDone: false,
+  const startRestTimer = (seconds: number) => {
+    setRestTimeRemaining(seconds);
+    setActiveOverlay("restTimer");
+    require("@/app/utils/restTimerStore").setRestTimer({ timeRemaining: seconds, isActive: true });
+    
+    if (restTimerRef.current) clearInterval(restTimerRef.current);
+    
+    restTimerRef.current = setInterval(() => {
+      setRestTimeRemaining((prev) => {
+        const newVal = prev <= 1 ? 0 : prev - 1;
+        require("@/app/utils/restTimerStore").setRestTimer({ timeRemaining: newVal, isActive: newVal > 0 });
+        
+        if (newVal <= 0) {
+          if (restTimerRef.current) clearInterval(restTimerRef.current);
+          Vibration.vibrate([0, 200, 100, 200]);
+        }
+        return newVal;
+      });
+    }, 1000) as unknown as NodeJS.Timeout;
   };
 
-  const newWorkout = {
-    ...workout,
-    exerciseSets: [...workout.exerciseSets, newSet],
+  // Remove Set
+  const handleRemoveSet = (index: number) => {
+    if (!workout) return;
+    const newSets = workout.exerciseSets.filter((_, i) => i !== index);
+    updateWorkoutState({ ...workout, exerciseSets: newSets });
   };
-
-  setWorkout(newWorkout);
-};
-
-
-  // Add a set for a given exercise in active workout
-  const handleAddSet = (exerciseId: string, exerciseName?: string) => {
-  if (!workout) return;
-
-  const newSet: ExerciseSet = {
-    id: `set_${Date.now()}`,
-    exerciseId,
-    exerciseName,
-    weight: 20,
-    reps: 5,
-    breaktime: 30,
-    isDone: false,
-  };
-
-  setWorkout({
-    ...workout,
-    exerciseSets: [...workout.exerciseSets, newSet],
-  });
-};
 
   // Discard Workout
   const handleDiscardWorkout = () => {
     showConfirm("Training verwerfen", "Möchten Sie dieses Training wirklich verwerfen?", () => {
       clearActiveWorkout();
       if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
-        router.push("../..//(tabs)/WorkoutScreenProxy")
+        router.navigate("../..//(tabs)/WorkoutScreenProxy")
     }, { confirmText: "Verwerfen", cancelText: "Abbrechen" });
   };
 
   // Finish Workout (speichern)
   const handleFinishWorkout = async () => {
-    showConfirm("Training beenden", "Möchten Sie dieses Training speichern?", async () => {
-      setLoading(true);
-      try {
-        const user = auth.currentUser;
-        if (!user || !workout) return;
+    if (!workout || !workout.name || workout.exerciseSets.length === 0) {
+      showAlert("Fehler", "Bitte geben Sie einen Trainingsnamen ein und fügen Sie mindestens einen Satz hinzu.");
+      return;
+    }
+    
+    // Ask user if this should be saved as template or just as history
+    showChoice(
+      "Workout speichern",
+      "Soll dieses Workout als Vorlage gespeichert werden?",
+      [
+        { text: "Nur Protokoll", onPress: () => saveWorkoutToDatabase("history"), style: 'default' },
+        { text: "Als Vorlage", onPress: () => saveWorkoutToDatabase("template"), style: 'default' },
+      ]
+    );
+  };
 
-        // Ensure we have an id (generate for new workouts)
-        const workoutId = workout.id || Date.now().toString();
-        const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
+  const saveWorkoutToDatabase = async (type: "template" | "history") => {
+    setLoading(true);
+    try {
+      const user = auth.currentUser;
+      if (!user || !workout) return;
 
-        // Use batch write to atomically replace sets and set main doc
-        const batch = writeBatch(db);
-        batch.set(workoutRef, {
-          date: workout.date,
-          name: workout.name || null,
-        });
+      // Ensure we have an id (generate for new workouts)
+      const workoutId = workout.id || Date.now().toString();
+      const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
+
+      // Use batch write to atomically replace sets and set main doc
+      const batch = writeBatch(db);
+      batch.set(workoutRef, {
+        date: workout.date,
+        name: workout.name,
+        duration: elapsedTime,
+        type: type,
+      });
 
         const setsRef = collection(workoutRef, "exerciseSets");
         // Delete existing sets if any
@@ -413,12 +393,14 @@ export default function ActiveWorkoutScreen() {
 
         // Add current sets
         workout.exerciseSets.forEach((set, index) => {
-          const setRef = doc(setsRef, `set_${index}`);
+          const setDocName = `set_${index.toString().padStart(3,'0')}`;
+          const setRef = doc(setsRef, setDocName);
           batch.set(setRef, {
             exerciseId: set.exerciseId,
             exerciseName: set.exerciseName || null,
             name: set.name || null,
             breaktime: set.breaktime ?? 30,
+            weight: set.weight,
             reps: set.reps,
             isDone: set.isDone || false,
           });
@@ -428,6 +410,7 @@ export default function ActiveWorkoutScreen() {
 
         showAlert("Erfolg", "Training gespeichert");
         clearActiveWorkout();
+        require("@/app/utils/workoutTimerStore").clearWorkoutTimer();
         if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
         router.push("../..//(tabs)/WorkoutScreenProxy")
 
@@ -437,15 +420,9 @@ export default function ActiveWorkoutScreen() {
       } finally {
         setLoading(false);
       }
-    }, { confirmText: "Speichern", cancelText: "Abbrechen" });
   };
 
-  // Remove a set
-  const handleRemoveSet = (index: number) => {
-    const newW = { ...workout!, exerciseSets: workout!.exerciseSets.filter((_, i) => i !== index) };
-    setWorkout(newW);
-    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
-  };
+  
 
   // Persist draft when workout changes
   useEffect(() => {
@@ -454,46 +431,12 @@ export default function ActiveWorkoutScreen() {
     }
   }, [workout]);
 
-  // Handle exercise returned from AddExercise (single-select)
-  useEffect(() => {
-    if (!selectedExerciseId) return;
-
-
-    addExercise(selectedExerciseId, selectedExerciseName, Number(selectedBreakTime));
-
-    router.setParams({ selectedExerciseId: undefined, selectedExerciseName: undefined, selectedBreakTime: undefined });
-  },[selectedExerciseId, selectedExerciseName, selectedBreakTime]);
-
-
-  /*useEffect(() => {
-
-  //Old AddExercise/Set
-    if (selectedExerciseId) {
-      handleAddSet(selectedExerciseId, selectedExerciseName, Number(selectedBreakTime));
-      // clear params to avoid duplicates
-      router.setParams({ selectedExerciseId: undefined, selectedExerciseName: undefined, selectedBreakTime: undefined });
-    }
-  }, [selectedExerciseId, selectedExerciseName, selectedBreakTime]);
-  */
-  
-  
-  
-  // Update a set value
-  const handleUpdateSet = (index: number, key: 'weight' | 'reps', value: string) => {
-    if (!workout) return;
-    const updatedSets = [...workout.exerciseSets];
-    const numValue = parseInt(value) || 0;
-    updatedSets[index][key] = numValue;
-    const newW = { ...workout, exerciseSets: updatedSets };
-    setWorkout(newW);
-    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
-  };
 
   // Edit mode - save changes (persist full sets)
   const handleSaveChanges = async () => {
     if (!workout) return;
     if (!workout.name || workout.exerciseSets.length === 0) {
-      showAlert("Fehler", "Bitte geben Sie einen Namen ein und fügen Sie mindestens einen Satz hinzu");
+      showAlert("Fehler", "Bitte geben Sie einen Trainingsnamen ein und fügen Sie mindestens einen Satz hinzu.");
       return;
     }
 
@@ -509,7 +452,7 @@ export default function ActiveWorkoutScreen() {
       const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
 
       const batch = writeBatch(db);
-      batch.set(workoutRef, { date: workout.date, name: workout.name || null });
+      batch.set(workoutRef, { date: workout.date, name: workout.name || null, duration: elapsedTime });
 
       const setsRef = collection(workoutRef, "exerciseSets");
       const existingSets = await getDocs(setsRef);
@@ -552,14 +495,14 @@ export default function ActiveWorkoutScreen() {
       .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  //Bottom Sheet stuff
   const snapPoints = ['99%'];
-
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [isMinimized, setIsMinimized] = useState(false);
 
   const handlesSheetChanges = useCallback((index: number) => {
     console.log('handleSheetChanges', index);
-    if (index !== 1) {
+    if (index === -1) {
       setIsMinimized(true);
       try {
         // keep the home overlay for UI
@@ -581,6 +524,227 @@ export default function ActiveWorkoutScreen() {
     }
   }, [workout]);
 
+  const renderViewMode = () => {
+    const groupedSets = groupSetsByExercise(workout!.exerciseSets);
+
+    return(
+      <ScrollView contentContainerStyle={{paddingBottom: 120}}>
+        <Text style={{color: Colors.black, width:800, marginBottom:10,fontSize:24, marginLeft: 30,}}>{workout?.name}</Text>
+
+        {Object.entries(groupedSets).map(([exerciseId, sets]) => 
+          renderExerciseCard(exerciseId, sets, false))}
+
+        <View style={{alignItems: "center"}}>
+        <Pressable
+          onPress={() => {setIsEditMode(true);}}
+          style={styles.topBarLikeButton}
+        >
+          <Text style={styles.topBarButtonText}>Bearbeiten</Text>
+        </Pressable>
+        </View>
+      
+      </ScrollView>
+    );
+  };
+
+  const renderEditMode =() => {
+    const groupedSets = groupSetsByExercise(workout!.exerciseSets);
+
+    return(
+      <ScrollView contentContainerStyle={{paddingBottom: 120}}>
+        <View style={{padding:16}}>
+          <Text style={{color: Colors.black, width:800, marginBottom: 4,fontSize:24}}>Trainingsname:</Text>
+          <TextInput 
+            value={workout?.name ||""} 
+            onChangeText={t => setWorkout(prev => prev ? {...prev, name:t} : null)} 
+            style={{backgroundColor: Colors.background, color: Colors.black, padding: 10, borderRadius: 8,borderColor:Colors.black,borderWidth:1}} />
+        </View>
+        {Object.entries(groupedSets).map(([exerciseId, sets]) =>
+          renderExerciseCard(exerciseId, sets, true))}
+
+        <Pressable
+          onPress={() => router.push({ pathname: "/screens/exercise/AddExerciseToWorkoutScreen", params: { returnTo: "active", workoutEditId: editIdRef.current } })}
+          style={styles.addExerciseButton}
+        >
+
+          <Text style={styles.addExerciseButtonText}>Übung hinzufügen +</Text>
+        </Pressable>
+      </ScrollView>
+    );
+  };
+
+  const renderExerciseCard = (exerciseId: string, sets: ExerciseSet[], isEditing: boolean) => (
+    <View key={exerciseId} style={styles.exerciseCard}>
+      <View style={styles.exerciseCardHeader}>
+
+        <Text style={{fontSize: 22,fontWeight: "bold",color: "white", marginRight:8}}>Pic </Text>
+
+
+        <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
+
+        <Pressable onPress={() => openBreakTimeOverlay(exerciseId, sets[0].breaktime || 30)}>
+          <View style={{flexDirection: 'row', alignItems: 'center',padding:8}}>
+            <Ionicons name="alarm-outline" size={20} color={Colors.primary} />
+            <Text style={{color: Colors.primary, marginLeft: 4, fontSize: 12}}>{sets[0].breaktime || 30}s</Text>
+          </View>
+        </Pressable>
+      </View>
+
+
+      <View style={styles.setRowHeader}>
+          <Text style={styles.setTextHeader}>Satz</Text>
+          <Text style={styles.setTextHeader}>Gewicht (kg)</Text>
+          <Text style={styles.setTextHeader}>Wdh.</Text>
+          <Text style={styles.setTextHeader}>Erledigt</Text>
+
+          {isEditMode && <View style={{width: 50}}/>}
+          </View>
+
+      {sets.map((set) => {
+        const globalIndex = workout!.exerciseSets.indexOf(set);
+        return (
+          <View key={globalIndex} style={isEditMode ? styles.setEditRow : styles.setRow}>
+            <Text style={styles.setText}>{sets.indexOf(set) + 1}</Text>
+            <Text style={styles.setText}>{set.weight}</Text>
+            <Text style={styles.setText}>{set.reps}</Text>
+            
+            {!isEditMode ? (
+              <Pressable 
+                onPress={() => handleSetCheck(globalIndex, set.breaktime || 30)}
+                style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}
+              >
+                <Ionicons 
+                  name={set.isDone ? "checkbox" : "checkbox-outline"} 
+                  size={28} 
+                  color={set.isDone ? Colors.primary : Colors.black} 
+                />
+              </Pressable>
+            ) : (
+              <Text style={styles.setText}>-</Text>
+            )}
+
+            {isEditMode && (
+              <View style={{flexDirection: 'row', gap: 15, flexGrow:0}}>
+                <Pressable onPress={() => openEditSetOverlay(globalIndex, set)}>
+                    <Ionicons name="pencil" size={22} color={Colors.black} />
+                </Pressable>
+                <Pressable onPress={() => handleRemoveSet(globalIndex)}>
+                    <Ionicons name="trash" size={22} color={Colors.black} />
+                </Pressable>
+              </View>
+            )}
+
+          </View>
+        );
+      })}
+
+      {isEditing && (
+        <Pressable onPress={() => openAddSetOverlay(exerciseId, sets[0].exerciseName)} style={styles.addSetButton}>
+          <Text style={styles.addSetButtonText}>Satz hinzufügen +</Text>
+        </Pressable>
+      )}
+    </View>
+  );
+
+  //TODO STILL LOOKING AT IT
+  const renderOverlays = () => {
+    if (activeOverlay === 'none') return null;
+    const isBreaktime = activeOverlay === 'breaktime';
+    const isEdit = activeOverlay === 'editSet';
+    const isAdd = activeOverlay === 'addSet';
+
+    return (
+      <Modal visible={true} transparent animationType="fade" onRequestClose={() => setActiveOverlay('none')}>
+        <View style={newStyles.overlay}>
+          <View style={newStyles.content}>
+            <View style={newStyles.header}>
+              <Pressable onPress={() => setActiveOverlay('none')}><Text style={{color: '#ff4444'}}>Abbrechen</Text></Pressable>
+              <Text style={newStyles.headerTitle}>{isBreaktime ? "Pausenzeit" : (isEdit ? "Satz bearbeiten" : "Satz hinzufügen")}</Text>
+              <Pressable style={newStyles.saveButton} onPress={saveModalChanges}><Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text></Pressable>
+            </View>
+
+            {isBreaktime ? (
+              <View style={newStyles.timeInputContainer}>
+                  <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.mins.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, mins: Number(v)})} />
+                  <Text style={newStyles.label}>Min</Text>
+                  <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.secs.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, secs: Number(v)})} />
+                  <Text style={newStyles.label}>Sek</Text>
+              </View>
+            ) : (
+              <View>
+                <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={2.5} />
+                <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={v => setTempSetData({...tempSetData, reps: v})} step={1} />
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  // Rest Timer Bar - render as fixed bottom bar
+  const renderRestTimerBar = () => {
+    if (activeOverlay !== 'restTimer') return null;
+    
+    return (
+      <View style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: Colors.primary,
+        padding: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        zIndex: 10
+      }}>
+        <View>
+          <Text style={{color: Colors.white, fontSize: 12, fontWeight: '600'}}>Pausenzeit</Text>
+          <Text style={{color: Colors.white, fontSize: 24, fontWeight: 'bold', marginTop: 4}}>
+            {Math.floor(restTimeRemaining / 60)}:{(restTimeRemaining % 60).toString().padStart(2, '0')}
+          </Text>
+        </View>
+        <Pressable 
+          style={{paddingHorizontal: 16, paddingVertical: 8, backgroundColor: Colors.black, borderRadius: 6}}
+          onPress={() => {
+            if (restTimerRef.current) clearInterval(restTimerRef.current);
+            require("@/app/utils/restTimerStore").clearRestTimer();
+            setActiveOverlay('none');
+          }}
+        >
+          <Text style={{color: Colors.white, fontSize: 14, fontWeight: '600'}}>Fertig</Text>
+        </Pressable>
+      </View>
+    );
+  };
+
+  const saveModalChanges = () => {
+    if(!workout) return;
+
+    setWorkout(prev => {
+      if(!prev)return null;
+
+      let newSets = [...workout.exerciseSets];
+
+      if (activeOverlay === 'breaktime' && targetExerciseId) {
+      const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
+      newSets = newSets.map(s => s.exerciseId === targetExerciseId ? {...s, breaktime: secs} : s);
+      }
+      else if (activeOverlay === 'editSet' && targetSetIndex !== null) {
+        newSets[targetSetIndex] = { ...newSets[targetSetIndex], weight: tempSetData.weight, reps: tempSetData.reps };
+      }
+      else if (activeOverlay === 'addSet' && targetExerciseId) {
+        newSets.push({
+            id: `set_${Date.now()}`, exerciseId: targetExerciseId, exerciseName: targetExerciseName || "",
+            weight: tempSetData.weight, reps: tempSetData.reps, breaktime: 30, isDone: false
+        });
+      }
+      return {...prev, exerciseSets:newSets};
+    });
+    setActiveOverlay('none');
+  };
+
   if (!workout) {
     return (
       <GestureHandlerRootView style={styles.sheetContainer}>
@@ -594,55 +758,31 @@ export default function ActiveWorkoutScreen() {
     );
   }
 
-  const canSaveActive = isEditMode && !!workout?.name && (workout.exerciseSets?.length ?? 0) > 0;
-
-
   //TODO Meh lösung: Leerzeichen
-  const timerString = `Aktives Training \n      ${formatTime(elapsedTime)}`;
+  const timerString = activeOverlay === 'restTimer' 
+    ? `  Pausenzeit\n${Math.floor(restTimeRemaining / 60)}:${(restTimeRemaining % 60).toString().padStart(2, '0')}`
+    : `  Dauer\n${formatTime(elapsedTime)}`;
 
   return (
     <GestureHandlerRootView style={styles.sheetContainer}>
       <BottomSheet index={1} snapPoints={snapPoints} ref={bottomSheetRef} onChange={handlesSheetChanges} enablePanDownToClose={true}>
-      <BottomSheetView style={styles.sheetContainerContent}>
-      <TopBar
-        leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
+        <BottomSheetView style={styles.sheetContainerContent}>
+          <TopBar
+            leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
+            titleText={isEditMode ? "Training bearbeiten" : timerString}
+            rightButtonText={isEditMode ? "Speichern" : "Fertig"}
+            onLeftPress={() => isEditMode ? setIsEditMode(false) : handleDiscardWorkout()}
+            onRightPress={() =>isEditMode ? handleSaveChanges() : handleFinishWorkout()}
+          />
 
-        titleText={isEditMode ? "Training bearbeiten" : timerString}
-        rightButtonText={isEditMode ? "Speichern" : "Fertig"}
-        onLeftPress={isEditMode ? () => setIsEditMode(false) : handleDiscardWorkout}
-        onRightPress={isEditMode ? handleSaveChanges : handleFinishWorkout}
-      />
-
-      {isEditMode ? renderEditMode() : renderViewMode()}
-
-      <LoadingOverlay visible={loading} />
-    </BottomSheetView>
+          {isEditMode ? renderEditMode() : renderViewMode()}
+          <LoadingOverlay visible={loading} />
+          {renderOverlays()}
+          {renderRestTimerBar()}
+        
+        </BottomSheetView>
       </BottomSheet>
-
-      {/* Minimized overlay (shows above menubar) */}
-      {isMinimized && (
-        <Pressable
-          onPress={() => (bottomSheetRef.current as any)?.snapToIndex?.(0)}
-          style={{
-            position: 'absolute',
-            left: 20,
-            right: 20,
-            bottom: 60,
-            backgroundColor: '#222',
-            padding: 12,
-            borderRadius: 8,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderWidth: 1,
-            borderColor: '#333'
-          }}
-        >
-          <Text style={{ color: '#fff', fontWeight: '600' }}>{workout.exerciseSets.length} Sätze</Text>
-          <Text style={{ color: '#aaa' }}>{formatTime(elapsedTime)}</Text>
-        </Pressable>
-      )}
-
-      </GestureHandlerRootView>
+    </GestureHandlerRootView>
   );
+
 };

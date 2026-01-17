@@ -1,39 +1,51 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { View, TextInput, StyleSheet, Text, Pressable } from "react-native";
+import { View, TextInput, StyleSheet, Text, Alert } from "react-native";
 import { useState } from "react";
 import { TopBar } from "../../components/TopBar"
 import ExerciseList from "../../components/ExerciseList";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { useLoadExercises } from "../../hooks/useLoadExercises";
+import { Colors } from "@/app/styles/theme";
 
 
 export default function AddExerciseToWorkoutScreen() {
 
     const [filter, setFilter] = useState("");
     const [breakTime, setBreakTime] = useState("30");
-    const [selectedId, setSelectedId] = useState("");
-    const { workoutEditId, returnTo } = useLocalSearchParams<{ workoutEditId?: string; returnTo?: string }>();  
+    const { workoutEditId, returnTo } = useLocalSearchParams<{ workoutEditId?: string; returnTo?: "active"|"edit"; }>();  
     const { exercises, loading } = useLoadExercises();
 
 
 
-    const addExercise = (exercise: any) => {
-        const workoutId = workoutEditId;
-        if (!workoutId) {return;}
+    const addExercise = (exercise: {id:string; name:string}) => {
+        if (!workoutEditId) {
+            console.error("workoutEditId ist null");
+            Alert.alert("Fehler", "Es konnte kein Trainings-Kontext gefunden werden.");
+            return;
+        }
 
-        setSelectedId(exercise.id);
+        const params = {
+            workoutEditId,
+            selectedExerciseId: exercise.id,
+            selectedExerciseName: exercise.name,
+            selectedBreakTime: breakTime,
+            _t: Date.now().toString() //zwingt router param als neu anzusehen
+        }; 
 
         if (returnTo === 'active'){
-            router.push({ pathname: "/screens/workout/ActiveWorkoutScreen", params: { workoutEditId: workoutId, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name, selectedBreakTime: breakTime } });
-            return;
+            router.navigate({ pathname: "/screens/workout/ActiveWorkoutScreen", 
+                params
+            });
         } else if (returnTo === 'edit'){
-            router.push({ pathname: "/screens/workout/SingleWorkoutInfoScreen", params: { workoutEditId: workoutId, selectedExerciseId: exercise.id, selectedExerciseName: exercise.name, selectedBreakTime: breakTime } });
-            return;
+            router.navigate({ pathname: "/screens/workout/SingleWorkoutInfoScreen", 
+                params
+            });
         }
     };
 
-    const goToInfo = (exercise: any) => {
-        router.push({ pathname: "/screens/exercise/SingleExerciseInfoScreen", params: { id: exercise.id } });
+    const openInfo = (exercise: {id: string}) => {
+        router.push({ pathname: "/screens/exercise/SingleExerciseInfoScreen", 
+            params: { id: exercise.id } });
     };
 
     return (
@@ -49,7 +61,7 @@ export default function AddExerciseToWorkoutScreen() {
             {/* Search Bar */}
             <TextInput 
                 placeholder={"Übung suchen..."}
-                placeholderTextColor='white'
+                placeholderTextColor={Colors.white}
                 value={filter}
                 onChangeText={setFilter}
                 style={styles.search}
@@ -57,12 +69,12 @@ export default function AddExerciseToWorkoutScreen() {
 
             {/* Break Time Input */}
             <View style={styles.breakTimeContainer}>
-                <Text style={styles.breakTimeLabel}>Pausenzeit zwischen Wiederholungen (Sekunden)</Text>
+                <Text style={styles.breakTimeLabel}>Pausenzeit nach einem Satz (Sekunden)</Text>
                 <TextInput
                     value={breakTime}
                     onChangeText={setBreakTime}
                     placeholder="30"
-                    placeholderTextColor="#666"
+                    placeholderTextColor={Colors.textPlaceholder}
                     keyboardType="numeric"
                     style={styles.breakTimeInput}
                 />
@@ -71,9 +83,9 @@ export default function AddExerciseToWorkoutScreen() {
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
-                onItemPress={(exercise) => goToInfo(exercise)}
-                onAddToWorkout={(exercise) => addExercise(exercise)}
-                showAddButton={true}
+                showAddButton
+                onItemPress={openInfo}
+                onAddToWorkout={addExercise}
             />
 
             {/* Loading Overlay */}
@@ -81,18 +93,19 @@ export default function AddExerciseToWorkoutScreen() {
 
         </View>
     );
-}
+};
+
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: Colors.background,
         justifyContent: 'flex-start',
     },
     search:{
         padding:10,
-        color: 'white',
         fontSize:20,
-        backgroundColor:'black',
+        backgroundColor:Colors.black,
         margin:20,
         borderRadius: 50,
     },
@@ -101,13 +114,13 @@ const styles = StyleSheet.create({
         paddingBottom: 12,
     },
     breakTimeLabel: {
-        color: '#aaa',
+        color: Colors.black,
         fontSize: 14,
         marginBottom: 6,
     },
     breakTimeInput: {
-        backgroundColor: '#222',
-        color: '#fff',
+        backgroundColor: Colors.black,
+        color: Colors.white,
         padding: 10,
         borderRadius: 8,
         fontSize: 16,

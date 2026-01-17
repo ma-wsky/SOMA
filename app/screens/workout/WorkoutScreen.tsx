@@ -7,12 +7,16 @@ import { workoutStyles as styles } from "../../styles/workoutStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLoadWorkouts } from "@/app/hooks/useLoadWorkouts";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import { doc, deleteDoc, collection } from "firebase/firestore";
+import { auth, db } from "@/app/firebaseConfig";
+import { showAlert } from "@/app/utils/alertHelper";
 
 export default function WorkoutScreen() {
   const router = useRouter();
   const [filter, setFilter] = useState("");
   const [hasActiveWorkout, setHasActiveWorkout] = useState(false);
-  const { workouts, loading } = useLoadWorkouts();
+  const [loading, setLoading] = useState(false);
+  const { workouts, loading: workoutsLoading, refetch } = useLoadWorkouts();
 
   // When this tab is focused, open the ActiveWorkoutScreen if there is an active workout stored
   useFocusEffect(
@@ -27,6 +31,29 @@ export default function WorkoutScreen() {
       }
     }, [])
   );
+
+  const handleDeleteWorkout = async (workoutId: string) => {
+    setLoading(true);
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        showAlert("Fehler", "Sie müssen angemeldet sein");
+        return;
+      }
+
+      const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
+      await deleteDoc(workoutRef);
+
+      showAlert("Erfolg", "Training gelöscht");
+      // Refresh the list
+      refetch?.();
+    } catch (e) {
+      console.error("Fehler beim Löschen:", e);
+      showAlert("Fehler", "Training konnte nicht gelöscht werden");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -67,6 +94,7 @@ export default function WorkoutScreen() {
             params: { id: workout.id },
           })
         }
+        onDelete={handleDeleteWorkout}
       />
 
       {/* create Workout Button */}
@@ -90,7 +118,7 @@ export default function WorkoutScreen() {
         </Pressable>
       </View>
 
-      <LoadingOverlay visible={loading} />
+      <LoadingOverlay visible={loading || workoutsLoading} />
     </View>
   );
 }
