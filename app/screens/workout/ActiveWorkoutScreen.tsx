@@ -4,7 +4,8 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  Modal
+  Modal,
+  Vibration
 } from "react-native";
 import { showAlert, showConfirm } from "@/app/utils/alertHelper";
 import { setActiveWorkout, clearActiveWorkout } from "@/app/utils/activeWorkoutStore";
@@ -48,7 +49,7 @@ type Exercise = {
   muscleGroup?: string;
 };
 
-type OverlayTypes = "none" | "breaktime" | "editSet" | "addSet";
+type OverlayTypes = "none" | "breaktime" | "editSet" | "addSet" | "restTimer";
 
 export default function ActiveWorkoutScreen() {
   const { id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime } = useLocalSearchParams();//<{ id?: string; selectedExerciseId?: string; selectedExerciseName?: string; workoutEditId?: string; selectedBreakTime?: string }>();
@@ -70,6 +71,10 @@ export default function ActiveWorkoutScreen() {
   //TempData for Overlay
   const [tempSetData, setTempSetData] = useState({weight:0,reps:0,isDone:false});
   const [tempBreakTime, setTempBreakTime] =useState({ mins: 0, secs: 0 });
+  
+  // Rest Timer State
+  const [restTimeRemaining, setRestTimeRemaining] = useState(0);
+  const restTimerRef = useRef<NodeJS.Timeout | null>(null);
   
 
   const updateWorkoutState = (newW: Workout) => {
@@ -269,13 +274,40 @@ export default function ActiveWorkoutScreen() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
-  // Set Checkbox (Main View)
-  const handleSetCheck = (setIndex: number) => {
+  // Set Checkbox (Main View) - startet Rest Timer
+  const handleSetCheck = (setIndex: number, breaktime: number) => {
     if (!workout) return;
     const sets = [...workout.exerciseSets];
     const newDone = !sets[setIndex].isDone;
     sets[setIndex] = { ...sets[setIndex], isDone: newDone, restStartedAt: newDone ? Date.now() : undefined };
     updateWorkoutState({ ...workout, exerciseSets: sets });
+    
+    // Wenn Satz erledigt wird, starte Rest-Timer
+    if (newDone && breaktime > 0) {
+      Vibration.vibrate(200);
+      startRestTimer(breaktime);
+    }
+  };
+
+  const startRestTimer = (seconds: number) => {
+    setRestTimeRemaining(seconds);
+    setActiveOverlay("restTimer");
+    require("@/app/utils/restTimerStore").setRestTimer({ timeRemaining: seconds, isActive: true });
+    
+    if (restTimerRef.current) clearInterval(restTimerRef.current);
+    
+    restTimerRef.current = setInterval(() => {
+      setRestTimeRemaining((prev) => {
+        const newVal = prev <= 1 ? 0 : prev - 1;
+        require("@/app/utils/restTimerStore").setRestTimer({ timeRemaining: newVal, isActive: newVal > 0 });
+        
+        if (newVal <= 0) {
+          if (restTimerRef.current) clearInterval(restTimerRef.current);
+          Vibration.vibrate([0, 200, 100, 200]);
+        }
+        return newVal;
+      });
+    }, 1000) as unknown as NodeJS.Timeout;
   };
 
   // Remove Set
@@ -296,6 +328,11 @@ export default function ActiveWorkoutScreen() {
 
   // Finish Workout (speichern)
   const handleFinishWorkout = async () => {
+    if (!workout || !workout.name || workout.exerciseSets.length === 0) {
+      showAlert("Fehler", "Bitte geben Sie einen Trainingsnamen ein und fügen Sie mindestens einen Satz hinzu.");
+      return;
+    }
+    
     showConfirm("Training beenden", "Möchten Sie dieses Training speichern?", async () => {
       setLoading(true);
       try {
@@ -310,7 +347,7 @@ export default function ActiveWorkoutScreen() {
         const batch = writeBatch(db);
         batch.set(workoutRef, {
           date: workout.date,
-          name: workout.name || null,
+          name: workout.name,
         });
 
         const setsRef = collection(workoutRef, "exerciseSets");
@@ -320,12 +357,14 @@ export default function ActiveWorkoutScreen() {
 
         // Add current sets
         workout.exerciseSets.forEach((set, index) => {
-          const setRef = doc(setsRef, `set_${index}`);
+          const setDocName = `set_${index.toString().padStart(3,'0')}`;
+          const setRef = doc(setsRef, setDocName);
           batch.set(setRef, {
             exerciseId: set.exerciseId,
             exerciseName: set.exerciseName || null,
             name: set.name || null,
             breaktime: set.breaktime ?? 30,
+            weight: set.weight,
             reps: set.reps,
             isDone: set.isDone || false,
           });
@@ -532,7 +571,21 @@ export default function ActiveWorkoutScreen() {
             <Text style={styles.setText}>{sets.indexOf(set) + 1}</Text>
             <Text style={styles.setText}>{set.weight}</Text>
             <Text style={styles.setText}>{set.reps}</Text>
-            <Text style={styles.setText}>Checkbox</Text>
+            
+            {!isEditMode ? (
+              <Pressable 
+                onPress={() => handleSetCheck(globalIndex, set.breaktime || 30)}
+                style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}
+              >
+                <Ionicons 
+                  name={set.isDone ? "checkbox" : "checkbox-outline"} 
+                  size={28} 
+                  color={set.isDone ? Colors.primary : Colors.black} 
+                />
+              </Pressable>
+            ) : (
+              <Text style={styles.setText}>-</Text>
+            )}
 
             {isEditMode && (
               <View style={{flexDirection: 'row', gap: 15, flexGrow:0}}>
@@ -563,32 +616,54 @@ export default function ActiveWorkoutScreen() {
     const isBreaktime = activeOverlay === 'breaktime';
     const isEdit = activeOverlay === 'editSet';
     const isAdd = activeOverlay === 'addSet';
+    const isRestTimer = activeOverlay === 'restTimer';
+
+    // For rest timer, don't close on background press
+    const onRequestClose = isRestTimer ? () => {} : () => setActiveOverlay('none');
 
     return (
-      <Modal visible={true} transparent animationType="fade" onRequestClose={() => setActiveOverlay('none')}>
+      <Modal visible={true} transparent animationType={isRestTimer ? "slide" : "fade"} onRequestClose={onRequestClose}>
         <View style={newStyles.overlay}>
-          <View style={newStyles.content}>
-            <View style={newStyles.header}>
-              <Pressable onPress={() => setActiveOverlay('none')}><Text style={{color: '#ff4444'}}>Abbrechen</Text></Pressable>
-              <Text style={newStyles.headerTitle}>{isBreaktime ? "Pausenzeit" : (isEdit ? "Satz bearbeiten" : "Satz hinzufügen")}</Text>
-              <Pressable style={newStyles.saveButton} onPress={saveModalChanges}><Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text></Pressable>
+          {isRestTimer ? (
+            <View style={[newStyles.content, {justifyContent: 'center', alignItems: 'center', paddingBottom: 100}]}>
+              <Text style={{fontSize: 24, fontWeight: 'bold', color: Colors.black, marginBottom: 20}}>Pausenzeit</Text>
+              <Text style={{fontSize: 72, fontWeight: 'bold', color: Colors.primary}}>
+                {Math.floor(restTimeRemaining / 60)}:{(restTimeRemaining % 60).toString().padStart(2, '0')}
+              </Text>
+              <Pressable 
+                style={{marginTop: 40, paddingHorizontal: 40, paddingVertical: 12, backgroundColor: Colors.black, borderRadius: 8}}
+                onPress={() => {
+                  if (restTimerRef.current) clearInterval(restTimerRef.current);
+                  require("@/app/utils/restTimerStore").clearRestTimer();
+                  setActiveOverlay('none');
+                }}
+              >
+                <Text style={{color: Colors.white, fontSize: 18, fontWeight: 'bold'}}>Fertig</Text>
+              </Pressable>
             </View>
+          ) : (
+            <View style={newStyles.content}>
+              <View style={newStyles.header}>
+                <Pressable onPress={() => setActiveOverlay('none')}><Text style={{color: '#ff4444'}}>Abbrechen</Text></Pressable>
+                <Text style={newStyles.headerTitle}>{isBreaktime ? "Pausenzeit" : (isEdit ? "Satz bearbeiten" : "Satz hinzufügen")}</Text>
+                <Pressable style={newStyles.saveButton} onPress={saveModalChanges}><Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text></Pressable>
+              </View>
 
-            {isBreaktime ? (
-              <View style={newStyles.timeInputContainer}>
-                  <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.mins.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, mins: Number(v)})} />
-                  <Text style={newStyles.label}>Min</Text>
-                  <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.secs.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, secs: Number(v)})} />
-                  <Text style={newStyles.label}>Sek</Text>
-              </View>
-            ) : (
-              <View>
-                <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={2.5} />
-                <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={v => setTempSetData({...tempSetData, reps: v})} step={1} />
-                <Text style={styles.setText}> TODO Checkbox implementieren</Text>
-              </View>
-            )}
-          </View>
+              {isBreaktime ? (
+                <View style={newStyles.timeInputContainer}>
+                    <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.mins.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, mins: Number(v)})} />
+                    <Text style={newStyles.label}>Min</Text>
+                    <TextInput style={newStyles.timeInput} keyboardType="numeric" value={tempBreakTime.secs.toString()} onChangeText={v => setTempBreakTime({...tempBreakTime, secs: Number(v)})} />
+                    <Text style={newStyles.label}>Sek</Text>
+                </View>
+              ) : (
+                <View>
+                  <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={2.5} />
+                  <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={v => setTempSetData({...tempSetData, reps: v})} step={1} />
+                </View>
+              )}
+            </View>
+          )}
         </View>
       </Modal>
     );
@@ -634,7 +709,9 @@ export default function ActiveWorkoutScreen() {
   }
 
   //TODO Meh lösung: Leerzeichen
-  const timerString = `  Dauer\n${formatTime(elapsedTime)}`;
+  const timerString = activeOverlay === 'restTimer' 
+    ? `  Pausenzeit\n${Math.floor(restTimeRemaining / 60)}:${(restTimeRemaining % 60).toString().padStart(2, '0')}`
+    : `  Dauer\n${formatTime(elapsedTime)}`;
 
   return (
     <GestureHandlerRootView style={styles.sheetContainer}>

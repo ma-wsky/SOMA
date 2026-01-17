@@ -160,28 +160,7 @@ export default function SingleWorkoutInfoScreen() {
   }, [workout, isEditMode]);
 
 
-  // Handle Return from AddExercise
-  useEffect(() => {
-    if (selectedExerciseId) {
-      setWorkout((prev) => {
-        if(!prev)return null;
-        const newSet: ExerciseSet = {
-          id: `set_${Date.now()}`, exerciseId: selectedExerciseId as string, exerciseName: selectedExerciseName as string,
-          weight: 20, reps: 10, breaktime: Number(selectedBreakTime) || 30, isDone: false
-      };
-      return{...prev, exerciseSets:[...prev.exerciseSets,newSet]};
-      });
 
-      setIsEditMode(true);//failsafe
-      
-      router.setParams({ 
-        selectedExerciseId: undefined,
-        selectedExerciseName: undefined,
-        selectedBreakTime:undefined,
-        _t:undefined 
-      });
-    }
-  }, [selectedExerciseId, params._t]);
 
 
   const groupSetsByExercise = (sets: ExerciseSet[]) => {
@@ -244,6 +223,32 @@ export default function SingleWorkoutInfoScreen() {
           }
       });
   };
+
+  // Handle Return from AddExercise - übung wird nach navigieren direkt hinzugefügt
+  useEffect(() => {
+    if (selectedExerciseId && workout) {
+      const foundName = selectedExerciseName || exercisesMap.get(selectedExerciseId as string)?.name || "Unbekannte Übung";
+
+      // New Set
+      const newSet: ExerciseSet = {
+      id: `set_${Date.now()}`,
+      exerciseId: selectedExerciseId as string,
+      exerciseName: foundName as string,
+      weight: 20, reps: 10, breaktime: Number(selectedBreakTime) || 30, isDone: false
+    };
+
+    const newWorkout = {...workout, exerciseSets: [...workout.exerciseSets,newSet]};
+    setWorkout(newWorkout);
+    setIsEditMode(true);
+
+    router.setParams({ 
+      selectedExerciseId: undefined,
+      selectedExerciseName: undefined,
+      selectedBreakTime: undefined,
+      _t: undefined
+     });
+    }
+  }, [selectedExerciseId, workout, exercisesMap]);
 
   const handleRemoveSet = (index: number) => {
     setWorkout(prev => {
