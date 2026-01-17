@@ -47,7 +47,7 @@ export const NumberStepper = ({
   );
 };
 
-export const styles = StyleSheet.create({
+export const newStyles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.8)",
