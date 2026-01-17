@@ -141,7 +141,7 @@ export default function ActiveWorkoutScreen() {
     return map;
   };
 
-
+/*
   //new Add Exercise in hope that multiple exercises can be added
   const addExercise = (exerciseId: string, exerciseName: string, breaktime?: number) => {
     if (!workout) return;
@@ -165,7 +165,7 @@ export default function ActiveWorkoutScreen() {
     };
 
     setWorkout(newWorkout);
-  };
+  };*/
 
 
   // Handle Return from AddExercise
@@ -186,10 +186,11 @@ export default function ActiveWorkoutScreen() {
     updateWorkoutState(newWorkout);
 
 
-    /*setWorkout(newWorkout);
+    //TODO Wieso hier - geht eig. auch ohne??
+    setWorkout(newWorkout);
     if(editIdRef.current){
       require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newWorkout);
-    }*/
+    }
 
     router.setParams({ selectedExerciseId: undefined,
       selectedExerciseName: undefined,
@@ -221,33 +222,6 @@ export default function ActiveWorkoutScreen() {
         const currentEditId = (workoutEditId|| id|| `temp_${Date.now()}`) as string;
         editIdRef.current=currentEditId;
 
-        //comment from here
-
-        const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(currentEditId);
-        
-        if (draft) {
-          setWorkout(draft);
-        } else if (id) {
-          const userRef = doc(db, "users", user.uid, "workouts", id as string);
-          const userSnap = await getDoc(userRef);
-          if (userSnap.exists()) {
-            const setsSnap = await getDocs(collection(userRef, "exerciseSets"));
-            const exerciseSets: ExerciseSet[] = setsSnap.docs.map(d => ({ id: d.id, ...d.data() } as ExerciseSet));
-            setWorkout({ id: userSnap.id, ...userSnap.data(), exerciseSets, startTime: Date.now() } as Workout);
-          }
-        } else {
-          setWorkout({ date: new Date().toISOString(), exerciseSets: [], startTime: Date.now() });
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadWorkoutData();
-  }, [id]);
-
-/*
         if (id != null) {
           // Wenn ID vorhanden, lade gespeichertes Workout
           editIdRef.current = workoutEditId as string|| id as string;
@@ -310,8 +284,8 @@ export default function ActiveWorkoutScreen() {
       }
     };
 
-    loadWorkout();
-  }, [id]);*/
+    loadWorkoutData();
+  }, [id]);
 
 
   
@@ -336,8 +310,6 @@ export default function ActiveWorkoutScreen() {
     const newSets = workout.exerciseSets.filter((_, i) => i !== index);
     updateWorkoutState({ ...workout, exerciseSets: newSets });
   };
-
-
 
   // Discard Workout
   const handleDiscardWorkout = () => {
@@ -474,8 +446,8 @@ export default function ActiveWorkoutScreen() {
       .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  //Bottom Sheet stuff
   const snapPoints = ['99%'];
-
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [isMinimized, setIsMinimized] = useState(false);
 
@@ -539,50 +511,15 @@ export default function ActiveWorkoutScreen() {
           renderExerciseCard(exerciseId, sets, true))}
 
         <Pressable
-          onPress={() => addExercise("", "", 30)}
+          onPress={() => router.push({ pathname: "/screens/exercise/AddExerciseToWorkoutScreen", params: { returnTo: "active", workoutEditId: editIdRef.current } })}
           style={styles.addExerciseButton}
         >
 
-          <Text style={styles.addExerciseButtonText}>+ Übung hinzufügen</Text>
+          <Text style={styles.addExerciseButtonText}>Übung hinzufügen +</Text>
         </Pressable>
 
         </View>
       </ScrollView>
-    );
-  };
-
-
-  const renderSetEditMode = (set: ExerciseSet, index: number) => (
-    <View key={index} style={styles.setEditRow}>
-      <Text style={styles.setText}>Satz {index + 1}</Text>
-      <Text style={[styles.setText, {color: '#aaa'}]}>{set.weight}kg x {set.reps}</Text>
-      
-      <View style={{flexDirection: 'row', gap: 15}}>
-        {/* Stift Icon -> Öffnet Overlay */}
-        <Pressable onPress={() => openEditSetOverlay(index, set)}>
-          <Ionicons name="pencil" size={22} color="#007AFF" />
-        </Pressable>
-        {/* Trash Icon */}
-        <Pressable onPress={() => handleRemoveSet(index)}>
-          <Ionicons name="trash" size={22} color="#ff4444" />
-        </Pressable>
-      </View>
-    </View>
-  );
-
-
-
-  const renderSetViewMode = (set: ExerciseSet, index: number) => {
-    
-    return(
-      <Pressable key={index} onPress={() => handleSetCheck(index)} style={styles.setRow}>
-      <Text style={styles.setText}>{index + 1}</Text>
-      <Text style={styles.setText}>{set.weight} kg</Text>
-      <Text style={styles.setText}>{set.reps} Wdh</Text>
-      <View style={[styles.checkbox, set.isDone && styles.checkboxDone]}>
-        {set.isDone && <Ionicons name="checkmark" size={16} color="#fff" />}
-      </View>
-    </Pressable>
     );
   };
 
@@ -669,7 +606,6 @@ export default function ActiveWorkoutScreen() {
               <View>
                 <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={2.5} />
                 <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={v => setTempSetData({...tempSetData, reps: v})} step={1} />
-                 {/* Keine 'Erledigt' Checkbox hier, da dies nur der Info Screen ist */}
               </View>
             )}
           </View>
@@ -732,50 +668,15 @@ export default function ActiveWorkoutScreen() {
             onRightPress={() =>isEditMode ? handleSaveChanges() : handleFinishWorkout()}
           />
 
-          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
-            {Object.entries(groupSetsByExercise(workout?.exerciseSets || [])).map(([id, sets]) => 
-              renderExerciseCard(id, sets, isEditMode)
-            )}
-
-            {!isEditMode && (
-                <Pressable style={styles.topBarLikeButton} onPress={() => setIsEditMode(true)}>
-                    <Text style={styles.addExerciseButtonText}>Bearbeiten</Text>
-                </Pressable>
-            )}
-
-            {isEditMode && (
-              <Pressable 
-                style={styles.addExerciseButton} 
-                onPress={() => router.push({ pathname: "/screens/exercise/AddExerciseToWorkoutScreen", params: { returnTo: "active", workoutEditId: editIdRef.current } })}
-              >
-                <Text style={styles.addExerciseButtonText}>Übung hinzufügen +</Text>
-              </Pressable>
-            )}
-          </ScrollView>
-        </BottomSheetView>
-      </BottomSheet>
-
-    
-
-      <LoadingOverlay visible={loading} />
-    </GestureHandlerRootView>
-  );
-
-
-
-
-};
-
-
-//--------------------------------------------------
-/*
 
           {isEditMode ? renderEditMode() : renderViewMode()}
           <LoadingOverlay visible={loading} />
-          {renderActiveOverlay()}
+          {renderOverlays()}
+        
         </BottomSheetView>
       </BottomSheet>
-      {isMinimized && ( <View />  )}//Dein Minimized View Code  )}
+    
     </GestureHandlerRootView>
   );
-};*/
+
+};
