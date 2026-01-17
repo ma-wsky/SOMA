@@ -373,14 +373,6 @@ export default function ActiveWorkoutScreen() {
     updateWorkoutState({ ...workout, exerciseSets: newSets });
   };
 
-  // Router for Adding Exercise
-  const addExerciseRouter = () => {
-    router.push({
-      pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
-      params: { workoutEditId: editIdRef.current, returnTo: "active" }
-    });
-  };
-
   // Handle Return from AddExercise
   useEffect(() => {
     if (!selectedExerciseId) return;

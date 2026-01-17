@@ -44,23 +44,25 @@ type OverlayTypes = "none" | "breaktime" | "editSet" | "addSet";
 export default function SingleWorkoutInfoScreen() {
   const [loading, setLoading] = useState<boolean>(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const { id, workoutEditId, selectedExerciseId, selectedExerciseName, selectedBreakTime } = useLocalSearchParams();//<{id?: string;workoutEditId?: string;selectedExerciseId?: string;selectedExerciseName?: string;selectedBreakTime?: string;}>();
+
+  //extrasteps: Help for addExercise
+  const params = useLocalSearchParams();
+  const id = Array.isArray(params.id)? params.id[0]: params.id;
+  const workoutEditId = Array.isArray(params.workoutEditId)?params.workoutEditId[0] : params.workoutEditId;
+  const {selectedExerciseId, selectedExerciseName, selectedBreakTime } = params;
+
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [exercisesMap, setExercisesMap] = useState<Map<string, Exercise>>(new Map());
-  //const editIdRef = useRef<string | null>(null);
   const editIdRef = useRef<string | string[]>(null);
-  const isCreateMode = !id && !!workoutEditId;
+  const isCreateMode = !id && !!workoutEditId;//!! -> cast strikt zu boolean
   
-  
-  //TODO WHY !! ?
-
 
   // Overlay State
     const [activeOverlay, setActiveOverlay] = useState<OverlayTypes>("none");
     const [targetSetIndex, setTargetSetIndex] = useState<number | null>(null);
     const [targetExerciseId, setTargetExerciseId] = useState<string | null>(null);
     const [targetExerciseName, setTargetExerciseName] = useState<string | null>(null);
-    //TempData for Overlay
+    //Temp for Overlay
     const [tempSetData, setTempSetData] = useState({weight:0,reps:0});
     const [tempBreakTime, setTempBreakTime] =useState({ mins: 0, secs: 0 });
 
@@ -68,18 +70,16 @@ export default function SingleWorkoutInfoScreen() {
   // Initialize edit key and start
   useEffect(() => {
     if (!editIdRef.current) {
-      editIdRef.current = workoutEditId || (id ? `workout_${id}` : null);
+      editIdRef.current = workoutEditId || (id ? `workout_${id}` : `new_${Date.now()}`);
     }
-    if (isCreateMode && !isEditMode) {
+    if (isCreateMode) {
       setIsEditMode(true);
     }
-  }, [isCreateMode]);
+  }, [isCreateMode, id, workoutEditId]);
     
 
   //Loading
   useEffect(() => {
-    //if (!id && !isCreateMode) return;
-
     const fetchWorkout = async () => {
       setLoading(true);
       try {
@@ -91,7 +91,7 @@ export default function SingleWorkoutInfoScreen() {
         });
         setExercisesMap(exercisesMap);
 
-        // If creating new workout, initialize empty
+        // New workout, initialize empty
         if (!id) {
           const draft = editIdRef.current ? require("@/app/utils/workoutEditingStore").getEditingWorkout(editIdRef.current) : null;
           if (draft) {
@@ -100,20 +100,21 @@ export default function SingleWorkoutInfoScreen() {
             setWorkout({
               date: new Date().toISOString(),
               exerciseSets: [],
-            } as Workout);
+              name:""
+            });
           }
-          setLoading(false);
           return;
         }
 
+        // Existing WOrkout
         const user = auth.currentUser;
         if (!user) {
-          setWorkout(null);
           return;
         }
 
-        const userRef = doc(db, "users", user.uid, "workouts", id as string);
+        const userRef = doc(db, "users", user.uid, "workouts", id);
         const userSnap = await getDoc(userRef);
+
         if (userSnap.exists()) {
           // Load exercise sets from subcollection
           const setsSnapshot = await getDocs(collection(userRef, "exerciseSets"));
@@ -130,22 +131,19 @@ export default function SingleWorkoutInfoScreen() {
               weight: data.weight,
               reps: data.reps,
               isDone: data.isDone || false,
-            } as ExerciseSet);
+            });
           });
 
           setWorkout({
             id: userSnap.id,
-            name: userSnap.data().name || null,
+            name: userSnap.data().name || "",
             date: userSnap.data().date,
             exerciseSets: sets,
           });
-          return;
         }
 
-        setWorkout(null);
       } catch (e) {
         console.error("Fehler beim Laden des Workouts:", e);
-        setWorkout(null);
       } finally {
         setLoading(false);
       }
@@ -154,7 +152,7 @@ export default function SingleWorkoutInfoScreen() {
     fetchWorkout();
   }, [id]);
 
-  // Persist draft when workout changes (edit mode)
+  // Save draft - workout changes(edit mode)
   useEffect(() => {
     if (isEditMode && editIdRef.current && workout) {
       require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, workout);
@@ -164,15 +162,26 @@ export default function SingleWorkoutInfoScreen() {
 
   // Handle Return from AddExercise
   useEffect(() => {
-    if (selectedExerciseId && workout) {
-      const newSet: ExerciseSet = {
-        id: `set_${Date.now()}`, exerciseId: selectedExerciseId as string, exerciseName: selectedExerciseName as string,
-        weight: 20, reps: 10, breaktime: Number(selectedBreakTime) || 30, isDone: false
+    if (selectedExerciseId) {
+      setWorkout((prev) => {
+        if(!prev)return null;
+        const newSet: ExerciseSet = {
+          id: `set_${Date.now()}`, exerciseId: selectedExerciseId as string, exerciseName: selectedExerciseName as string,
+          weight: 20, reps: 10, breaktime: Number(selectedBreakTime) || 30, isDone: false
       };
-      setWorkout({ ...workout, exerciseSets: [...workout.exerciseSets, newSet] });
-      router.setParams({ selectedExerciseId: undefined });
+      return{...prev, exerciseSets:[...prev.exerciseSets,newSet]};
+      });
+
+      setIsEditMode(true);//failsafe
+      
+      router.setParams({ 
+        selectedExerciseId: undefined,
+        selectedExerciseName: undefined,
+        selectedBreakTime:undefined,
+        _t:undefined 
+      });
     }
-  }, [selectedExerciseId]);
+  }, [selectedExerciseId, params._t]);
 
 
   const groupSetsByExercise = (sets: ExerciseSet[]) => {
@@ -181,9 +190,9 @@ export default function SingleWorkoutInfoScreen() {
     return map;
   };
 
-  const openBreaktime = (exerciseId: string, secs: number) => {
+  const openBreaktime = (exerciseId: string, sec: number) => {
     setTargetExerciseId(exerciseId);
-    setTempBreakTime(secondsToMinSec(secs));
+    setTempBreakTime(secondsToMinSec(sec));
     setActiveOverlay('breaktime');
   };
 
@@ -202,33 +211,164 @@ export default function SingleWorkoutInfoScreen() {
 
   const saveModalChanges = () => {
     if(!workout) return;
-    let newSets = [...workout.exerciseSets];
 
-    if (activeOverlay === 'breaktime' && targetExerciseId) {
+    setWorkout(prev => {
+       if(!prev)return null;
+
+      let newSets = [...workout.exerciseSets];
+
+      if (activeOverlay === 'breaktime' && targetExerciseId) {
        const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
        newSets = newSets.map(s => s.exerciseId === targetExerciseId ? {...s, breaktime: secs} : s);
-    } 
-    else if (activeOverlay === 'editSet' && targetSetIndex !== null) {
-       newSets[targetSetIndex] = { ...newSets[targetSetIndex], weight: tempSetData.weight, reps: tempSetData.reps };
-    } 
-    else if (activeOverlay === 'addSet' && targetExerciseId) {
-       newSets.push({
-          id: `set_${Date.now()}`, exerciseId: targetExerciseId, exerciseName: targetExerciseName || "",
-          weight: tempSetData.weight, reps: tempSetData.reps, breaktime: 30, isDone: false
-       });
-    }
-    
-    setWorkout({ ...workout, exerciseSets: newSets });
+      } 
+      else if (activeOverlay === 'editSet' && targetSetIndex !== null) {
+        newSets[targetSetIndex] = { ...newSets[targetSetIndex], weight: tempSetData.weight, reps: tempSetData.reps };
+      } 
+      else if (activeOverlay === 'addSet' && targetExerciseId) {
+        newSets.push({
+            id: `set_${Date.now()}`, exerciseId: targetExerciseId, exerciseName: targetExerciseName || "",
+            weight: tempSetData.weight, reps: tempSetData.reps, breaktime: 30, isDone: false
+        });
+      }
+      return {...prev, exerciseSets:newSets};
+    });
     setActiveOverlay('none');
   };
 
-  const handleRemoveSet = (index: number) => {
-     if(!workout) return;
-     const newSets = workout.exerciseSets.filter((_, i) => i !== index);
-     setWorkout({ ...workout, exerciseSets: newSets });
+  const addExercise = () => {
+    router.push({
+      pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
+          params: { 
+              returnTo: "edit",
+              workoutEditId: editIdRef.current
+          }
+      });
   };
 
-  // --- Render Functions ---
+  const handleRemoveSet = (index: number) => {
+    setWorkout(prev => {
+      if(!prev) return null;
+      return {...prev, exerciseSets:prev.exerciseSets.filter((_,i) =>i !== index)};
+    });
+  };
+
+
+
+/*
+  const handleAddSet = (exerciseId: string, exerciseName?: string, breaktime?: number) => {
+    const newSetBase: ExerciseSet = {
+      id: `set_${Date.now()}`,
+      exerciseId,
+      exerciseName: exerciseName || exercisesMap.get(exerciseId)?.name,
+      name: `${exerciseName || exercisesMap.get(exerciseId)?.name}Set`,
+      breaktime: breaktime ?? 30,
+      weight: 20,
+      reps: 5,
+      isDone: false,
+    };
+
+    setWorkout((prev) => {
+      const base = prev ?? ({ date: new Date().toISOString(), exerciseSets: [] } as Workout);
+      const count = base.exerciseSets.filter((s) => s.exerciseId === exerciseId).length;
+      const newSet = { ...newSetBase, name: `${newSetBase.exerciseName}Set${count + 1}` } as ExerciseSet;
+      const newW = { ...base, exerciseSets: [...(base.exerciseSets || []), newSet] } as Workout;
+      if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
+      return newW;
+    });
+  };
+
+  const handleUpdateSet = (index: number, key: "weight" | "reps", value: string) => {
+    if (!workout) return;
+    const updatedSets = [...workout.exerciseSets];
+    const numValue = parseInt(value) || 0;
+    updatedSets[index][key] = numValue;
+    const newW = { ...workout, exerciseSets: updatedSets };
+    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
+    setWorkout(newW);
+  };
+  */
+
+  const handleSaveWorkout = async () => {
+    if (!workout) return;
+
+    if (!workout.name || workout.exerciseSets.length === 0) {
+      showAlert("Fehler", "Bitte geben Sie einen Trainingsnamen ein und fügen Sie mindestens einen Satz hinzu.");
+      return;
+    }
+
+    showConfirm("Training speichern", "Änderungen speichern?", async () => {
+      setLoading(true);
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          showAlert("Fehler", "Sie müssen angemeldet sein");
+          return;
+        }
+
+        const workoutId = id || Date.now().toString();
+        const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
+
+        const batch = writeBatch(db);
+
+        batch.set(workoutRef, {
+          date: workout.date,
+          name: workout.name,
+        });
+
+        const setsRef = collection(workoutRef, "exerciseSets");
+        const existingSets = await getDocs(setsRef);
+        existingSets.forEach((doc) => {
+          batch.delete(doc.ref);
+        });
+
+        workout.exerciseSets.forEach((set, index) => {
+          const setDocName = `set_${index.toString().padStart(3,'0')}`;
+          const setRef = doc(setsRef, setDocName);
+          batch.set(setRef, {
+            exerciseId: set.exerciseId,
+            exerciseName: set.exerciseName || null,
+            name: set.name || null,
+            breaktime: set.breaktime ?? 30,
+            weight: set.weight,
+            reps: set.reps,
+            isDone: set.isDone || false,
+          });
+        });
+
+        await batch.commit();
+
+        if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
+
+        showAlert("Erfolg", "Training gespeichert");
+
+        if(router.canGoBack()){
+          router.back();
+        }else{
+          router.replace("../..//(tabs)/WorkokutScreenProxy");
+        }
+      
+      } catch (e) {
+        console.error("Fehler beim Speichern:", e);
+        showAlert("Fehler", "Training konnte nicht gespeichert werden.");
+      } finally {
+        setLoading(false);
+      }
+    });
+  };
+
+
+
+  if (!workout) {
+    return (
+    <View style={styles.itemContainer}>
+      <TopBar leftButtonText="Zurück" onLeftPress={()=>router.back()}/>
+      <LoadingOverlay visible={true}/>
+    </View>
+    );
+  }
+
+
+  //Render Functions
   const renderCard = (exerciseId: string, sets: ExerciseSet[]) => (
     <View key={exerciseId} style={styles.exerciseCard}>
       <View style={styles.exerciseCardHeader}>
@@ -244,34 +384,28 @@ export default function SingleWorkoutInfoScreen() {
           </View>
         </Pressable>
       </View>
+
       <View style={styles.setRowHeader}>
           <Text style={styles.setTextHeader}>Satz</Text>
           <Text style={styles.setTextHeader}>Gewicht (kg)</Text>
           <Text style={styles.setTextHeader}>Wiederholungen</Text>
-          {isEditMode && (
-            <View style={{flexDirection: 'row', gap: 15}}>
-              <Text style={styles.setTextHeader}></Text>
-              <Text style={styles.setTextHeader}></Text>
-            </View>
-          )}
-
+          {isEditMode && <View style={{width: 50}}/>}
           </View>
+
       {sets.map((set) => {
-        const idx = workout!.exerciseSets.indexOf(set);
+        const idx = workout.exerciseSets.indexOf(set);
         
         return (
           <View key={idx} style={isEditMode ? styles.setEditRow : styles.setRow}>
             <Text style={styles.setText}>{sets.indexOf(set) + 1}</Text>
             <Text style={styles.setText}>{set.weight}</Text>
-            <Text style={styles.setText}>{    set.reps}</Text>
+            <Text style={styles.setText}>{set.reps}</Text>
             
             {isEditMode && (
               <View style={{flexDirection: 'row', gap: 15, flexGrow:0}}>
-                 {/* Pen Icon */}
                  <Pressable onPress={() => openEditSet(idx, set)}>
                     <Ionicons name="pencil" size={22} color={Colors.black} />
                  </Pressable>
-                 {/* Trash */}
                  <Pressable onPress={() => handleRemoveSet(idx)}>
                     <Ionicons name="trash" size={22} color={Colors.black} />
                  </Pressable>
@@ -289,6 +423,8 @@ export default function SingleWorkoutInfoScreen() {
     </View>
   );
 
+
+  //TODO STILL LOOKING AT IT
   const renderOverlays = () => {
     if (activeOverlay === 'none') return null;
     const isBreaktime = activeOverlay === 'breaktime';
@@ -327,139 +463,7 @@ export default function SingleWorkoutInfoScreen() {
 
 
 
-
-
-
-  const handleAddSet = (exerciseId: string, exerciseName?: string, breaktime?: number) => {
-    const newSetBase: ExerciseSet = {
-      id: `set_${Date.now()}`,
-      exerciseId,
-      exerciseName: exerciseName || exercisesMap.get(exerciseId)?.name,
-      name: `${exerciseName || exercisesMap.get(exerciseId)?.name}Set`,
-      breaktime: breaktime ?? 30,
-      weight: 20,
-      reps: 5,
-      isDone: false,
-    };
-
-    setWorkout((prev) => {
-      const base = prev ?? ({ date: new Date().toISOString(), exerciseSets: [] } as Workout);
-      const count = base.exerciseSets.filter((s) => s.exerciseId === exerciseId).length;
-      const newSet = { ...newSetBase, name: `${newSetBase.exerciseName}Set${count + 1}` } as ExerciseSet;
-      const newW = { ...base, exerciseSets: [...(base.exerciseSets || []), newSet] } as Workout;
-      if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
-      return newW;
-    });
-  };
-
-  /*
-  const handleRemoveSet = (index: number) => {
-    setWorkout((prev) => {
-      const newW = { ...prev!, exerciseSets: prev!.exerciseSets.filter((_, i) => i !== index) };
-      if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
-      return newW;
-    });
-  };
-  */
-
-  const handleUpdateSet = (index: number, key: "weight" | "reps", value: string) => {
-    if (!workout) return;
-    const updatedSets = [...workout.exerciseSets];
-    const numValue = parseInt(value) || 0;
-    updatedSets[index][key] = numValue;
-    const newW = { ...workout, exerciseSets: updatedSets };
-    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
-    setWorkout(newW);
-  };
-
-  const handleSaveWorkout = async () => {
-    if (!workout) return;
-
-    if (!workout.name || workout.exerciseSets.length === 0) {
-      showAlert("Fehler", "Bitte geben Sie einen Namen ein und fügen Sie mindestens einen Satz hinzu");
-      return;
-    }
-
-    showConfirm("Training speichern", isCreateMode ? "Möchten Sie dieses Training speichern?" : "Möchten Sie die Änderungen speichern?", async () => {
-      setLoading(true);
-      try {
-        const user = auth.currentUser;
-        if (!user) {
-          showAlert("Fehler", "Sie müssen angemeldet sein");
-          return;
-        }
-
-        const workoutId = id || Date.now().toString();
-        const workoutRef = doc(db, "users", user.uid, "workouts", workoutId as string);
-
-        const workoutData = {
-          date: workout.date,
-          name: workout.name || null,
-        };
-
-        const batch = writeBatch(db);
-        batch.set(workoutRef, workoutData);
-
-        const setsRef = collection(workoutRef, "exerciseSets");
-        const existingSets = await getDocs(setsRef);
-        existingSets.forEach((doc) => {
-          batch.delete(doc.ref);
-        });
-
-        workout.exerciseSets.forEach((set, index) => {
-          const setRef = doc(setsRef, `set_${index}`);
-          batch.set(setRef, {
-            exerciseId: set.exerciseId,
-            exerciseName: set.exerciseName || null,
-            name: set.name || null,
-            breaktime: set.breaktime ?? 30,
-            weight: set.weight,
-            reps: set.reps,
-            isDone: set.isDone || false,
-          });
-        });
-
-        await batch.commit();
-
-        if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
-
-        showAlert("Erfolg", isCreateMode ? "Training erstellt" : "Training aktualisiert");
-        router.push("../..//(tabs)/WorkoutScreenProxy");
-      } catch (e) {
-        console.error("Fehler beim Speichern:", e);
-        showAlert("Fehler", "Training konnte nicht gespeichert werden");
-      } finally {
-        setLoading(false);
-      }
-    }, { confirmText: "Speichern", cancelText: "Abbrechen" });
-  };
-/*
-  // Handle returning from AddExerciseToWorkoutScreen with selected exercise(s)
-  useEffect(() => {
-    if (selectedExerciseId) {
-      handleAddSet(selectedExerciseId, selectedExerciseName, Number(selectedBreakTime));
-      router.setParams({
-        selectedExerciseId: undefined,
-        selectedExerciseName: undefined,
-        selectedBreakTime: undefined,
-      });
-      return;
-    }
-  }, [selectedExerciseId]);
-  */
-
-  if (!workout) {
-    return (
-    <View style={styles.itemContainer}>
-      <TopBar leftButtonText="Zurück" onLeftPress={()=>router.back()}/>
-      <LoadingOverlay visible={true}/>
-    </View>
-    );
-  }
     
-
-  const canSave = isEditMode && !!workout?.name && (workout.exerciseSets?.length ?? 0) > 0;
-
   return (
     <View style={styles.container}>
       <TopBar
@@ -474,14 +478,17 @@ export default function SingleWorkoutInfoScreen() {
         {isEditMode && (
            <View style={{padding:16}}>
              <Text style={{color: Colors.black, width:800, marginBottom: 4,fontSize:24}}>Trainingsname:</Text>
-             <TextInput value={workout.name || ""} onChangeText={t => setWorkout({...workout, name: t})} style={{backgroundColor: Colors.background, color: Colors.black, padding: 10, borderRadius: 8,borderColor:Colors.black,borderWidth:1}} />
+             <TextInput 
+             value={workout.name || ""} 
+             onChangeText={t => setWorkout(prev => prev ? {...prev, name:t} : null)} 
+             style={{backgroundColor: Colors.background, color: Colors.black, padding: 10, borderRadius: 8,borderColor:Colors.black,borderWidth:1}} />
            </View>
         )}
 
         {Object.entries(groupSetsByExercise(workout.exerciseSets)).map(([id, sets]) => renderCard(id, sets))}
 
         {isEditMode && (
-           <Pressable onPress={() => router.push({pathname: "/screens/exercise/AddExerciseToWorkoutScreen", params: {returnTo: "info"}})} style={[styles.addExerciseButton, {marginTop: 20}]}>
+           <Pressable onPress={addExercise} style={[styles.addExerciseButton, {marginTop: 20}]}>
              <Text style={styles.addExerciseButtonText}>Übung hinzufügen  +</Text>
            </Pressable>
         )}
