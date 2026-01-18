@@ -2,7 +2,7 @@ import { View, Text, Pressable, Image, Alert, ScrollView } from "react-native";
 import { router, useLocalSearchParams } from "expo-router"
 import {TopBar} from "@/components/TopBar";
 import { useState, useEffect } from "react";
-import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {auth, db} from "@/firebaseConfig";
 import { Exercise } from "@/types/Exercise"
