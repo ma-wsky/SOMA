@@ -74,7 +74,7 @@ export default function AddExerciseToWorkoutScreen() {
                     value={breakTime}
                     onChangeText={setBreakTime}
                     placeholder="30"
-                    placeholderTextColor={Colors.textPlaceholder}
+                    placeholderTextColor={Colors.gray}
                     keyboardType="numeric"
                     style={styles.breakTimeInput}
                 />
