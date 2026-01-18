@@ -43,8 +43,8 @@ export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.Rea
   const groupedSets = groupSetsByExercise(props.workout.exerciseSets);
 
   return (
-    <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-      <Text style={{ color: Colors.black, width: 800, marginBottom: 10, fontSize: 24, marginLeft: 30 }}>
+    <ScrollView contentContainerStyle={{ paddingBottom: 120, padding: 16 }}>
+      <Text style={{ color: Colors.black, width: 800, marginBottom: 10, fontSize: 24 }}>
         {props.workout.name}
       </Text>
 
@@ -68,7 +68,7 @@ export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.Rea
   const groupedSets = groupSetsByExercise(props.workout.exerciseSets);
 
   return (
-    <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+    <ScrollView contentContainerStyle={{ paddingBottom: 120, padding: 16 }}>
       <View style={{ padding: 16 }}>
         <Text style={{ color: Colors.black, width: 800, marginBottom: 4, fontSize: 24 }}>
           Trainingsname:

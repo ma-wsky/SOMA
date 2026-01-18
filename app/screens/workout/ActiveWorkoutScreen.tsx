@@ -41,6 +41,7 @@ export default function ActiveWorkoutScreen() {
     isEditMode,
     loading,
     setWorkout,
+    setOriginalWorkout,
     setExercises,
     setIsEditMode,
     setLoading,
@@ -53,6 +54,7 @@ export default function ActiveWorkoutScreen() {
     handleSaveChanges,
     saveBreakTime,
     saveSetData,
+    handleCancel,
   } = useActiveWorkoutData();
 
   // Timer Management
@@ -81,12 +83,20 @@ export default function ActiveWorkoutScreen() {
     id: id as string,
     workoutEditId: workoutEditId as string,
     setWorkout,
+    setOriginalWorkout,
     setExercises,
     setLoading,
     setEditIdRef,
   });
   
 
+
+  // Persist workout changes to edit store during editing
+  useEffect(() => {
+    if (workout && isEditMode && workoutEditId) {
+       require("@/utils/workoutEditingStore").setEditingWorkout(workoutEditId as string, workout);
+    }
+  }, [workout, isEditMode, workoutEditId]);
 
   // Handle Return from AddExercise
   useEffect(() => {
@@ -181,11 +191,17 @@ export default function ActiveWorkoutScreen() {
 
   // Navigate to Add Exercise
   const handleAddExercise = useCallback(() => {
+    if (!workout) return;
+    
+    const idToUse = (workoutEditId as string) || workout.id || `active_temp_${Date.now()}`;
+    require("@/utils/workoutEditingStore").setEditingWorkout(idToUse, workout);
+    setEditIdRef(idToUse);
+
     router.push({
       pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
-      params: { returnTo: "active", workoutEditId },
+      params: { returnTo: "active", workoutEditId: idToUse },
     });
-  }, [workoutEditId]);
+  }, [workout, workoutEditId, setEditIdRef]);
 
   if (!workout) {
     return (
@@ -216,7 +232,10 @@ export default function ActiveWorkoutScreen() {
     onOpenAddSet: openAddSetOverlay,
     onSetCheck: handleSetCheckWithTimer,
     onRemoveSet: handleRemoveSet,
-    onEditModeToggle: setIsEditMode,
+    onEditModeToggle: (enabled: boolean) => {
+       if (enabled && workout) setOriginalWorkout(workout);
+       setIsEditMode(enabled);
+    },
     onAddExercise: handleAddExercise,
     onSaveModalChanges: handleSaveModalChanges,
     onCloseOverlay: closeOverlay,
@@ -227,7 +246,7 @@ export default function ActiveWorkoutScreen() {
   return (
     <GestureHandlerRootView style={styles.sheetContainer}>
       <BottomSheet
-        index={1}
+        index={0}
         snapPoints={snapPoints}
         onChange={handleSheetChanges}
         enablePanDownToClose={true}
@@ -237,7 +256,7 @@ export default function ActiveWorkoutScreen() {
             leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
             titleText={isEditMode ? "Training bearbeiten" : timerString}
             rightButtonText={isEditMode ? "Speichern" : "Fertig"}
-            onLeftPress={() => (isEditMode ? setIsEditMode(false) : handleDiscardWorkout())}
+            onLeftPress={() => (isEditMode ? handleCancel() : handleDiscardWorkout())}
             onRightPress={() => (isEditMode ? handleSaveChangesWithTimer() : handleFinishWorkout())}
           />
 

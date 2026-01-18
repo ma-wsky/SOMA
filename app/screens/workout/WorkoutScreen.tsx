@@ -22,7 +22,7 @@ export default function WorkoutScreen() {
   useFocusEffect(
     useCallback(() => {
       try {
-        const active = require("@/app/utils/activeWorkoutStore").getActiveWorkout();
+        const active = require("@/utils/activeWorkoutStore").getActiveWorkout();
         if (active?.id) {
           router.push({ pathname: '/screens/workout/ActiveWorkoutScreen', params: { id: active.id } });
         }

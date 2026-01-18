@@ -25,6 +25,7 @@ export const useWorkoutLoader = ({
   id,
   workoutEditId,
   setWorkout,
+  setOriginalWorkout,
   setExercises,
   setLoading,
   setEditIdRef,
@@ -79,15 +80,28 @@ export const useWorkoutLoader = ({
 
             // Try to restore draft first
             const draft = require("@/utils/workoutEditingStore").getEditingWorkout(currentEditId);
+            
+            // Try to get active start time
+            const activeStore = require("@/utils/activeWorkoutStore").getActiveWorkout();
+            const preservedStartTime = (activeStore?.id === id) ? activeStore.startTime : undefined;
+
             if (draft) {
               setWorkout(draft);
-            } else {
-              setWorkout({
+              if (setOriginalWorkout) setOriginalWorkout({
                 id: userSnap.id,
                 ...workoutData,
                 exerciseSets,
-                startTime: Date.now(),
+                startTime: preservedStartTime || draft.startTime || Date.now(),
               });
+            } else {
+              const loadedW = {
+                id: userSnap.id,
+                ...workoutData,
+                exerciseSets,
+                startTime: preservedStartTime || Date.now(),
+              };
+              setWorkout(loadedW);
+              if (setOriginalWorkout) setOriginalWorkout(loadedW);
             }
             return;
           }
@@ -95,14 +109,30 @@ export const useWorkoutLoader = ({
 
         // Case 2: New Workout (no id provided)
         const draft = require("@/utils/workoutEditingStore").getEditingWorkout(currentEditId);
+        
+        const activeStore = require("@/utils/activeWorkoutStore").getActiveWorkout();
+        const preservedStartTime = activeStore ? activeStore.startTime : undefined;
+
         if (draft) {
-          setWorkout(draft as Workout);
+          // Prevent infinite loop by checking if draft is different from current state
+          setWorkout((currentWorkout) => {
+            if (JSON.stringify(currentWorkout) !== JSON.stringify(draft)) {
+              return draft;
+            }
+            return currentWorkout;
+          });
+          if (setOriginalWorkout) setOriginalWorkout({
+             ...draft,
+             startTime: preservedStartTime || draft.startTime || Date.now(),
+          } as Workout);
         } else {
-          setWorkout({
+          const newW = {
             date: new Date().toISOString(),
             exerciseSets: [],
-            startTime: Date.now(),
-          });
+            startTime: preservedStartTime || Date.now(),
+          };
+          setWorkout(newW);
+          if (setOriginalWorkout) setOriginalWorkout(newW);
         }
       } catch (e) {
         console.error("Fehler beim Laden des Workouts:", e);
@@ -113,7 +143,7 @@ export const useWorkoutLoader = ({
     };
 
     loadWorkoutData();
-  }, [id, workoutEditId, setWorkout, setExercises, setLoading, setEditIdRef]);
+  }, [id, workoutEditId, setWorkout, setOriginalWorkout, setExercises, setLoading, setEditIdRef]);
 };
 
 /**

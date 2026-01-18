@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { writeBatch, doc, collection, getDocs } from "firebase/firestore";
+import { router } from "expo-router";
 import { db, auth } from "@/firebaseConfig";
 import { setActiveWorkout, clearActiveWorkout } from "@/utils/activeWorkoutStore";
 import { showAlert, showConfirm, showChoice } from "@/utils/alertHelper";
@@ -11,6 +12,7 @@ import { minSecToSeconds } from "@/components/NumberStepper";
 
 export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
   const [workout, setWorkout] = useState<Workout | null>(initialWorkout || null);
+  const [originalWorkout, setOriginalWorkout] = useState<Workout | null>(null);
   const [exercises, setExercises] = useState<Map<string, Exercise>>(new Map());
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,6 +28,16 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
   const setEditIdRef = useCallback((id: string) => {
     editIdRef.current = id;
   }, []);
+
+  const handleCancel = useCallback(() => {
+    if (originalWorkout) {
+      setWorkout(originalWorkout);
+      if (editIdRef.current) {
+        require("@/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, originalWorkout);
+      }
+    }
+    setIsEditMode(false);
+  }, [originalWorkout]);
 
   // Handle Set Check (marks set as done and starts rest timer)
   const handleSetCheck = useCallback(
@@ -56,7 +68,8 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
       () => {
         clearActiveWorkout();
         if (editIdRef.current) require("@/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
-        // Navigation handled by parent
+        router.dismissAll();
+        router.replace("/(tabs)/WorkoutScreenProxy");
       },
       { confirmText: "Verwerfen", cancelText: "Abbrechen" }
     );
@@ -125,7 +138,9 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
         clearActiveWorkout();
         require("@/utils/workoutTimerStore").clearWorkoutTimer();
         if (editIdRef.current) require("@/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
-        // Navigation handled by parent
+
+        router.dismissAll();
+        router.navigate("/(tabs)/WorkoutScreenProxy");
       } catch (e) {
         console.error("Fehler beim Speichern:", e);
         showAlert("Fehler", "Training konnte nicht gespeichert werden");
@@ -139,58 +154,17 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
   // Handle Save Changes (edit mode)
   const handleSaveChanges = useCallback(
     async (elapsedTime: number) => {
+      // Logic for active workout: "Saving" in edit mode just applies changes locally.
+      // Database persistence only happens on "Finish".
       if (!workout) return;
-      if (!workout.name || workout.exerciseSets.length === 0) {
-        showAlert(
-          "Fehler",
-          "Bitte geben Sie einen Trainingsnamen ein und fügen Sie mindestens einen Satz hinzu."
-        );
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const user = auth.currentUser;
-        if (!user) {
-          setLoading(false);
-          return;
-        }
-
-        const workoutId = workout.id || Date.now().toString();
-        const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
-
-        const batch = writeBatch(db);
-        batch.set(workoutRef, { date: workout.date, name: workout.name || null, duration: elapsedTime });
-
-        const setsRef = collection(workoutRef, "exerciseSets");
-        const existingSets = await getDocs(setsRef);
-        existingSets.forEach((d) => batch.delete(d.ref));
-
-        workout.exerciseSets.forEach((set, index) => {
-          const setRef = doc(setsRef, `set_${index}`);
-          batch.set(setRef, {
-            exerciseId: set.exerciseId,
-            exerciseName: set.exerciseName || null,
-            name: set.name || null,
-            breaktime: set.breaktime ?? 30,
-            weight: set.weight,
-            reps: set.reps,
-            isDone: set.isDone || false,
-          });
-        });
-
-        await batch.commit();
-
-        setIsEditMode(false);
-        showAlert("Erfolg", "Änderungen gespeichert");
-
-        if (editIdRef.current) require("@/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
-      } catch (e) {
-        console.error("Fehler beim Speichern:", e);
-        showAlert("Fehler", "Änderungen konnten nicht gespeichert werden");
-      } finally {
-        setLoading(false);
-      }
+      
+      setIsEditMode(false);
+      
+      // Update the workout state with current timer/details if needed
+      // Note: workout state is already updated by set checks etc.
+      // Ensuring it's in the editing store is handled by the useEffect in the screen.
+      
+      showAlert("Info", "Änderungen für aktuelles Training übernommen.");
     },
     [workout]
   );
@@ -239,11 +213,13 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
   return {
     // State
     workout,
+    originalWorkout,
     exercises,
     isEditMode,
     loading,
     // Setters
     setWorkout,
+    setOriginalWorkout,
     setExercises,
     setIsEditMode,
     setLoading,
@@ -257,5 +233,6 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
     handleSaveChanges,
     saveBreakTime,
     saveSetData,
+    handleCancel,
   };
 };
