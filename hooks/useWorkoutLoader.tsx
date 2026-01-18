@@ -1,0 +1,211 @@
+// Custom hook for loading workout data from Firebase
+// Shared logic for both ActiveWorkoutScreen and SingleWorkoutInfoScreen
+
+import { useEffect, useState, Dispatch, SetStateAction } from "react";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { db, auth } from "@/firebaseConfig";
+import { showAlert } from "@/utils/alertHelper";
+import type { Workout, Exercise, ExerciseSet } from "@/types/workoutTypes";
+
+interface LoadWorkoutParams {
+  id?: string | string[];
+  workoutEditId?: string | string[];
+  setWorkout: Dispatch<SetStateAction<Workout | null>>;
+  setExercises?: Dispatch<SetStateAction<Map<string, Exercise>>>;
+  setLoading: Dispatch<SetStateAction<boolean>>;
+  setEditIdRef?: (id: string) => void;
+}
+
+/**
+ * Hook for loading workout data from Firebase
+ * Handles both new and existing workouts, including draft restoration
+ */
+export const useWorkoutLoader = ({
+  id,
+  workoutEditId,
+  setWorkout,
+  setExercises,
+  setLoading,
+  setEditIdRef,
+}: LoadWorkoutParams) => {
+  useEffect(() => {
+    const loadWorkoutData = async () => {
+      setLoading(true);
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        // Load all exercises for reference
+        const exercisesMap = new Map<string, Exercise>();
+        const exercisesSnapshot = await getDocs(collection(db, "exercises"));
+        exercisesSnapshot.forEach((doc) => {
+          exercisesMap.set(doc.id, { id: doc.id, ...doc.data() } as Exercise);
+        });
+
+        if (setExercises) {
+          setExercises(exercisesMap);
+        }
+
+        const currentEditId = (workoutEditId || id || `temp_${Date.now()}`) as string;
+        if (setEditIdRef) {
+          setEditIdRef(currentEditId);
+        }
+
+        // Case 1: Existing Workout
+        if (id != null) {
+          const userRef = doc(db, "users", user.uid, "workouts", id as string);
+          const userSnap = await getDoc(userRef);
+
+          if (userSnap.exists()) {
+            const workoutData = userSnap.data() as Omit<Workout, "id" | "exerciseSets">;
+
+            // Load exercise sets from subcollection
+            const setsSnapshot = await getDocs(collection(userRef, "exerciseSets"));
+            const exerciseSets: ExerciseSet[] = [];
+            setsSnapshot.forEach((setDoc) => {
+              const setData = setDoc.data();
+              exerciseSets.push({
+                id: setDoc.id,
+                exerciseId: setData.exerciseId,
+                exerciseName: setData.exerciseName,
+                name: setData.name,
+                weight: setData.weight,
+                reps: setData.reps,
+                isDone: setData.isDone || false,
+                breaktime: setData.breaktime ?? 30,
+              });
+            });
+
+            // Try to restore draft first
+            const draft = require("@/utils/workoutEditingStore").getEditingWorkout(currentEditId);
+            if (draft) {
+              setWorkout(draft);
+            } else {
+              setWorkout({
+                id: userSnap.id,
+                ...workoutData,
+                exerciseSets,
+                startTime: Date.now(),
+              });
+            }
+            return;
+          }
+        }
+
+        // Case 2: New Workout (no id provided)
+        const draft = require("@/utils/workoutEditingStore").getEditingWorkout(currentEditId);
+        if (draft) {
+          setWorkout(draft as Workout);
+        } else {
+          setWorkout({
+            date: new Date().toISOString(),
+            exerciseSets: [],
+            startTime: Date.now(),
+          });
+        }
+      } catch (e) {
+        console.error("Fehler beim Laden des Workouts:", e);
+        showAlert("Fehler", "Workout konnte nicht geladen werden");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadWorkoutData();
+  }, [id, workoutEditId, setWorkout, setExercises, setLoading, setEditIdRef]);
+};
+
+/**
+ * Hook for loading a specific workout (Single Workout Info Screen)
+ */
+export const useSingleWorkoutLoader = ({
+  id,
+  workoutEditId,
+  setWorkout,
+  setExercises,
+  setLoading,
+  setEditIdRef,
+  isCreateMode,
+}: LoadWorkoutParams & { isCreateMode?: boolean }) => {
+  useEffect(() => {
+    const fetchWorkout = async () => {
+      setLoading(true);
+      try {
+        // Load exercises first
+        const exercisesMap = new Map<string, Exercise>();
+        const exercisesSnapshot = await getDocs(collection(db, "exercises"));
+        exercisesSnapshot.forEach((doc) => {
+          exercisesMap.set(doc.id, { id: doc.id, ...doc.data() } as Exercise);
+        });
+
+        if (setExercises) {
+          setExercises(exercisesMap);
+        }
+
+        // Set edit ref
+        const normalizedEditId = Array.isArray(workoutEditId) ? workoutEditId[0] : workoutEditId;
+        const editId = normalizedEditId || (id ? `workout_${id}` : `new_${Date.now()}`);
+        if (setEditIdRef) {
+          setEditIdRef(editId);
+        }
+
+        // New workout, initialize empty
+        if (!id) {
+          const draft = editId ? require("@/utils/workoutEditingStore").getEditingWorkout(editId) : null;
+          if (draft) {
+            setWorkout(draft);
+          } else {
+            setWorkout({
+              date: new Date().toISOString(),
+              exerciseSets: [],
+              name: "",
+            });
+          }
+          return;
+        }
+
+        // Existing Workout
+        const user = auth.currentUser;
+        if (!user) {
+          return;
+        }
+
+        const userRef = doc(db, "users", user.uid, "workouts", id as string);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          // Load exercise sets from subcollection
+          const setsSnapshot = await getDocs(collection(userRef, "exerciseSets"));
+          const sets: ExerciseSet[] = [];
+          setsSnapshot.forEach((doc) => {
+            const data = doc.data();
+            const exercise = exercisesMap.get(data.exerciseId);
+            sets.push({
+              id: doc.id,
+              exerciseId: data.exerciseId,
+              exerciseName: data.exerciseName || exercise?.name,
+              name: data.name || undefined,
+              breaktime: data.breaktime ?? 30,
+              weight: data.weight,
+              reps: data.reps,
+              isDone: data.isDone || false,
+            });
+          });
+
+          setWorkout({
+            id: userSnap.id,
+            name: userSnap.data().name || "",
+            date: userSnap.data().date,
+            exerciseSets: sets,
+          });
+        }
+      } catch (e) {
+        console.error("Fehler beim Laden des Workouts:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkout();
+  }, [id, workoutEditId, setWorkout, setExercises, setLoading, setEditIdRef]);
+};
