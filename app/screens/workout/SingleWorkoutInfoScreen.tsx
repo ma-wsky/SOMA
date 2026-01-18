@@ -259,42 +259,6 @@ export default function SingleWorkoutInfoScreen() {
     });
   };
 
-
-
-/*
-  const handleAddSet = (exerciseId: string, exerciseName?: string, breaktime?: number) => {
-    const newSetBase: ExerciseSet = {
-      id: `set_${Date.now()}`,
-      exerciseId,
-      exerciseName: exerciseName || exercisesMap.get(exerciseId)?.name,
-      name: `${exerciseName || exercisesMap.get(exerciseId)?.name}Set`,
-      breaktime: breaktime ?? 30,
-      weight: 20,
-      reps: 5,
-      isDone: false,
-    };
-
-    setWorkout((prev) => {
-      const base = prev ?? ({ date: new Date().toISOString(), exerciseSets: [] } as Workout);
-      const count = base.exerciseSets.filter((s) => s.exerciseId === exerciseId).length;
-      const newSet = { ...newSetBase, name: `${newSetBase.exerciseName}Set${count + 1}` } as ExerciseSet;
-      const newW = { ...base, exerciseSets: [...(base.exerciseSets || []), newSet] } as Workout;
-      if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
-      return newW;
-    });
-  };
-
-  const handleUpdateSet = (index: number, key: "weight" | "reps", value: string) => {
-    if (!workout) return;
-    const updatedSets = [...workout.exerciseSets];
-    const numValue = parseInt(value) || 0;
-    updatedSets[index][key] = numValue;
-    const newW = { ...workout, exerciseSets: updatedSets };
-    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
-    setWorkout(newW);
-  };
-  */
-
   const handleSaveWorkout = async () => {
     if (!workout) return;
 
@@ -348,13 +312,8 @@ export default function SingleWorkoutInfoScreen() {
         if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
 
         showAlert("Erfolg", "Training gespeichert");
+        router.navigate("../..//(tabs)/WorkoutScreenProxy");
 
-        if(router.canGoBack()){
-          router.back();
-        }else{
-          router.replace("../..//(tabs)/WorkokutScreenProxy");
-        }
-      
       } catch (e) {
         console.error("Fehler beim Speichern:", e);
         showAlert("Fehler", "Training konnte nicht gespeichert werden.");
@@ -466,7 +425,7 @@ export default function SingleWorkoutInfoScreen() {
               </View>
             ) : (
               <View>
-                <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={2.5} />
+                <NumberStepper label="Gewicht (kg)" value={tempSetData.weight} onChange={v => setTempSetData({...tempSetData, weight: v})} step={0.5} />
                 <NumberStepper label="Wiederholungen" value={tempSetData.reps} onChange={v => setTempSetData({...tempSetData, reps: v})} step={1} />
               </View>
             )}
