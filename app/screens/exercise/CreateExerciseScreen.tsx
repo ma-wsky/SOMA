@@ -1,13 +1,13 @@
 import { router } from "expo-router";
 import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView, Pressable, Alert, Image } from "react-native";
 import { useState } from "react";
-import { TopBar } from "../../components/TopBar"
-import { auth, db } from "../../firebaseConfig";
+import { TopBar } from "@/components/TopBar"
+import { auth, db } from "@/firebaseConfig";
 import { collection, addDoc, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
-import LoadingOverlay from "../../components/LoadingOverlay";
-import { exerciseStyles } from "../../styles/exerciseStyles";
-import { useImagePicker } from "@/app/hooks/useImagePicker"
-import { uploadImage } from "@/app/utils/uploadImage"
+import LoadingOverlay from "@/components/LoadingOverlay";
+import { exerciseStyles } from "@/styles/exerciseStyles";
+import { useImagePicker } from "@/hooks/useImagePicker"
+import { uploadImage } from "@/utils/uploadImage"
 
 
 export default function CreateExerciseScreen() {
@@ -150,7 +150,7 @@ export default function CreateExerciseScreen() {
                                 ]}
                             >
                                 <Image
-                                    source={image ? { uri: image } : require('../../assets/default-exercise-picture/default-exercise-picture.jpg')}
+                                    source={image ? { uri: image } : require('@/assets/default-exercise-picture/default-exercise-picture.jpg')}
                                     style={exerciseStyles.picture}/>
 
                                 {!hasImage && (

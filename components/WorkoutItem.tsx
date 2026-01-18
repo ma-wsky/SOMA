@@ -4,7 +4,7 @@ import { workoutStyles as styles } from "../styles/workoutStyles"
 import { Colors } from "../styles/theme"
 import { useRef, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { showConfirm } from "@/app/utils/alertHelper";
+import { showConfirm } from "@/utils/alertHelper";
 
 
 interface Props {

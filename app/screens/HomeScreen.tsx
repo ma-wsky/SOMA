@@ -1,13 +1,11 @@
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useEffect, useState, useCallback } from 'react';
 import { View, Pressable, Text } from 'react-native';
-import { clearActiveWorkout } from '@/app/utils/activeWorkoutStore';
+import { clearActiveWorkout } from '@/utils/activeWorkoutStore';
 import { Calendar } from "react-native-calendars";
-import {Colors} from "../styles/theme";
-import { homeStyles as styles } from "../styles/homeStyles";
+import { homeStyles as styles } from "@/styles/homeStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-//npm install react-native-calendars
 
 export default function Home(){
 
@@ -46,7 +44,7 @@ export default function Home(){
     useFocusEffect(
         useCallback(() => {
             const checkRestTimer = () => {
-                const timer = require("@/app/utils/restTimerStore").getRestTimer();
+                const timer = require("@/utils/restTimerStore").getRestTimer();
                 setRestTimer(timer);
             };
             

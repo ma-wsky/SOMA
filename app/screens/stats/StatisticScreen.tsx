@@ -1,9 +1,9 @@
 import { View,TextInput,StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useState } from 'react';
-import LoadingOverlay from "../../components/LoadingOverlay";
-import ExerciseList from "../../components/ExerciseList"
-import { useLoadExercises } from "../../hooks/useLoadExercises"
+import LoadingOverlay from "@/components/LoadingOverlay";
+import ExerciseList from "@/components/ExerciseList"
+import { useLoadExercises } from "@/hooks/useLoadExercises"
 
 
 export default function StatisticScreen() {

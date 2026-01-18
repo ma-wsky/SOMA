@@ -1,12 +1,12 @@
 import { useRouter } from "expo-router";
 import { View, Text, ScrollView, Alert, Image } from "react-native";
 import { useState, useEffect } from 'react';
-import { auth, db } from "../../firebaseConfig";
+import { auth, db } from "@/firebaseConfig";
 import { signOut, deleteUser } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { userStyles } from "../../styles/userStyles";
-import LoadingOverlay from "../../components/LoadingOverlay";
-import { UserButton } from "../../components/user/userButton"
+import { userStyles } from "@/styles/userStyles";
+import LoadingOverlay from "@/components/LoadingOverlay";
+import { UserButton } from "@/components/user/userButton"
 
 const DataRow = ({ label, value, unit = "" }: { label: string, value?: string | number, unit?: string }) => (
     <View style={userStyles.rowWrapper}>
@@ -27,7 +27,7 @@ export default function UserScreen() {
     const [userData, setUserData] = useState<any>(null);
     const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
 
-    const defaultPic = require('../../assets/default-profile-picture/default-profile-picture.jpg');
+    const defaultPic = require('@/assets/default-profile-picture/default-profile-picture.jpg');
 
     useEffect(() => {
         const loadUserData = async () => {

@@ -1,15 +1,15 @@
 import { useRouter } from "expo-router";
 import { View, Text, TextInput, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, KeyboardAvoidingView, Pressable, Alert, Image } from "react-native";
 import { useState, useEffect } from 'react';
-import { auth, db } from "../../firebaseConfig";
+import { auth, db } from "@/firebaseConfig";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { userStyles } from "../../styles/userStyles";
-import LoadingOverlay from "../../components/LoadingOverlay";
+import { userStyles } from "@/styles/userStyles";
+import LoadingOverlay from "@/components/LoadingOverlay";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { UserButton } from "../../components/user/userButton";
-import { validateEmail } from "../../utils/user/validateEmail";
-import { useImagePicker } from "@/app/hooks/useImagePicker";
-import { uploadImage } from "@/app/utils/uploadImage";
+import { UserButton } from "@/components/user/userButton";
+import { validateEmail } from "@/utils/user/validateEmail";
+import { useImagePicker } from "@/hooks/useImagePicker";
+import { uploadImage } from "@/utils/uploadImage";
 
 const EditRow = ({ label, value, onChangeText, placeholder, keyboardType = "default", isPressable = false, onPress = () => {} }: any) => (
     <View style={userStyles.rowWrapper}>
@@ -151,7 +151,7 @@ export default function EditUserScreen() {
                                         ? { uri: image }
                                         : formData.profilePicture
                                             ? { uri: formData.profilePicture }
-                                            : require('../../assets/default-profile-picture/default-profile-picture.jpg')
+                                            : require('@/assets/default-profile-picture/default-profile-picture.jpg')
                                 }
                                 style={userStyles.profilePicture}
                             />

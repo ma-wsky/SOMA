@@ -1,16 +1,16 @@
-import { TopBar } from "@/app/components/TopBar";
-import { workoutStyles } from "@/app/styles/workoutStyles";
+import { TopBar } from "@/components/TopBar";
+import { workoutStyles } from "@/styles/workoutStyles";
 import { View, Text, FlatList, TextInput, Pressable, ScrollView, Modal } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState, useEffect, useRef } from "react";
 import { doc, getDoc, collection, getDocs, writeBatch } from "firebase/firestore";
-import { auth, db } from "@/app/firebaseConfig";
-import LoadingOverlay from "@/app/components/LoadingOverlay";
+import { auth, db } from "@/firebaseConfig";
+import LoadingOverlay from "@/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { showAlert, showConfirm } from "@/app/utils/alertHelper";
-import { workoutStyles as styles } from "@/app/styles/workoutStyles";
-import { Colors } from "@/app/styles/theme";
-import { NumberStepper, newStyles, secondsToMinSec, minSecToSeconds } from "@/app/components/NumberStepper";
+import { showAlert, showConfirm } from "@/utils/alertHelper";
+import { workoutStyles as styles } from "@/styles/workoutStyles";
+import { Colors } from "@/styles/theme";
+import { NumberStepper, newStyles, secondsToMinSec, minSecToSeconds } from "@/components/NumberStepper";
 
 type ExerciseSet = {
   id?: string;
@@ -95,7 +95,7 @@ export default function SingleWorkoutInfoScreen() {
 
         // New workout, initialize empty
         if (!id) {
-          const draft = editIdRef.current ? require("@/app/utils/workoutEditingStore").getEditingWorkout(editIdRef.current) : null;
+          const draft = editIdRef.current ? require("@/utils/workoutEditingStore").getEditingWorkout(editIdRef.current) : null;
           if (draft) {
             setWorkout(draft);
           } else {
@@ -157,7 +157,7 @@ export default function SingleWorkoutInfoScreen() {
   // Save draft - workout changes(edit mode)
   useEffect(() => {
     if (isEditMode && editIdRef.current && workout) {
-      require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, workout);
+      require("@/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, workout);
     }
   }, [workout, isEditMode]);
 

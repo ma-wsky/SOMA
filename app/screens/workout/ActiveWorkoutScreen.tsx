@@ -7,20 +7,20 @@ import {
   Modal,
   Vibration
 } from "react-native";
-import { showAlert, showConfirm, showChoice } from "@/app/utils/alertHelper";
-import { setActiveWorkout, clearActiveWorkout } from "@/app/utils/activeWorkoutStore";
+import { showAlert, showConfirm, showChoice } from "@/utils/alertHelper";
+import { setActiveWorkout, clearActiveWorkout } from "@/utils/activeWorkoutStore";
 import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from "firebase/firestore";
-import { auth, db } from "@/app/firebaseConfig";
-import { workoutStyles as styles } from "@/app/styles/workoutStyles";
-import LoadingOverlay from "@/app/components/LoadingOverlay";
+import { auth, db } from "@/firebaseConfig";
+import { workoutStyles as styles } from "@/styles/workoutStyles";
+import LoadingOverlay from "@/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { TopBar } from "@/app/components/TopBar";
+import { TopBar } from "@/components/TopBar";
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { NumberStepper, newStyles, secondsToMinSec, minSecToSeconds } from "@/app/components/NumberStepper";
-import {Colors} from "@/app/styles/theme"
+import { NumberStepper, newStyles, secondsToMinSec, minSecToSeconds } from "@/components/NumberStepper";
+import {Colors} from "@/styles/theme"
 
 // New Firebase structure
 type ExerciseSet = {
@@ -81,7 +81,7 @@ export default function ActiveWorkoutScreen() {
 
   const updateWorkoutState = (newW: Workout) => {
     setWorkout(newW);
-    if (editIdRef.current) require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
+    if (editIdRef.current) require("@/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
   };
 
 
@@ -170,7 +170,7 @@ export default function ActiveWorkoutScreen() {
     //TODO Wieso hier - geht eig. auch ohne??
     setWorkout(newWorkout);
     if(editIdRef.current){
-      require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newWorkout);
+      require("@/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, newWorkout);
     }
 
     router.setParams({ selectedExerciseId: undefined,
@@ -229,7 +229,7 @@ export default function ActiveWorkoutScreen() {
               });
             });
 
-            const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editIdRef.current!);
+            const draft = require("@/utils/workoutEditingStore").getEditingWorkout(editIdRef.current!);
             if (draft) {
               setWorkout(draft);
             } else {
@@ -246,7 +246,7 @@ export default function ActiveWorkoutScreen() {
           // Leeres Workout (freies Training)
           editIdRef.current = workoutEditId as string || `temp_${Date.now()}`;
 
-          const draft = require("@/app/utils/workoutEditingStore").getEditingWorkout(editIdRef.current);
+          const draft = require("@/utils/workoutEditingStore").getEditingWorkout(editIdRef.current);
           if (draft) {
             setWorkout(draft as Workout);
           } else {
@@ -273,7 +273,7 @@ export default function ActiveWorkoutScreen() {
   //Timer - persist elapsed time
   useEffect(() => {
     // Restore previous elapsed time if resuming
-    const savedTimer = require("@/app/utils/workoutTimerStore").getWorkoutTimer();
+    const savedTimer = require("@/utils/workoutTimerStore").getWorkoutTimer();
     if (savedTimer && workout?.id === savedTimer?.workoutId) {
       const elapsed = Math.floor((Date.now() - savedTimer.startTime) / 1000);
       setElapsedTime(Math.max(0, elapsed));
@@ -284,7 +284,7 @@ export default function ActiveWorkoutScreen() {
         const newVal = prev + 1;
         // Update global store
         if (workout?.startTime) {
-          require("@/app/utils/workoutTimerStore").setWorkoutTimer({
+          require("@/utils/workoutTimerStore").setWorkoutTimer({
             startTime: workout.startTime,
             elapsedTime: newVal,
             workoutId: workout.id || 'temp'
@@ -315,14 +315,14 @@ export default function ActiveWorkoutScreen() {
   const startRestTimer = (seconds: number) => {
     setRestTimeRemaining(seconds);
     setActiveOverlay("restTimer");
-    require("@/app/utils/restTimerStore").setRestTimer({ timeRemaining: seconds, isActive: true });
+    require("@/utils/restTimerStore").setRestTimer({ timeRemaining: seconds, isActive: true });
     
     if (restTimerRef.current) clearInterval(restTimerRef.current);
     
     restTimerRef.current = setInterval(() => {
       setRestTimeRemaining((prev) => {
         const newVal = prev <= 1 ? 0 : prev - 1;
-        require("@/app/utils/restTimerStore").setRestTimer({ timeRemaining: newVal, isActive: newVal > 0 });
+        require("@/utils/restTimerStore").setRestTimer({ timeRemaining: newVal, isActive: newVal > 0 });
         
         if (newVal <= 0) {
           if (restTimerRef.current) clearInterval(restTimerRef.current);
@@ -344,7 +344,7 @@ export default function ActiveWorkoutScreen() {
   const handleDiscardWorkout = () => {
     showConfirm("Training verwerfen", "Möchten Sie dieses Training wirklich verwerfen?", () => {
       clearActiveWorkout();
-      if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
+      if (editIdRef.current) require("@/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
         router.navigate("../..//(tabs)/WorkoutScreenProxy")
     }, { confirmText: "Verwerfen", cancelText: "Abbrechen" });
   };
@@ -410,8 +410,8 @@ export default function ActiveWorkoutScreen() {
 
         showAlert("Erfolg", "Training gespeichert");
         clearActiveWorkout();
-        require("@/app/utils/workoutTimerStore").clearWorkoutTimer();
-        if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
+        require("@/utils/workoutTimerStore").clearWorkoutTimer();
+        if (editIdRef.current) require("@/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
         router.push("../..//(tabs)/WorkoutScreenProxy")
 
       } catch (e) {
@@ -427,7 +427,7 @@ export default function ActiveWorkoutScreen() {
   // Persist draft when workout changes
   useEffect(() => {
     if (editIdRef.current && workout) {
-      require("@/app/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, workout);
+      require("@/utils/workoutEditingStore").setEditingWorkout(editIdRef.current, workout);
     }
   }, [workout]);
 
@@ -477,7 +477,7 @@ export default function ActiveWorkoutScreen() {
       showAlert("Erfolg", "Änderungen gespeichert");
 
       // Clear draft
-      if (editIdRef.current) require("@/app/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
+      if (editIdRef.current) require("@/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
     } catch (e) {
       console.error("Fehler beim Speichern:", e);
       showAlert("Fehler", "Änderungen konnten nicht gespeichert werden");
@@ -709,7 +709,7 @@ export default function ActiveWorkoutScreen() {
           style={{paddingHorizontal: 16, paddingVertical: 8, backgroundColor: Colors.black, borderRadius: 6}}
           onPress={() => {
             if (restTimerRef.current) clearInterval(restTimerRef.current);
-            require("@/app/utils/restTimerStore").clearRestTimer();
+            require("@/utils/restTimerStore").clearRestTimer();
             setActiveOverlay('none');
           }}
         >

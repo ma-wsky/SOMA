@@ -1,11 +1,11 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { View, TextInput, StyleSheet, Text, Alert } from "react-native";
 import { useState } from "react";
-import { TopBar } from "../../components/TopBar"
-import ExerciseList from "../../components/ExerciseList";
-import LoadingOverlay from "../../components/LoadingOverlay";
-import { useLoadExercises } from "../../hooks/useLoadExercises";
-import { Colors } from "@/app/styles/theme";
+import { TopBar } from "@/components/TopBar"
+import ExerciseList from "@/components/ExerciseList";
+import LoadingOverlay from "@/components/LoadingOverlay";
+import { useLoadExercises } from "@/hooks/useLoadExercises";
+import { Colors } from "@/styles/theme";
 
 
 export default function AddExerciseToWorkoutScreen() {

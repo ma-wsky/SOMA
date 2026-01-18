@@ -1,7 +1,7 @@
 import { View, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "../firebaseConfig";
+import { db } from "@/firebaseConfig";
 
 export default function AdminAddExerciseScreen() {
     const [name, setName] = useState("");

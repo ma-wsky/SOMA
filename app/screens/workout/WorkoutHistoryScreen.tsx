@@ -2,10 +2,10 @@ import { Text, View, ScrollView, Pressable, Share } from "react-native";
 import { useState, useEffect } from "react";
 import { useLocalSearchParams, router } from "expo-router";
 import { collection, getDocs } from "firebase/firestore";
-import { auth, db } from "@/app/firebaseConfig";
-import { TopBar } from "@/app/components/TopBar";
-import { workoutStyles } from "@/app/styles/workoutStyles";
-import LoadingOverlay from "@/app/components/LoadingOverlay";
+import { auth, db } from "@/firebaseConfig";
+import { TopBar } from "@/components/TopBar";
+import { workoutStyles } from "@/styles/workoutStyles";
+import LoadingOverlay from "@/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 type ExerciseSet = {

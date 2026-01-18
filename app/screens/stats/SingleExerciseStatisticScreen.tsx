@@ -1,13 +1,11 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { View, TextInput, StyleSheet, Text, Pressable } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import { useState, useEffect } from "react";
-import { TopBar } from "../../components/TopBar"
-import { auth, db } from "../../firebaseConfig";
+import { TopBar } from "@/components/TopBar"
+import { auth, db } from "@/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
-import { getDocs, where, query, collection } from "firebase/firestore";
-import ExerciseList from "../../components/ExerciseList";
-import LoadingOverlay from "../../components/LoadingOverlay";
-import {Colors} from "../../styles/theme";
+import LoadingOverlay from "@/components/LoadingOverlay";
+
 
 type Exercise = {
     id: string;

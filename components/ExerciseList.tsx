@@ -1,8 +1,8 @@
 import { FlatList, View, Text } from "react-native";
 import { useMemo } from "react";
-import ExerciseItem from "@/app/components/ExerciseItem";
-import { exerciseStyles } from "@/app/styles/exerciseStyles";
-import { Exercise } from "@/app/types/Exercise"
+import ExerciseItem from "@/components/ExerciseItem";
+import { exerciseStyles } from "@/styles/exerciseStyles";
+import { Exercise } from "@/types/Exercise"
 
 interface Props {
     exercises: Exercise[];

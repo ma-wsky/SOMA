@@ -2,14 +2,14 @@ import { Text, TextInput, View, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import WorkoutList from "../../components/WorkoutList";
-import { workoutStyles as styles } from "../../styles/workoutStyles";
+import WorkoutList from "@/components/WorkoutList";
+import { workoutStyles as styles } from "@/styles/workoutStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useLoadWorkouts } from "@/app/hooks/useLoadWorkouts";
-import LoadingOverlay from "../../components/LoadingOverlay";
+import { useLoadWorkouts } from "@/hooks/useLoadWorkouts";
+import LoadingOverlay from "@/components/LoadingOverlay";
 import { doc, deleteDoc, collection } from "firebase/firestore";
-import { auth, db } from "@/app/firebaseConfig";
-import { showAlert } from "@/app/utils/alertHelper";
+import { auth, db } from "@/firebaseConfig";
+import { showAlert } from "@/utils/alertHelper";
 
 export default function WorkoutScreen() {
   const router = useRouter();
