@@ -11,6 +11,7 @@ interface LoadWorkoutParams {
   id?: string | string[];
   workoutEditId?: string | string[];
   setWorkout: Dispatch<SetStateAction<Workout | null>>;
+  setOriginalWorkout?: Dispatch<SetStateAction<Workout | null>>;
   setExercises?: Dispatch<SetStateAction<Map<string, Exercise>>>;
   setLoading: Dispatch<SetStateAction<boolean>>;
   setEditIdRef?: (id: string) => void;
@@ -122,6 +123,7 @@ export const useSingleWorkoutLoader = ({
   id,
   workoutEditId,
   setWorkout,
+  setOriginalWorkout,
   setExercises,
   setLoading,
   setEditIdRef,
@@ -149,17 +151,30 @@ export const useSingleWorkoutLoader = ({
           setEditIdRef(editId);
         }
 
-        // New workout, initialize empty
+        // New workout, initialize only if no draft exists
         if (!id) {
+          const emptyWorkout: Workout = {
+            date: new Date().toISOString(),
+            exerciseSets: [],
+            name: "",
+          };
+
+          if (setOriginalWorkout) {
+            setOriginalWorkout(emptyWorkout);
+          }
+
           const draft = editId ? require("@/utils/workoutEditingStore").getEditingWorkout(editId) : null;
           if (draft) {
-            setWorkout(draft);
-          } else {
-            setWorkout({
-              date: new Date().toISOString(),
-              exerciseSets: [],
-              name: "",
+            // Prevent infinite loop by checking if draft is different from current state
+            setWorkout((currentWorkout) => {
+              if (JSON.stringify(currentWorkout) !== JSON.stringify(draft)) {
+                return draft;
+              }
+              return currentWorkout;
             });
+          } else {
+            // Only set initial empty workout if no draft exists
+            setWorkout(emptyWorkout);
           }
           return;
         }
@@ -192,12 +207,23 @@ export const useSingleWorkoutLoader = ({
             });
           });
 
-          setWorkout({
+          const loadedWorkout = {
             id: userSnap.id,
             name: userSnap.data().name || "",
             date: userSnap.data().date,
             exerciseSets: sets,
-          });
+          };
+
+          setWorkout(loadedWorkout);
+          if (setOriginalWorkout) {
+            setOriginalWorkout(loadedWorkout);
+          }
+
+          // Check if there is a draft overlaying the existing workout
+          const draft = editId ? require("@/utils/workoutEditingStore").getEditingWorkout(editId) : null;
+          if (draft) {
+             setWorkout(draft);
+          }
         }
       } catch (e) {
         console.error("Fehler beim Laden des Workouts:", e);
@@ -207,5 +233,5 @@ export const useSingleWorkoutLoader = ({
     };
 
     fetchWorkout();
-  }, [id, workoutEditId, setWorkout, setExercises, setLoading, setEditIdRef]);
+  }, [id, workoutEditId, setWorkout, setOriginalWorkout, setExercises, setLoading, setEditIdRef]);
 };

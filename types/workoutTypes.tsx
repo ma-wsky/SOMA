@@ -4,7 +4,7 @@
 export type ExerciseSet = {
   id?: string;
   exerciseId: string;
-  exerciseName?: string;
+  exerciseName: string;
   name?: string;
   weight: number;
   reps: number;

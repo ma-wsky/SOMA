@@ -35,6 +35,7 @@ export default function SingleWorkoutInfoScreen() {
     isEditMode,
     loading,
     setWorkout,
+    setOriginalWorkout,
     setExercisesMap,
     setIsEditMode,
     setLoading,
@@ -43,6 +44,7 @@ export default function SingleWorkoutInfoScreen() {
     handleSaveWorkout,
     saveBreakTime,
     saveSetData,
+    handleCancel,
   } = useSingleWorkoutData();
 
   const isCreateMode = !id && !!workoutEditId;
@@ -69,6 +71,7 @@ export default function SingleWorkoutInfoScreen() {
     id: id as string,
     workoutEditId: workoutEditId as string,
     setWorkout,
+    setOriginalWorkout,
     setExercises: setExercisesMap,
     setLoading,
     setEditIdRef,
@@ -81,6 +84,14 @@ export default function SingleWorkoutInfoScreen() {
       setIsEditMode(true);
     }
   }, [isCreateMode, setIsEditMode]);
+
+  // Persist workout changes to draft store
+  useEffect(() => {
+    if (workout && isEditMode && workoutEditId) {
+      const editId = Array.isArray(workoutEditId) ? workoutEditId[0] : workoutEditId;
+      require("@/utils/workoutEditingStore").setEditingWorkout(editId, workout);
+    }
+  }, [workout, isEditMode, workoutEditId]);
 
   // Handle Return from AddExercise
   useEffect(() => {
@@ -136,8 +147,23 @@ export default function SingleWorkoutInfoScreen() {
 
   // Handle Save Workout
   const handleSaveWorkoutPressed = useCallback(() => {
-    handleSaveWorkout(id);
-  }, [id, handleSaveWorkout]);
+    handleSaveWorkout(id, (newId) => {
+      setIsEditMode(false);
+      if (!id && newId) {
+        router.setParams({ id: newId });
+      }
+    });
+  }, [id, handleSaveWorkout, setIsEditMode]);
+
+  const handleCancelPressed = useCallback(() => {
+    handleCancel();
+    // Wenn kein existierendes Workout (keine ID in Params), gehen wir zurück
+    if (!id) {
+        router.navigate("/(tabs)/WorkoutScreenProxy")
+      } else {
+      setIsEditMode(false);
+    }
+  }, [id, handleCancel, setIsEditMode]);
 
   if (!workout) {
     return (
@@ -168,7 +194,7 @@ export default function SingleWorkoutInfoScreen() {
         leftButtonText={isEditMode ? "Abbrechen" : "Zurück"}
         titleText={workout.name || "Training Info"}
         rightButtonText={isEditMode ? "Speichern" : "Bearbeiten"}
-        onLeftPress={() => (isEditMode ? setIsEditMode(false) : router.navigate("../..//(tabs)/WorkoutScreenProxy"))}
+        onLeftPress={() => (isEditMode ? handleCancelPressed() : router.navigate("/(tabs)/WorkoutScreenProxy"))}
         onRightPress={() => (isEditMode ? handleSaveWorkoutPressed() : setIsEditMode(true))}
       />
 

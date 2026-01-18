@@ -9,6 +9,7 @@ import type { Workout, Exercise, ExerciseSet } from "@/types/workoutTypes";
 
 export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
   const [workout, setWorkout] = useState<Workout | null>(initialWorkout || null);
+  const [originalWorkout, setOriginalWorkout] = useState<Workout | null>(initialWorkout || null);
   const [exercisesMap, setExercisesMap] = useState<Map<string, Exercise>>(new Map());
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
 
   // Handle Save Workout
   const handleSaveWorkout = useCallback(
-    async (id?: string | string[]) => {
+    async (id?: string | string[], onSuccess?: (newId: string) => void) => {
       if (!workout) return;
 
       if (!workout.name || workout.exerciseSets.length === 0) {
@@ -47,16 +48,18 @@ export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
               return;
             }
 
-            const workoutId = (id || Date.now().toString()) as string;
+            const workoutId = (id || workout.id || Date.now().toString()) as string;
             const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
 
             const batch = writeBatch(db);
 
-            batch.set(workoutRef, {
+            const savedWorkoutData = {
               date: workout.date,
               name: workout.name,
               type: "template",
-            });
+            };
+
+            batch.set(workoutRef, savedWorkoutData);
 
             const setsRef = collection(workoutRef, "exerciseSets");
             const existingSets = await getDocs(setsRef);
@@ -84,8 +87,13 @@ export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
               require("@/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
             }
 
+            // Update local state to match saved state
+            const updatedWorkout = { ...workout, id: workoutId };
+            setWorkout(updatedWorkout);
+            setOriginalWorkout(updatedWorkout);
+
             showAlert("Erfolg", "Training gespeichert");
-            // Navigation handled by parent
+            if (onSuccess) onSuccess(workoutId);
           } catch (e) {
             console.error("Fehler beim Speichern:", e);
             showAlert("Fehler", "Training konnte nicht gespeichert werden.");
@@ -97,6 +105,15 @@ export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
     },
     [workout]
   );
+
+  const handleCancel = useCallback(() => {
+    if (originalWorkout) {
+      setWorkout(originalWorkout);
+      if (editIdRef.current) {
+        require("@/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
+      }
+    }
+  }, [originalWorkout]);
 
   // Save Breaktime Change
   const saveBreakTime = useCallback(
@@ -155,12 +172,14 @@ export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
   return {
     // State
     workout,
+    originalWorkout,
     exercisesMap,
     isEditMode,
     loading,
     editIdRef,
     // Setters
     setWorkout,
+    setOriginalWorkout,
     setExercisesMap: setExercisesMap,
     setIsEditMode,
     setLoading,
@@ -170,5 +189,6 @@ export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
     handleSaveWorkout,
     saveBreakTime,
     saveSetData,
+    handleCancel,
   };
 };
