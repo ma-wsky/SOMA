@@ -1,6 +1,6 @@
 import { Pressable, Text, Image, View, StyleSheet } from "react-native";
-import { exerciseStyles } from "@/app/styles/exerciseStyles"
-import { Exercise } from "@/app/types/Exercise"
+import { exerciseStyles } from "@/styles/exerciseStyles"
+import { Exercise } from "@/types/Exercise"
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { Colors } from "../styles/theme"
@@ -28,7 +28,7 @@ export default function ExerciseItem({ exercise, onPress, onAddToWorkout, showAd
                     source={
                         exercise.image
                             ? { uri: exercise.image }
-                            : require('@/app/assets/default-exercise-picture/default-exercise-picture.jpg')
+                            : require('@/assets/default-exercise-picture/default-exercise-picture.jpg')
                     }
                     style={exerciseStyles.itemPicture}
                 />

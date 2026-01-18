@@ -1,8 +1,8 @@
 import {Redirect} from "expo-router";
 import React, {useEffect, useState} from 'react';
 import {onAuthStateChanged, User} from 'firebase/auth';
-import {auth} from './firebaseConfig';
-import LoadingOverlay from "./components/LoadingOverlay";
+import {auth} from '@/firebaseConfig';
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 
 export default function Index() {

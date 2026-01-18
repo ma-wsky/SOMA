@@ -1,13 +1,13 @@
 import { View, Text, Pressable, Image, Alert, ScrollView } from "react-native";
 import { router, useLocalSearchParams } from "expo-router"
-import {TopBar} from "../../components/TopBar";
+import {TopBar} from "@/components/TopBar";
 import { useState, useEffect } from "react";
 import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import {auth, db} from "../../firebaseConfig";
-import { Exercise } from "@/app/types/Exercise"
-import LoadingOverlay from "../../components/LoadingOverlay";
-import { exerciseStyles } from "@/app/styles/exerciseStyles"
+import {auth, db} from "@/firebaseConfig";
+import { Exercise } from "@/types/Exercise"
+import LoadingOverlay from "@/components/LoadingOverlay";
+import { exerciseStyles } from "@/styles/exerciseStyles"
 
 
 export default function SingleExerciseInfoScreen() {
@@ -127,7 +127,7 @@ export default function SingleExerciseInfoScreen() {
                     source={
                         exercise.image
                             ? { uri: exercise.image }
-                            : require('@/app/assets/default-exercise-picture/default-exercise-picture.jpg')
+                            : require('@/assets/default-exercise-picture/default-exercise-picture.jpg')
                     }
                     style={exerciseStyles.picture}
                 />

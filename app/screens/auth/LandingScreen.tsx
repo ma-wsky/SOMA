@@ -1,10 +1,10 @@
 import { useRouter } from "expo-router";
 import { Text, View } from 'react-native';
-import { authStyles } from "../../styles/authStyles";
-import LoadingOverlay from "../../components/LoadingOverlay";
-import { useGuestLogin } from "../../hooks/useGuestLogin";
-import { AuthButton } from "../../components/auth/authButton"
-import { DividingLine } from "../../components/auth/dividingLine";
+import { authStyles } from "@/styles/authStyles";
+import LoadingOverlay from "@/components/LoadingOverlay";
+import { useGuestLogin } from "@/hooks/useGuestLogin";
+import { AuthButton } from "@/components/auth/authButton"
+import { DividingLine } from "@/components/auth/dividingLine";
 
 
 export default function LoginScreen(){

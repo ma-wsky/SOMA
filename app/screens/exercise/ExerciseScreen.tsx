@@ -1,11 +1,11 @@
 import { router } from "expo-router";
 import { View, TextInput, ScrollView, Pressable, Text } from "react-native";
 import { useState } from "react";
-import { TopBar } from "../../components/TopBar"
-import ExerciseList from "../../components/ExerciseList";
-import LoadingOverlay from "../../components/LoadingOverlay";
-import { useLoadExercises } from "../../hooks/useLoadExercises";
-import { exerciseStyles } from "../../styles/exerciseStyles";
+import { TopBar } from "@/components/TopBar"
+import ExerciseList from "@/components/ExerciseList";
+import LoadingOverlay from "@/components/LoadingOverlay";
+import { useLoadExercises } from "@/hooks/useLoadExercises";
+import { exerciseStyles } from "@/styles/exerciseStyles";
 
 const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "Bauch"];
 

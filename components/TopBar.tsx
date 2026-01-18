@@ -1,7 +1,7 @@
 import React from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import {Colors} from "../styles/theme";
-import { topBarStyles as styles } from "@/app/styles/topBarStyles";
+import { topBarStyles as styles } from "@/styles/topBarStyles";
 
 
 interface TopBarProps {

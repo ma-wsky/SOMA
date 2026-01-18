@@ -1,16 +1,16 @@
 import {useRouter} from "expo-router";
 import { Text, View, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import { useState } from "react";
-import { db, auth } from "../../firebaseConfig";
+import { db, auth } from "@/firebaseConfig";
 import { createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { authStyles } from "../../styles/authStyles";
-import LoadingOverlay from "../../components/LoadingOverlay";
-import { useGuestLogin } from "../../hooks/useGuestLogin";
-import { AuthButton } from "../../components/auth/authButton"
-import { DividingLine } from "../../components/auth/dividingLine";
-import { AuthInput } from "../../components/auth/authInput"
-import { getAuthErrorMessage } from "../../utils/auth/authErrors"
+import { authStyles } from "@/styles/authStyles";
+import LoadingOverlay from "@/components/LoadingOverlay";
+import { useGuestLogin } from "@/hooks/useGuestLogin";
+import { AuthButton } from "@/components/auth/authButton"
+import { DividingLine } from "@/components/auth/dividingLine";
+import { AuthInput } from "@/components/auth/authInput"
+import { getAuthErrorMessage } from "@/utils/auth/authErrors"
 
 
 export default function RegisterScreen() {
