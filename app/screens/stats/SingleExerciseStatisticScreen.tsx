@@ -1,65 +1,83 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { View, StyleSheet, Text } from "react-native";
+import { View, Text, Image, Pressable, Alert } from "react-native";
 import { useState, useEffect } from "react";
 import { TopBar } from "@/components/TopBar"
-import { auth, db } from "@/firebaseConfig";
-import { doc, getDoc } from "firebase/firestore";
+import { auth } from "@/firebaseConfig";
 import LoadingOverlay from "@/components/LoadingOverlay";
+import { Exercise } from "@/types/Exercise"
+import { LineChart } from "react-native-chart-kit";
+import { Dimensions } from "react-native";
+import { statStyles } from "@/styles/statStyles"
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { transformHistoryToChartData } from "@/utils/transformHistoryToChartData"
+import { ExerciseService } from "@/services/exerciseService"
 
 
-type Exercise = {
-    id: string;
-    name: string;
-    muscleGroup?: string;
-    equipment?: string;
-};
+interface MyChartData {
+    labels: string[];
+    datasets: [
+        {
+            data: number[];
+            // Hier können später noch optionale Felder wie 'color' stehen
+        }
+    ];
+}
 
 export default function SingleExerciseStatisticScreen() {
 
     const [loading,setLoading] = useState<boolean>(false);
     const { id } = useLocalSearchParams<{ id: string }>();
     const [exercise, setExercise] = useState<Exercise | null>(null);
+    const [chartData, setChartData] = useState<MyChartData | null>(null);
+
 
     useEffect(() => {
-        if (!id) return;
-        setLoading(true);
+        const loadData = async () => {
+            const user = auth.currentUser;
+            if (!id || !user) return;
 
-        const fetchExercise = async () => {
-            try{
-                const globalRef = doc(db, "exercises", id);
-                const globalSnap = await getDoc(globalRef);
-                if (globalSnap.exists()) {
-                    setExercise({ id: globalSnap.id, ...globalSnap.data() } as Exercise);
-                    return;
+            setLoading(true);
+
+            try {
+                const exercise = await ExerciseService.fetchExercise(id, user.uid);
+                setExercise(exercise);
+
+                if (exercise){
+                    const history = await ExerciseService.fetchHistory(id);
+                    if(history && history.length > 0) {
+                        const formattedData = transformHistoryToChartData(history);
+                        setChartData(formattedData);
+
+                    } else {
+                        setChartData(null);
+                    }
+
                 }
-
-                const user = auth.currentUser;
-                if (!user) return;
-
-                const userRef = doc(db, "users", user.uid, "exercises", id);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                    setExercise({ id: userSnap.id, ...userSnap.data() } as Exercise);
-                    return;
-                }
-
-                setExercise(null);
             } catch (e) {
                 console.error("Fehler beim Laden der Übung:", e);
                 setExercise(null);
             } finally {
                 setLoading(false);
             }
-
         };
-
-        fetchExercise();
+        loadData();
     }, [id]);
+
+    async function handleToggleFavorite() {
+        if (!exercise || !auth.currentUser) return;
+
+        try {
+            const isNowFavorite = await ExerciseService.toggleFavorite(exercise, auth.currentUser.uid);
+            setExercise({ ...exercise, isFavorite: isNowFavorite});
+        } catch (e) {
+            Alert.alert("Fehler", "Favorit konnte nicht gespeichert werden.");
+        }
+    }
 
     if (!exercise) return;
 
     return (
-        <View style={styles.container}>
+        <View style={statStyles.container}>
 
             {/* Top Bar */}
             <TopBar leftButtonText={"Zurück"}
@@ -69,8 +87,68 @@ export default function SingleExerciseStatisticScreen() {
                     onRightPress={() => console.log("download")}
             ></TopBar>
 
-            <View>
-                <Text>{exercise.name}</Text>
+            {/* Exercise Picture */}
+            <View style={statStyles.picWrapper}>
+                <Image
+                    source={
+                        exercise.image
+                            ? { uri: exercise.image }
+                            : require('@/assets/default-exercise-picture/default-exercise-picture.jpg')
+                    }
+                    style={statStyles.picture}
+                />
+            </View>
+
+            {/* Exercise name and fav toggle */}
+            <View style={statStyles.infoNameFavIconWrapper}>
+                <Text style={statStyles.infoName}>{exercise.name}</Text>
+                <Pressable
+                    onPress={handleToggleFavorite}>
+                    <Ionicons
+                        name={exercise.isFavorite ? "heart" : "heart-outline"}
+                        size={32}
+                        color="#555"
+                    />
+                </Pressable>
+
+            </View>
+
+            {/* muscle groups */}
+            <View style={statStyles.infoMuscleWrapper}>
+                <Text
+                    style={statStyles.infoMuscle}>{exercise.muscleGroup}
+                </Text>
+            </View>
+
+            <View style={statStyles.line}/>
+
+            {/* chart */}
+            <View style={statStyles.content}>
+
+                {chartData ? (
+                    <View style={statStyles.graphWrapper}>
+                        <LineChart
+                            data={chartData}
+                            width={Dimensions.get("window").width - 60} // Breite des Bildschirms minus Padding
+                            height={250}
+                            chartConfig={{
+                                backgroundColor: "#ffffff",
+                                backgroundGradientFrom: "#ffffff",
+                                backgroundGradientTo: "#ffffff",
+                                decimalPlaces: 1,
+                                color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
+                                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                                style: { borderRadius: 16, },
+                                propsForDots: { r: "5", strokeWidth: "2", stroke: "#007AFF" },
+                            }}
+                            bezier
+                            style={statStyles.chart}
+                        />
+                    </View>
+                ) : (
+                    <Text style={statStyles.emptyText}>Keine Trainingsdaten gefunden.</Text>
+                )}
+
             </View>
 
             {/* Loading Overlay */}
@@ -79,10 +157,3 @@ export default function SingleExerciseStatisticScreen() {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'flex-start',
-    },
-})
