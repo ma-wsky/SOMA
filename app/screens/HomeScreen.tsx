@@ -6,6 +6,7 @@ import { Calendar } from "react-native-calendars";
 import { homeStyles as styles } from "@/styles/homeStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { playSound } from "@/utils/soundHelper";
+import {Colors} from "@/styles/theme";
 
 
 export default function Home(){
@@ -46,12 +47,12 @@ export default function Home(){
 
                 // Check if timer finished just now (triggered by this poll)
                 if (timer && timer.timeRemaining <= 0) {
-                     Vibration.vibrate([0, 200, 100, 200]);
-                     try {
-                         playSound(require('@/assets/sounds/timer.mp3'));
-                     } catch (e) {}
-                     require("@/utils/restTimerStore").clearRestTimer();
-                     setRestTimer(null);
+                    Vibration.vibrate([0, 200, 100, 200]);
+                    try {
+                        playSound(require('@/assets/sounds/timer.mp3'));
+                    } catch (e) {}
+                    require("@/utils/restTimerStore").clearRestTimer();
+                    setRestTimer(null);
                 }
             };
             
@@ -133,8 +134,8 @@ export default function Home(){
                         </View>
                         {restTimer && restTimer.isActive && (
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <Text style={{ color: '#ff6b6b', fontWeight: '600', marginRight: 8 }}>⏱ Pause</Text>
-                                <Text style={{ color: '#ff6b6b', fontSize: 16, fontWeight: 'bold' }}>
+                                <Text style={{ color: Colors.primary, fontWeight: '600', marginRight: 8 }}>Pause</Text>
+                                <Text style={{ color: Colors.primary, fontSize: 16, fontWeight: 'bold' }}>
                                     {Math.floor(restTimer.timeRemaining / 60)}:{(restTimer.timeRemaining % 60).toString().padStart(2, '0')}
                                 </Text>
                             </View>
