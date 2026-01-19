@@ -93,5 +93,38 @@ export const WorkoutService = {
             console.error("Fehler beim Erstellen des Templates:", error);
             throw error;
         }
+    },
+
+    async saveWorkoutHistory(userId: string, templateId: string, workoutName: string, activeSets: ExerciseSet[]) {
+        try {
+            const batch = writeBatch(db);
+
+            // 1. Referenz für das History-Hauptdokument
+            const historyRef = doc(collection(db, "users", userId, "history"));
+
+            batch.set(historyRef, {
+                templateId: templateId,
+                name: workoutName,
+                finishedAt: serverTimestamp(),
+            });
+
+            // 2. Alle Sets in die Subcollection schreiben
+            activeSets.forEach((set) => {
+                const setRef = doc(collection(db, "users", userId, "history", historyRef.id, "sets"));
+
+                // Wir speichern das Set und markieren, ob es abgeschlossen wurde
+                batch.set(setRef, {
+                    ...set,
+                    finishedAt: serverTimestamp()
+                    // isDone ist bereits im set-Objekt enthalten, da wir es im State halten
+                });
+            });
+
+            await batch.commit();
+            return historyRef.id;
+        } catch (error) {
+            console.error("Fehler im WorkoutService beim Speichern der History:", error);
+            throw error;
+        }
     }
 }

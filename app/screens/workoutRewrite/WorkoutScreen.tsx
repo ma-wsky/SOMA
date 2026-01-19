@@ -41,7 +41,7 @@ export default function WorkoutScreen() {
 
     const handleStartWorkout = (workout: Workout) => {
         router.push({
-            pathname: "/screens/workout/ActiveWorkoutScreen",
+            pathname: "/screens/workoutRewrite/ActiveWorkoutScreen",
             params: {templateId: workout.id}
         });
     };

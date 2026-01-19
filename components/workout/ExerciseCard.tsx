@@ -9,18 +9,22 @@ interface ExerciseCardProps {
     exerciseId: string;
     sets: ExerciseSet[];
     isEditMode?: boolean;
+    isActiveMode?: boolean;
     onAddSet?: (exerciseId: string) => void;
     onRemoveSet?: (index: number) => void;
     onEditSet?: (index: number) => void;
+    onToggleComplete?: (setId: string) => void;
 }
 
 export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                                                               exerciseId,
                                                               sets,
                                                               isEditMode,
+                                                              isActiveMode,
                                                               onAddSet,
                                                               onRemoveSet,
-                                                              onEditSet
+                                                              onEditSet,
+                                                              onToggleComplete
                                                           }) => {
     const firstSet = sets[0];
 
@@ -71,6 +75,20 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                             style={{ padding: 5 }}
                         >
                             <Ionicons name="trash-outline" size={18} color="#ff4444" />
+                        </Pressable>
+                    )}
+
+                    {isActiveMode && (
+                        <Pressable
+                            onPress={() => onToggleComplete?.(set.id)}
+                            style={{ width: 40, alignItems: 'center' }}
+                            hitSlop={15}
+                        >
+                            <Ionicons
+                                name={set.isDone ? "checkbox" : "square-outline"}
+                                size={24}
+                                color={set.isDone ? Colors.primary : Colors.secondary}
+                            />
                         </Pressable>
                     )}
                 </Pressable>
