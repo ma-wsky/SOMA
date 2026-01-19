@@ -3,6 +3,152 @@ import { Colors, DarkColors } from "./theme";
 import { topBarStyles } from './topBarStyles';
 
 export const workoutStyles = StyleSheet.create({
+    // new implementation:
+
+    //workoutscreen:
+    itemTitle: {
+        fontSize: 22,
+        fontWeight: "bold",
+        color: "white",
+    },
+    searchBar:{
+        padding:10,
+        color: 'white',
+        fontSize:20,
+        backgroundColor:'black',
+        marginTop:20,
+        marginHorizontal: 20,
+        marginBottom: 10,
+        borderRadius: 50,
+    },
+    buttonText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 20,
+    },
+
+    //workoutlist:
+    exerciseListContainer: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        marginTop: 20,
+    },
+    divider: {
+        marginVertical: 12,
+    },
+    dividerText: {
+        fontWeight: "600",
+        color: "#666"
+    },
+    line: {
+        flex: 1,
+        borderBottomColor: 'gray',
+        borderBottomWidth: 2,
+        height: 1,
+        backgroundColor: "#ccc",
+        marginTop: 4
+    },
+    listContent: {
+        marginHorizontal: 16,
+    },
+
+    noFound: {
+        marginTop: 40,
+        alignItems: 'center',
+    },
+    noFoundText: {
+        color: "#666",
+        fontSize: 16,
+    },
+    itemPicturePlaceholder: {
+        width: 60, // Gleiche Größe wie exerciseStyles.itemPicture
+        height: 60,
+        borderRadius: 8,
+        backgroundColor: '#1a1a1a', // Dunkler Hintergrund für den Kontrast
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+
+    actionButton: {
+        padding: 10,
+        borderRadius: 10,
+        backgroundColor: '#1a1a1a', // Passend zum restlichen Dark-Design
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginLeft: 'auto', // Schiebt den Button ganz nach rechts
+        borderWidth: 1,
+        borderColor: '#333',
+    },
+
+    // workoutItem
+    itemButton: {
+        padding: 12,
+        marginVertical: 4,
+        borderRadius: 10,
+        backgroundColor: Colors.black,
+    },
+    name: {
+        fontSize: 20,
+        fontWeight: "600",
+        color: Colors.white,
+    },
+    muscle: {
+        color: Colors.gray,
+        marginTop: 2
+    },
+    itemPicture: {
+        width: 50,
+        height: 50,
+        borderRadius: 8,
+    },
+    itemContainer: {
+        flexDirection: 'column',
+        paddingRight: 20,
+    },
+    textContainer:{
+        flex: 1,
+        flexDirection: "column",
+        justifyContent: "center",
+    },
+
+    startButtonWrapper: {
+        alignItems: "center",
+    },
+    startButton: {
+        paddingVertical: 8,
+        borderRadius: 10,
+        alignItems: "center",
+        borderWidth: 2,
+        borderColor: Colors.primary,
+        backgroundColor: Colors.primary,
+    },
+    startButtonText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    deleteBackground: {
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        bottom: 0,
+        width: 80, // Breite des sichtbaren roten Bereichs beim Swipen
+        backgroundColor: '#ff4444',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 12, // Sollte dem Radius von styles.itemButton entsprechen
+    },
+    deleteButton: {
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+
+
+
 
     //New experimental :/
     exerciseCard: {
@@ -107,25 +253,7 @@ export const workoutStyles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.background,
     },
-    itemContainer: {
-        gap: 10,
-        padding:12,
-        backgroundColor: "black",
-        marginVertical: 5,
-        marginHorizontal: 20,
-        borderRadius: 10,
-    },
-    itemTitle: {
-        fontSize: 22,
-        fontWeight: "bold",
-        color: "white",
-    },
-    itemButton: {
-        paddingVertical: 8,
-        marginHorizontal: 30,
-        borderRadius: 10,
-        alignItems: "center",
-    },
+
     itemButtonText: {
         color: "white",
         fontWeight: "bold",
@@ -140,12 +268,7 @@ export const workoutStyles = StyleSheet.create({
         borderRadius: 50,
 
     },
-    startButton: {
-        paddingVertical: 8,
-        borderRadius: 10,
-        alignItems: "center",
-        marginBottom: 20,
-    },
+
     bigButton: {
         paddingVertical: 16,
         borderRadius: 10,
