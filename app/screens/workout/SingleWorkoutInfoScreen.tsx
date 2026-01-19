@@ -167,7 +167,7 @@ export default function SingleWorkoutInfoScreen() {
 
   if (!workout) {
     return (
-      <View style={styles.itemContainer}>
+      <View style={styles.sheetContainer}>
         <TopBar leftButtonText="Zurück" onLeftPress={() => router.back()} />
         <LoadingOverlay visible={true} />
       </View>

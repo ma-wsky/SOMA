@@ -4,7 +4,6 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  Vibration,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect, useCallback } from "react";
@@ -132,30 +131,10 @@ export default function ActiveWorkoutScreen() {
   const snapPoints = ['99%'];
   const [isMinimized, setIsMinimized] = useState(false);
 
-  // Helper to sync global store safely
-  const updateGlobalActiveStore = (currentWorkout: Workout | null) => {
-    if (!currentWorkout) return;
-    
-    // Check if we have a running timer in workoutTimerStore to get the REAL start time
-    const runningTimer = require("@/utils/workoutTimerStore").getWorkoutTimer();
-    let realStartTime = currentWorkout.startTime ?? Date.now();
-    
-    if (runningTimer && runningTimer.workoutId === currentWorkout.id) {
-         realStartTime = runningTimer.startTime;
-    }
-
-    setActiveWorkout({
-      id: currentWorkout.id ?? null,
-      startTime: realStartTime,
-      setsCount: currentWorkout.exerciseSets.length ?? 0,
-    });
-  };
-
   const handleSheetChanges = useCallback(
     (index: number) => {
       if (index === -1) {
         setIsMinimized(true);
-        updateGlobalActiveStore(workout);
         try {
           router.push({
             pathname: '/(tabs)/HomeScreenProxy',
@@ -163,7 +142,6 @@ export default function ActiveWorkoutScreen() {
               activeOverlayWorkout: JSON.stringify({
                 id: workout?.id ?? null,
                 setsCount: workout?.exerciseSets.length ?? 0,
-                // We prefer the calculated time from the store helper, but for param pass fallback to workout.startTime
                 startTime: workout?.startTime ?? Date.now(),
               }),
             },
@@ -171,6 +149,11 @@ export default function ActiveWorkoutScreen() {
         } catch (e) {
           console.warn('Navigation to home failed', e);
         }
+        setActiveWorkout({
+          id: workout?.id ?? null,
+          startTime: workout?.startTime ?? Date.now(),
+          setsCount: workout?.exerciseSets.length ?? 0,
+        });
       } else {
         setIsMinimized(false);
         clearActiveWorkout();
@@ -182,11 +165,6 @@ export default function ActiveWorkoutScreen() {
   // Handle Set Check - Enhanced with rest timer
   const handleSetCheckWithTimer = useCallback(
     (setIndex: number, breaktime: number) => {
-      // Haptisches Feedback beim Checken
-      if (workout?.exerciseSets[setIndex].isDone === false) {
-          Vibration.vibrate(50);
-      }
-
       handleSetCheck(setIndex);
       if (workout?.exerciseSets[setIndex].isDone === false && breaktime > 0) {
         startRestTimer(breaktime);
