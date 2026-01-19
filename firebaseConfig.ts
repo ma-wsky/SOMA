@@ -7,7 +7,7 @@ import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBK_E7v5GlFo_el9rqhFq5zRquHIQSjSRc",
+    apiKey: "AIzaSyAG8q9TrzC4RahkMXMernlHk6F9rCpAC5A",
     authDomain: "fitnessapp-prototype-30690.firebaseapp.com",
     projectId: "fitnessapp-prototype-30690",
     storageBucket: "fitnessapp-prototype-30690.firebasestorage.app",

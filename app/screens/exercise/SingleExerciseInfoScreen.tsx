@@ -2,12 +2,13 @@ import { View, Text, Pressable, Image, Alert, ScrollView } from "react-native";
 import { router, useLocalSearchParams } from "expo-router"
 import {TopBar} from "@/components/TopBar";
 import { useState, useEffect } from "react";
-import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {auth, db} from "@/firebaseConfig";
 import { Exercise } from "@/types/Exercise"
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { exerciseStyles } from "@/styles/exerciseStyles"
+import { ExerciseService } from "@/services/exerciseService"
 
 
 export default function SingleExerciseInfoScreen() {
@@ -70,33 +71,14 @@ export default function SingleExerciseInfoScreen() {
         fetchExercise();
     }, [id]);
 
-    async function toggleFavorite() {
-        const user = auth.currentUser;
-        if (!user || !exercise) return;
-
-        const favRef = doc(
-            db,
-            "users",
-            user.uid,
-            "favorites",
-            id,
-        );
+    async function handleToggleFavorite() {
+        if (!exercise || !auth.currentUser) return;
 
         try {
-            if (exercise.isFavorite) {
-                await deleteDoc(favRef);
-                setExercise({ ...exercise, isFavorite: false});
-            } else {
-                await setDoc(favRef, {
-                    name: exercise.name,
-                    muscleGroup: exercise.muscleGroup,
-                    equipment: exercise.equipment,
-                    instructions: exercise.instructions,
-                });
-                setExercise({ ...exercise, isFavorite: true});
-            }
+            const isNowFavorite = await ExerciseService.toggleFavorite(exercise, auth.currentUser.uid);
+            setExercise({ ...exercise, isFavorite: isNowFavorite});
         } catch (e) {
-            Alert.alert("Fehler", "Favoriten-Status konnte nicht geändert werden.");
+            Alert.alert("Fehler", "Favorit konnte nicht gespeichert werden.");
         }
     }
 
@@ -137,7 +119,7 @@ export default function SingleExerciseInfoScreen() {
             <View style={exerciseStyles.infoNameFavIconWrapper}>
                 <Text style={exerciseStyles.infoName}>{exercise.name}</Text>
                 <Pressable
-                    onPress={toggleFavorite}>
+                    onPress={handleToggleFavorite}>
                     <Ionicons
                         name={exercise.isFavorite ? "heart" : "heart-outline"}
                         size={32}
