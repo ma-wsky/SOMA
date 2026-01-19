@@ -4,6 +4,7 @@ import {
   TextInput,
   Pressable,
   ScrollView,
+  Vibration,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect, useCallback } from "react";
@@ -165,6 +166,11 @@ export default function ActiveWorkoutScreen() {
   // Handle Set Check - Enhanced with rest timer
   const handleSetCheckWithTimer = useCallback(
     (setIndex: number, breaktime: number) => {
+      // Haptisches Feedback beim Checken
+      if (workout?.exerciseSets[setIndex].isDone === false) {
+          Vibration.vibrate(50);
+      }
+
       handleSetCheck(setIndex);
       if (workout?.exerciseSets[setIndex].isDone === false && breaktime > 0) {
         startRestTimer(breaktime);

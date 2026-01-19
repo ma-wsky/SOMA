@@ -42,32 +42,57 @@ export const useWorkoutTimer = (workoutId?: string | null) => {
   };
 };
 
+import { playSound } from "@/utils/soundHelper";
+
 export const useRestTimer = () => {
   const [restTimeRemaining, setRestTimeRemaining] = useState(0);
   const restTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const startLocalTick = () => {
+      if (restTimerRef.current) clearInterval(restTimerRef.current);
+      
+      const tick = () => {
+          const status = require("@/utils/restTimerStore").getRestTimer();
+          if (status && status.isActive) {
+              setRestTimeRemaining(status.timeRemaining);
+          } else {
+             // Timer finished or cleared
+             if (status && status.timeRemaining <= 0) {
+                 Vibration.vibrate([0, 200, 100, 200]);
+                 try {
+                     playSound(require('@/assets/sounds/timer.mp3'));
+                 } catch (e) {
+                 }
+             }
+             stopRestTimer();
+          }
+      }
+
+      tick(); // Immediate update
+      restTimerRef.current = setInterval(tick, 1000) as unknown as NodeJS.Timeout;
+  };
+
+  // Resume timer from store on mount
+  useEffect(() => {
+    const saved = require("@/utils/restTimerStore").getRestTimer();
+    if (saved && saved.isActive) {
+        setRestTimeRemaining(saved.timeRemaining);
+        startLocalTick();
+    }
+    return () => {
+        if (restTimerRef.current) clearInterval(restTimerRef.current);
+    };
+  }, []);
+
   const startRestTimer = (seconds: number) => {
+    require("@/utils/restTimerStore").startRestTimer(seconds);
     setRestTimeRemaining(seconds);
-    require("@/utils/restTimerStore").setRestTimer({ timeRemaining: seconds, isActive: true });
-
-    if (restTimerRef.current) clearInterval(restTimerRef.current);
-
-    restTimerRef.current = setInterval(() => {
-      setRestTimeRemaining((prev) => {
-        const newVal = prev <= 1 ? 0 : prev - 1;
-        require("@/utils/restTimerStore").setRestTimer({ timeRemaining: newVal, isActive: newVal > 0 });
-
-        if (newVal <= 0) {
-          if (restTimerRef.current) clearInterval(restTimerRef.current);
-          Vibration.vibrate([0, 200, 100, 200]);
-        }
-        return newVal;
-      });
-    }, 1000) as unknown as NodeJS.Timeout;
+    startLocalTick();
   };
 
   const stopRestTimer = () => {
     if (restTimerRef.current) clearInterval(restTimerRef.current);
+    restTimerRef.current = null;
     require("@/utils/restTimerStore").clearRestTimer();
     setRestTimeRemaining(0);
   };

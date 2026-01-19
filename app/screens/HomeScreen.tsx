@@ -107,19 +107,20 @@ export default function Home(){
                     }}
                     style={{ position: 'absolute', left: 20, right: 20, bottom: 80, backgroundColor: '#222', padding: 12, borderRadius: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#333' }}
                 >
-                    {restTimer && restTimer.isActive ? (
-                        <>
-                            <Text style={{ color: '#ff6b6b', fontWeight: '600' }}>⏱ Pause</Text>
-                            <Text style={{ color: '#ff6b6b', fontSize: 18, fontWeight: 'bold' }}>
-                                {Math.floor(restTimer.timeRemaining / 60)}:{(restTimer.timeRemaining % 60).toString().padStart(2, '0')}
-                            </Text>
-                        </>
-                    ) : (
-                        <>
+                    <View style={{ flex: 1 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: (restTimer && restTimer.isActive) ? 4 : 0 }}>
                             <Text style={{ color: '#fff', fontWeight: '600' }}>{overlayObj.setsCount} Sätze</Text>
                             <Text style={{ color: '#aaa' }}>{formatTime(displayElapsed)}</Text>
-                        </>
-                    )}
+                        </View>
+                        {restTimer && restTimer.isActive && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Text style={{ color: '#ff6b6b', fontWeight: '600', marginRight: 8 }}>⏱ Pause</Text>
+                                <Text style={{ color: '#ff6b6b', fontSize: 16, fontWeight: 'bold' }}>
+                                    {Math.floor(restTimer.timeRemaining / 60)}:{(restTimer.timeRemaining % 60).toString().padStart(2, '0')}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
                 </Pressable>
             )}
 

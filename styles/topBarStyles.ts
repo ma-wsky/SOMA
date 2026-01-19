@@ -7,6 +7,7 @@ export const topBarStyles = StyleSheet.create({
         justifyContent: "space-around",
         alignItems: "center",
         marginTop: 40,
+        marginHorizontal: 10,
     },
     button: {
         width: 100,

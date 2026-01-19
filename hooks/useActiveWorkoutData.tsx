@@ -9,6 +9,8 @@ import { setActiveWorkout, clearActiveWorkout } from "@/utils/activeWorkoutStore
 import { showAlert, showConfirm, showChoice } from "@/utils/alertHelper";
 import type { Workout, Exercise, ExerciseSet } from "@/types/workoutTypes";
 import { minSecToSeconds } from "@/components/NumberStepper";
+import Toast from 'react-native-toast-message';
+import { playSound } from "@/utils/soundHelper";
 
 export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
   const [workout, setWorkout] = useState<Workout | null>(initialWorkout || null);
@@ -134,7 +136,19 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
 
         await batch.commit();
 
-        showAlert("Erfolg", "Training gespeichert");
+        // Sound & Toast instead of Alert
+        try {
+           playSound(require('@/assets/sounds/success.mp3'));
+        } catch (e) {}
+
+        Toast.show({
+            type: 'success',
+            text1: 'Herzlichen Glückwunsch! 🎉',
+            text2: 'Training erfolgreich gespeichert.',
+            position: 'top',
+            visibilityTime: 4000,
+        });
+
         clearActiveWorkout();
         require("@/utils/workoutTimerStore").clearWorkoutTimer();
         if (editIdRef.current) require("@/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);

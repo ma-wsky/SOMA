@@ -44,7 +44,11 @@ export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.Rea
 
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 120, padding: 16 }}>
-      <Text style={{ color: Colors.black, width: 800, marginBottom: 10, fontSize: 24 }}>
+      <Text 
+        style={{ color: Colors.black, marginBottom: 10, fontSize: 24, textAlign: 'center' }}
+        numberOfLines={2}
+        ellipsizeMode="tail"
+      >
         {props.workout.name}
       </Text>
 
