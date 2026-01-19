@@ -9,11 +9,11 @@ import { Colors } from "../styles/theme"
 interface Props {
     exercise: Exercise;
     onPress?: (exercise: Exercise) => void;
-    onAddToWorkout?: (exercise: Exercise) => void;
-    showAddButton?: boolean;
+    onAddPress?: (exercise: Exercise) => void;
+    showAddIcon?: boolean;
 }
 
-export default function ExerciseItem({ exercise, onPress, onAddToWorkout, showAddButton = false }: Props) {
+export default function ExerciseItem({ exercise, onPress, onAddPress, showAddIcon = false }: Props) {
     return (
         <Pressable
             onPress={() => onPress?.(exercise)}
@@ -38,8 +38,8 @@ export default function ExerciseItem({ exercise, onPress, onAddToWorkout, showAd
 
                     <Text style={exerciseStyles.muscle}>{exercise.muscleGroup || "k.A."}</Text>
                 </View>
-                {showAddButton && onAddToWorkout ? (
-                <Pressable onPress={() => onAddToWorkout?.(exercise)} style={styles.addButton}>
+                {showAddIcon && onAddPress ? (
+                <Pressable onPress={() => onAddPress?.(exercise)} style={styles.addButton}>
                   <Ionicons name="add" size={20} color={Colors.primary} />
                 </Pressable>
               ) : null}

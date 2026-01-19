@@ -29,6 +29,17 @@ export const workoutStyles = StyleSheet.create({
         fontWeight: "bold",
         fontSize: 20,
     },
+    bigButton: {
+        paddingVertical: 16,
+        borderRadius: 10,
+        marginBottom: 20,
+    },
+    bigButtonTextWrapper: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+        marginLeft: 30,
+        gap: 80,
+    },
 
     //workoutlist:
     exerciseListContainer: {
@@ -185,44 +196,66 @@ export const workoutStyles = StyleSheet.create({
     picture: {
         width:50,
         height:50,
-        borderRadius: 75,
+        borderRadius: 25,
         borderWidth: 4,
         borderColor: 'black',
         resizeMode: 'cover',
     },
 
+    // create template screen
+    inputNameLayout: {
+        marginTop: 20,
+        flex: 1,
+        gap: 25,
+        backgroundColor: Colors.background,
+    },
+    nameInputWrapper: {
+        alignItems: "flex-start",
+        marginHorizontal: 30,
+        marginBottom: 40,
+    },
+    nameText: {
+        fontSize: 18,
+        fontWeight: "bold",
+    },
+    fieldWrapper: {
+        flexDirection: "row",
+        borderWidth: 2,
+        borderRadius: 10,
+        borderColor: Colors.iconInactive,
+    },
+    nameInput: {
+        flex: 1,
+    },
 
-
-
-    //New experimental :/
+    //exercise card
     exerciseCard: {
-    padding: 12,
-    borderRadius: 10,
-    marginHorizontal: 10,
+        padding: 12,
+        borderRadius: 10,
+        marginHorizontal: 10,
     },
     exerciseCardHeader:{
-    backgroundColor: Colors.black,
-    padding: 12,
-    borderRadius: 10,
-    marginHorizontal: 0,
-    marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+        backgroundColor: Colors.black,
+        padding: 12,
+        borderRadius: 10,
+        marginHorizontal: 0,
+        marginBottom: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
     },
     exerciseTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginLeft:0,
-    flex:1
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "bold",
+        marginLeft:0,
+        flex:1
     },
-
     setRowHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 6,
-    marginHorizontal: 10,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        paddingVertical: 6,
+        marginHorizontal: 10,
 
     },
     setTextHeader:{
@@ -230,33 +263,136 @@ export const workoutStyles = StyleSheet.create({
         fontSize: 18,
         fontWeight: "700",
     },
-
     setRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 6,
-    marginHorizontal: 12,
-    marginVertical: 4,
-    borderColor: Colors.black,
-    borderWidth: 1,
-    padding: 6,
-
-    },
-    setEditRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 6,
-    marginHorizontal: 12,
-    marginVertical: 4,
-    borderColor: Colors.black,
-    borderWidth: 1,
-    padding: 6,
-
+        flexDirection: "row",
+        justifyContent: "space-between",
+        paddingVertical: 6,
+        marginHorizontal: 12,
+        marginVertical: 4,
+        borderColor: Colors.black,
+        borderWidth: 1,
+        padding: 6,
 
     },
     setText: {
-    color: Colors.black,
-    width: 50,
+        color: Colors.black,
+        width: 50,
+    },
+    addExerciseButtonText:{
+        color: Colors.black,
+        fontWeight: "bold",
+    },
+    addSetButton: {
+        marginHorizontal: 30,
+        marginTop: 8,
+        padding: 8,
+        borderRadius: 10,
+        backgroundColor: "#2b2b2b",
+        alignItems: "center",
+    },
+    addSetButtonText: {
+        color: "#fff",
+        fontWeight: "600",
+    },
+
+    // edit set modal
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.75)', // Dunkler Hintergrund-Overlay
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        width: '85%',
+        backgroundColor: Colors.background,
+        borderRadius: 20,
+        padding: 24,
+        borderWidth: 1,
+        borderColor: '#3a3a3c',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.5,
+        shadowRadius: 15,
+        elevation: 10,
+    },
+    modalTitle: {
+        color: Colors.black,
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    label: {
+        color: Colors.black,
+        fontSize: 14,
+        fontWeight: "bold",
+        marginBottom: 8,
+        marginLeft: 4,
+    },
+    modalInput: {
+        backgroundColor: Colors.white,
+        color: Colors.black,
+        borderRadius: 14,
+        borderWidth: 3,
+        borderColor: Colors.primary,
+        padding: 14,
+        fontSize: 18,
+        marginBottom: 20,
+        textAlign: 'center', // Zentriert die Zahlen (sieht bei Reps/KG besser aus)
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        marginTop: 10,
+        gap: 10,
+    },
+    cancelButton: {
+        flex: 1,
+        paddingVertical: 14,
+        alignItems: 'center',
+        justifyContent: "center",
+        borderWidth: 3,
+        borderColor: Colors.primary,
+        borderRadius: 12,
+    },
+    cancelText: {
+        color: Colors.black,
+    },
+    saveButton: {
+        flex: 1,
+        backgroundColor: Colors.primary, // Deine Hauptfarbe (z.B. Gelb/Grün)
+        justifyContent: "center",
+        borderWidth: 3,
+        borderColor: Colors.primary,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    confirmText: {
+        color: Colors.black,
+        fontWeight: "bold",
+    },
+
+
+
+
+
+
+
+
+
+
+/*
+    //New experimental :/
+
+
+    setEditRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        paddingVertical: 6,
+        marginHorizontal: 12,
+        marginVertical: 4,
+        borderColor: Colors.black,
+        borderWidth: 1,
+        padding: 6,
     },
 
     input: {
@@ -268,17 +404,7 @@ export const workoutStyles = StyleSheet.create({
     textAlign: "center",
     },
 
-    addSetButton: {
-    marginTop: 8,
-    padding: 8,
-    borderRadius: 6,
-    backgroundColor: "#2b2b2b",
-    alignItems: "center",
-    },
-    addSetButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    },
+
 
     addExerciseButton:{
         padding: 8,
@@ -287,10 +413,7 @@ export const workoutStyles = StyleSheet.create({
         alignItems: "center",
 
     },
-    addExerciseButtonText:{
-        color: Colors.black,
-        fontWeight: "bold",
-    },
+
     //Old Styles
 
 
@@ -309,17 +432,7 @@ export const workoutStyles = StyleSheet.create({
 
     },
 
-    bigButton: {
-        paddingVertical: 16,
-        borderRadius: 10,
-        marginBottom: 20,
-    },
-    bigButtonTextWrapper: {
-        flexDirection: "row",
-        alignItems: "flex-start",
-        marginLeft: 30,
-        gap: 80,
-    },
+
     
     //Active Workout
     workoutName: {
@@ -399,6 +512,6 @@ export const workoutStyles = StyleSheet.create({
         gap: 20,
     },
 
-
+*/
     
 })

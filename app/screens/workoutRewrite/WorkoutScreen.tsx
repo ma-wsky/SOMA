@@ -88,13 +88,12 @@ export default function WorkoutScreen() {
                 filter={filter}
                 onItemPress={(workout) =>
                     router.push({
-                        pathname: "/screens/workout/SingleWorkoutInfoScreen",
+                        pathname: "/screens/workoutRewrite/SingleWorkoutInfoScreen",
                         params: { id: workout.id },
                     })
                 }
                 onStartWorkout={handleStartWorkout}
                 onDelete={handleDeleteWorkout}
-
             />
 
             {/* new template */}
@@ -102,8 +101,7 @@ export default function WorkoutScreen() {
                 <Pressable
                     onPress={() => {
                         router.push({
-                            pathname: "/screens/workout/SingleWorkoutInfoScreen",
-                            params: { workoutEditId: `new_temp_${Date.now()}` },
+                            pathname: "/screens/workoutRewrite/CreateTemplateScreen",
                         });
                     }}
                     style={({ pressed }) => [

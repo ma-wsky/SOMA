@@ -8,5 +8,5 @@ export type ExerciseSet = {
     breaktime: number;
     isDone: boolean;
     name?: string;
-    image?: string;
+    image?: string | null;
 };

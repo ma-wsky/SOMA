@@ -1,7 +1,9 @@
 import { db } from "@/firebaseConfig";
-import {collection, collectionGroup, deleteDoc, doc, getDoc, getDocs, query, setDoc, where } from "firebase/firestore";
+import {addDoc, collection, collectionGroup, deleteDoc, doc, getDoc, getDocs, query,
+    serverTimestamp, setDoc, where, writeBatch } from "firebase/firestore";
 import { WorkoutTemplate } from "@/types/WorkoutTemplate"
 import { ExerciseSet } from "@/types/ExerciseSet"
+import { Workout } from "@/types/Workout"
 
 export const WorkoutService = {
 
@@ -43,5 +45,53 @@ export const WorkoutService = {
         const workoutRef = doc(db, "users", userId, "workouts", workoutId);
         await deleteDoc(workoutRef);
         //TODO subcollections löschen
+    },
+
+    async createTemplate(userId: string, name: string, exerciseSets: ExerciseSet[]) {
+        try {
+            const batch = writeBatch(db);
+
+            // 1. Referenz für das Template-Dokument erstellen (ID wird automatisch generiert)
+            const templateRef = doc(collection(db, "users", userId, "templates"));
+
+            // 2. Das Haupt-Dokument vorbereiten
+            batch.set(templateRef, {
+                name: name,
+                createdAt: serverTimestamp(),
+            });
+
+            // 3. Für jeden Satz ein Dokument in der Subcollection "sets" erstellen
+            exerciseSets.forEach((set) => {
+                // Wir erstellen eine neue Referenz in der Subcollection
+                const setRef = doc(collection(db, "users", userId, "templates", templateRef.id, "sets"));
+
+                // Wir kopieren die Daten, entfernen aber die temporäre ID,
+                // damit Firestore eine eigene ID nutzt (oder wir behalten sie, falls gewünscht)
+                const { id, ...setData } = set;
+                const cleanData = {
+                    exerciseId: setData.exerciseId || "",
+                    exerciseName: setData.exerciseName || "Unbekannte Übung",
+                    image: setData.image || null,
+                    weight: setData.weight ?? 0,
+                    reps: setData.reps ?? 0,
+                    breaktime: setData.breaktime ?? 60,
+                    order: setData.order ?? 0,
+                    isDone: false
+                };
+
+                batch.set(setRef, {
+                    ...setData,
+                    order: setData.order ?? 0
+                });
+            });
+
+            // 4. Alles gleichzeitig absenden
+            await batch.commit();
+            return templateRef.id;
+
+        } catch (error) {
+            console.error("Fehler beim Erstellen des Templates:", error);
+            throw error;
+        }
     }
 }

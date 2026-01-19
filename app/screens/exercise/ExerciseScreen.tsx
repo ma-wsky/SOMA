@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { View, TextInput, ScrollView, Pressable, Text } from "react-native";
 import { useState } from "react";
 import { TopBar } from "@/components/TopBar"
@@ -14,6 +14,20 @@ export default function ExerciseScreen() {
     const [filter, setFilter] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("Alle");
     const { exercises, loading } = useLoadExercises();
+
+    const { mode } = useLocalSearchParams<{ mode?: string }>();
+    const isSelectionMode = mode === "select";
+
+    const handleAddExercise = (exercise: any) => {
+        router.replace({
+            pathname: "/screens/workoutRewrite/CreateTemplateScreen",
+            params: {
+                selectedExId: exercise.id,
+                selectedExName: exercise.name,
+                selectedExImage: exercise.image,
+            }
+        });
+    };
 
     return (
         <View style={exerciseStyles.container}>
@@ -69,8 +83,8 @@ export default function ExerciseScreen() {
                     pathname: "/screens/exercise/SingleExerciseInfoScreen",
                     params: { id: exercise.id }
                 })}
-                showAddButton={false}
-
+                showAddIcon={isSelectionMode}
+                onAddPress={handleAddExercise}
             />
 
             {/* Loading Overlay */}
