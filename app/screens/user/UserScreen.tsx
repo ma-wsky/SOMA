@@ -131,7 +131,34 @@ export default function UserScreen() {
                     <DataRow label="Geburtsdatum" value={userData?.birthdate} />
                     <DataRow label="Gewicht" value={userData?.weight} unit=" kg" />
                     <DataRow label="Größe" value={userData?.height} unit=" cm" />
+
+                    <View style={userStyles.line}/>
+
+                    <Text style={[userStyles.text, { marginLeft: 30, marginTop: 10 }]}>Trainingserinnerung</Text>
+                    <DataRow 
+                        label="Uhrzeit" 
+                        value={
+                            userData?.reminderTime 
+                                ? `${String(userData.reminderTime.hour).padStart(2, '0')}:${String(userData.reminderTime.minute).padStart(2, '0')}` 
+                                : "Nicht gesetzt"
+                        } 
+                    />
+                    <DataRow 
+                        label="Tage" 
+                        value={(() => {
+                            if (!userData?.reminderDays || userData.reminderDays.length === 0) return "Keine";
+                            const map: any = { 1: "So", 2: "Mo", 3: "Di", 4: "Mi", 5: "Do", 6: "Fr", 7: "Sa" };
+                            // Sortierlogik für Mo-So Darstellung: 2,3,4,5,6,7,1
+                            const sorted = [...userData.reminderDays].sort((a, b) => {
+                                const valA = a === 1 ? 8 : a;
+                                const valB = b === 1 ? 8 : b;
+                                return valA - valB; 
+                            });
+                            return sorted.map(d => map[d]).join(", ");
+                        })()} 
+                    />
                 </View>
+
 
                 {/* Logout */}
                 <View style={userStyles.buttonWrapper}>

@@ -37,9 +37,7 @@ export default function Home(){
             if (activeStore && activeStore.id) {
                 setOverlayObj(activeStore);
             } else if (!activeOverlayWorkout) {
-                 // Only clear if neither store nor param has data (param might be newer in some race cases, but store is source of truth)
-                 // actually store is always source of truth.
-                 setOverlayObj(null); 
+                setOverlayObj(null); 
             }
 
             const checkRestTimer = () => {
@@ -47,9 +45,6 @@ export default function Home(){
                 setRestTimer(timer);
 
                 // Check if timer finished just now (triggered by this poll)
-                // Note: The timer store doesn't automatically clear itself, hooks do that.
-                // We need to coordinate to avoid double firing.
-                // Since this view is active when the workout screen is NOT, we can take responsibility if needed.
                 if (timer && timer.timeRemaining <= 0) {
                      Vibration.vibrate([0, 200, 100, 200]);
                      try {

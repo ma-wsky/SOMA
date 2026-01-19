@@ -12,12 +12,19 @@
       "@firebase/auth": [
         "./node_modules/@firebase/auth/dist/index.rn.d.ts"
       ]
-    }
+    },
+    "skipLibCheck": true
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }
+
+//    "skipLibCheck": true &   "exclude": "node_modules" -> wegen errors in node_modules\expo audio/notification
+

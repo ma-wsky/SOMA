@@ -105,7 +105,6 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
         const user = auth.currentUser;
         if (!user || !workout) return;
 
-        // Active workouts ALWAYS create a new entry (history or template)
         // We never overwrite the source template.
         const workoutId = `workout_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
         const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
@@ -144,12 +143,18 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
         } catch (e) {}
 
         Toast.show({
+          type: 'success',
+          text1: 'Herzlichen Glückwunsch! 🎉',
+          text2: 'Training erfolgreich gespeichert.'
+        });
+
+        /*Toast.show({
             type: 'success',
-            text1: 'Herzlichen Glückwunsch! 🎉',
-            text2: 'Training erfolgreich gespeichert.',
+            text1: '',
+            text2: '',
             position: 'top',
             visibilityTime: 4000,
-        });
+        });*/
 
         clearActiveWorkout();
         require("@/utils/workoutTimerStore").clearWorkoutTimer();
