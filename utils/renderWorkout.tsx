@@ -374,6 +374,55 @@ export const renderSingleCard = (
   </View>
 );
 
+// ==================== WORKOUT HISTORY RENDER ====================
+
+export const renderHistoryCard = (
+  exerciseId: string,
+  sets: ExerciseSet[]
+): React.ReactNode => (
+  <View key={exerciseId} style={styles.exerciseCard}>
+    <View style={styles.exerciseCardHeader}>
+      <Text style={{ fontSize: 22, fontWeight: "bold", color: "white", marginRight: 8 }}>
+        Pic
+      </Text>
+
+      <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
+
+      {/* Breaktime displayed but not interactive */}
+      <View style={{ flexDirection: "row", alignItems: "center", padding: 8 }}>
+        <Ionicons name="alarm-outline" size={20} color={Colors.primary} />
+        <Text style={{ color: Colors.primary, marginLeft: 4, fontSize: 12 }}>
+          {sets[0].breaktime || 30}s
+        </Text>
+      </View>
+    </View>
+
+    <View style={styles.setRowHeader}>
+      <Text style={styles.setTextHeader}>Satz</Text>
+      <Text style={styles.setTextHeader}>Gewicht (kg)</Text>
+      <Text style={styles.setTextHeader}>Wdh.</Text>
+      <Text style={styles.setTextHeader}>Status</Text>
+    </View>
+
+    {sets.map((set, index) => {
+      return (
+        <View key={index} style={styles.setRow}>
+          <Text style={styles.setText}>{index + 1}</Text>
+          <Text style={styles.setText}>{set.weight}</Text>
+          <Text style={styles.setText}>{set.reps}</Text>
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <Ionicons
+              name={set.isDone ? "checkmark-circle" : "ellipse-outline"}
+              size={24}
+              color={set.isDone ? Colors.primary : "#999"}
+            />
+          </View>
+        </View>
+      );
+    })}
+  </View>
+);
+
 export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.ReactNode => {
   if (props.activeOverlay === "none") return null;
   const isBreaktime = props.activeOverlay === "breaktime";
