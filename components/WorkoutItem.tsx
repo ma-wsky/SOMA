@@ -5,6 +5,7 @@ import { Colors } from "../styles/theme"
 import { useRef, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { showConfirm } from "@/utils/alertHelper";
+import {Workout} from "@/types/workoutTypes";
 
 
 interface Props {
@@ -13,24 +14,6 @@ interface Props {
     onDelete?: (workoutId: string) => void;
 }
 
-type Workout = {
-    id?: string;
-    name?: string;
-    date: string;
-    duration?: number;
-    exerciseSets: ExerciseSet[];
-};
-
-type ExerciseSet = {
-    id: string;
-    name?: string;
-    exerciseName?: string;
-    exerciseId: string;
-    breaktime?: number;
-    weight?: number;
-    reps?: number;
-    isDone?: boolean;
-};
 
 export default function WorkoutItem({workout, onPress, onDelete}: Props) {
     const pan = useRef(new Animated.ValueXY()).current;
@@ -75,19 +58,22 @@ export default function WorkoutItem({workout, onPress, onDelete}: Props) {
     };
 
     return (
-        <View style={{...styles.itemContainer, overflow: 'hidden', position: 'relative'}}>
+        <View>
             {/* Delete Background */}
-            <View style={{position: 'absolute', right: 0, top: 0, bottom: 0, width: 100, backgroundColor: '#ff4444', justifyContent: 'center', alignItems: 'center'}}>
+            <View style={{position: 'absolute', borderRadius:10, right: 20, top: 5, bottom: 5, width: 100, backgroundColor: '#ff4444', justifyContent: 'center', alignItems: 'center'}}>
                 <Pressable onPress={handleDelete}>
-                    <Ionicons name="trash" size={28} color="white" />
+                    <Ionicons name="trash" size={28} color="white"  />
                 </Pressable>
             </View>
-
             {/* Swipeable Content */}
             <Animated.View 
                 style={[{ transform: [{ translateX: pan.x }] }]} 
                 {...panResponder.panHandlers}
             >
+        <View style={{...styles.itemContainer, overflow: 'hidden', position: 'relative'}}>
+            
+
+            <View style={{backgroundColor:"black"}}>
 
             <Pressable
                 onPress={() => {router.push({pathname: "/screens/workout/SingleWorkoutInfoScreen", params: {id: workout.id}})}}
@@ -97,6 +83,8 @@ export default function WorkoutItem({workout, onPress, onDelete}: Props) {
                     {workout.exerciseSets.length} Sets
                 </Text>
             </Pressable>
+                            
+
 
             <Pressable
                 onPress={() => {router.push({pathname: "/screens/workout/ActiveWorkoutScreen", params: {id: workout.id}})}}
@@ -108,7 +96,11 @@ export default function WorkoutItem({workout, onPress, onDelete}: Props) {
             >
                 <Text style={styles.itemButtonText}>Training starten</Text>
             </Pressable>
-            </Animated.View>
+            
+            </View>
+            
+        </View>
+        </Animated.View>
         </View>
     );
 }

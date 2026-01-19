@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
-import { Exercise } from "@/app/types/Exercise"
+import { Exercise } from "@/types/Exercise"
 
 
 export function useLoadExercises() {

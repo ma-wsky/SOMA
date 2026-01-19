@@ -29,4 +29,7 @@ export type Exercise = {
   muscleGroup?: string;
 };
 
+export type ListItem = { type: "workout"; data: Workout };
+
+
 export type OverlayTypes = "none" | "breaktime" | "editSet" | "addSet" | "restTimer";

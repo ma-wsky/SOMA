@@ -1,32 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { auth, db } from "../firebaseConfig";
 import { collection, getDocs, doc } from "firebase/firestore";
+import { Workout,Exercise, ExerciseSet } from "@/types/workoutTypes";
 
-type Workout = {
-  id: string;
-  name: string;
-  date: string;
-  duration: number;
-  exerciseSets: ExerciseSet[];
-  type?: "template" | "history";
-};
-
-type ExerciseSet = {
-  id: string;
-  exerciseId: string;
-  exerciseName: string;
-  weight: number;
-  reps: number;
-  isDone: boolean;
-};
-
-type Exercise = {
-    id: string;
-    name: string;
-    muscleGroup?: string;
-    isFavorite: boolean;
-    isOwn: boolean;
-};
 
 export function useLoadWorkouts() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
@@ -73,11 +49,11 @@ export function useLoadWorkouts() {
           } as ExerciseSet);
         });
 
+        //TODO andere attribute nicht ??
         userWorkouts.push({
           id: workoutDoc.id,
-          name: workoutData.name || "Unnamed Workout",
-          duration: workoutData.duration || 0,
           date: workoutData.date || "",
+          name: workoutData.name || "Unnamed Workout",
           exerciseSets: sets,
           type: workoutData.type || "template",
         });
