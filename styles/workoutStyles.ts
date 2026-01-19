@@ -4,6 +4,9 @@ import { topBarStyles } from './topBarStyles';
 
 export const workoutStyles = StyleSheet.create({
     // new implementation:
+    container: {
+        flex: 1,
+    },
 
     //workoutscreen:
     itemTitle: {
@@ -146,6 +149,47 @@ export const workoutStyles = StyleSheet.create({
         alignItems: 'center',
     },
 
+    //info screen
+    iconCircle: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#1a1a1a', // Dunkler Kreis
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+        borderWidth: 1,
+        borderColor: '#333',
+    },
+    breakTimeBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1a1a1a', // Hintergrund für den Badge
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: '#333',
+        marginLeft: 'auto', // Schiebt den Badge nach ganz rechts im Header
+    },
+    breakTimeText: {
+        color: Colors.primary, // Nutzt dein Theme-Grün/Blau
+        fontSize: 12,
+        fontWeight: '600',
+        marginLeft: 4,
+    },
+    picWrapper: {
+        alignItems: "center",
+        marginRight: 10,
+    },
+    picture: {
+        width:50,
+        height:50,
+        borderRadius: 75,
+        borderWidth: 4,
+        borderColor: 'black',
+        resizeMode: 'cover',
+    },
 
 
 
@@ -248,11 +292,7 @@ export const workoutStyles = StyleSheet.create({
         fontWeight: "bold",
     },
     //Old Styles
-    container: {
-        marginTop: 30,
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
+
 
     itemButtonText: {
         color: "white",
