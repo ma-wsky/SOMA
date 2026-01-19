@@ -105,7 +105,9 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
         const user = auth.currentUser;
         if (!user || !workout) return;
 
-        const workoutId = workout.id || Date.now().toString();
+        // Active workouts ALWAYS create a new entry (history or template)
+        // We never overwrite the source template.
+        const workoutId = `workout_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
         const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
 
         const batch = writeBatch(db);

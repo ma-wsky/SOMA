@@ -17,33 +17,31 @@ export default function Home(){
     const [displayElapsed, setDisplayElapsed] = useState<number>(0);
     const [restTimer, setRestTimer] = useState<{ timeRemaining: number; isActive: boolean } | null>(null);
 
+    // Initial check from params
     useEffect(() => {
-        if (!activeOverlayWorkout) {
-            setOverlayObj(null);
-            setDisplayElapsed(0);
-            return;
-        }
-        try {
-            const parsed = JSON.parse(activeOverlayWorkout);
-            setOverlayObj(parsed);
-            if (parsed.startTime) {
-                const tick = () => setDisplayElapsed(Math.floor((Date.now() - parsed.startTime)/1000));
-                tick();
-                const t = setInterval(tick, 1000);
-                return () => clearInterval(t);
-            } else {
-                setDisplayElapsed(parsed.elapsed ?? 0);
+        if (activeOverlayWorkout) {
+            try {
+                const parsed = JSON.parse(activeOverlayWorkout);
+                setOverlayObj(parsed);
+            } catch (e) {
+                console.warn('Invalid overlay param', e);
             }
-        } catch (e) {
-            console.warn('Invalid overlay param', e);
-            setOverlayObj(null);
-            setDisplayElapsed(0);
         }
     }, [activeOverlayWorkout]);
 
-    // Rest Timer polling
+    // Focus Effect: Check global store AND handle timer logic
     useFocusEffect(
         useCallback(() => {
+            // Check global active workout store
+            const activeStore = require("@/utils/activeWorkoutStore").getActiveWorkout();
+            if (activeStore && activeStore.id) {
+                setOverlayObj(activeStore);
+            } else if (!activeOverlayWorkout) {
+                 // Only clear if neither store nor param has data (param might be newer in some race cases, but store is source of truth)
+                 // actually store is always source of truth.
+                 setOverlayObj(null); 
+            }
+
             const checkRestTimer = () => {
                 const timer = require("@/utils/restTimerStore").getRestTimer();
                 setRestTimer(timer);
@@ -64,8 +62,20 @@ export default function Home(){
             
             checkRestTimer();
             const interval = setInterval(checkRestTimer, 500);
-            return () => clearInterval(interval);
-        }, [])
+            
+            // Render timer tick
+            let timerInterval: NodeJS.Timeout;
+            if (overlayObj && overlayObj.startTime) {
+                const tick = () => setDisplayElapsed(Math.floor((Date.now() - (overlayObj.startTime || 0))/1000));
+                tick();
+                timerInterval = setInterval(tick, 1000) as unknown as NodeJS.Timeout;
+            }
+
+            return () => {
+                clearInterval(interval);
+                if (timerInterval) clearInterval(timerInterval);
+            };
+        }, [overlayObj?.startTime, activeOverlayWorkout]) // Dependency on overlayObj.startTime to restart ticker if it changes
     );
 
     const formatTime = (seconds: number) => {
