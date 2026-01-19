@@ -1,10 +1,11 @@
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useEffect, useState, useCallback } from 'react';
-import { View, Pressable, Text } from 'react-native';
+import { View, Pressable, Text, Vibration } from 'react-native';
 import { clearActiveWorkout } from '@/utils/activeWorkoutStore';
 import { Calendar } from "react-native-calendars";
 import { homeStyles as styles } from "@/styles/homeStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { playSound } from "@/utils/soundHelper";
 
 
 export default function Home(){
@@ -46,6 +47,19 @@ export default function Home(){
             const checkRestTimer = () => {
                 const timer = require("@/utils/restTimerStore").getRestTimer();
                 setRestTimer(timer);
+
+                // Check if timer finished just now (triggered by this poll)
+                // Note: The timer store doesn't automatically clear itself, hooks do that.
+                // We need to coordinate to avoid double firing.
+                // Since this view is active when the workout screen is NOT, we can take responsibility if needed.
+                if (timer && timer.timeRemaining <= 0) {
+                     Vibration.vibrate([0, 200, 100, 200]);
+                     try {
+                         playSound(require('@/assets/sounds/timer.mp3'));
+                     } catch (e) {}
+                     require("@/utils/restTimerStore").clearRestTimer();
+                     setRestTimer(null);
+                }
             };
             
             checkRestTimer();

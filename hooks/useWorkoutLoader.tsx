@@ -127,6 +127,7 @@ export const useWorkoutLoader = ({
           } as Workout);
         } else {
           const newW = {
+            id: currentEditId,
             date: new Date().toISOString(),
             exerciseSets: [],
             startTime: preservedStartTime || Date.now(),
