@@ -83,8 +83,8 @@ export default function RegisterScreen() {
 
                         {/* Title */}
                         <View style={authStyles.titleWrapper}>
-                            <Text style={authStyles.titleText}>Willkommen bei</Text>
-                            <Text style={authStyles.appnameText}>Appname!</Text>
+                            <Text style={authStyles.appnameText}>SOMA</Text>
+                            <Text style={authStyles.titleText}>Dein Körper. Dein Fortschritt.</Text>
                         </View>
 
                         {/* Inputs */}
