@@ -262,7 +262,6 @@ export default function ActiveWorkoutScreen() {
       <GestureHandlerRootView style={styles.sheetContainer}>
         <BottomSheet snapPoints={snapPoints} enablePanDownToClose={true}>
           <BottomSheetView style={styles.sheetContainerContent}>
-            <Text>Workout wird geladen...</Text>
             <LoadingOverlay visible={loading} />
           </BottomSheetView>
         </BottomSheet>
