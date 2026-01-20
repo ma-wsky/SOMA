@@ -83,12 +83,11 @@ export default function EditUserScreen() {
         birthdate: "",
         weight: "",
         height: "",
-        profilePicture: ""
+        profilePicture: "",
+        reminderTime: new Date(),
+        reminderDays: [] as number[],
     });
 
-    // Reminder state
-    const [reminderTime, setReminderTime] = useState(new Date());
-    const [reminderDays, setReminderDays] = useState<number[]>([]);
     const [showTimePicker, setShowTimePicker] = useState(false);
 
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -106,13 +105,25 @@ export default function EditUserScreen() {
 
                 if (snapshot.exists()) {
                     const data = snapshot.data();
+                    
+                    let loadedDate = new Date();
+                    // Load Reminder settings
+                    if (data.reminderTime && data.reminderTime.hour !== undefined && data.reminderTime.minute !== undefined) {
+                         const d = new Date();
+                         d.setHours(data.reminderTime.hour);
+                         d.setMinutes(data.reminderTime.minute);
+                         loadedDate = d;
+                    }
+
                     setFormData({
                         name: data.name || "",
                         email: data.email || "",
                         birthdate: data.birthdate || "",
                         weight: data.weight?.toString() || "",
                         height: data.height?.toString() || "",
-                        profilePicture: data.profilePicture || ""
+                        profilePicture: data.profilePicture || "",
+                        reminderDays: data.reminderDays || [],
+                        reminderTime: loadedDate
                     });
 
                     if (data.birthdate) {
@@ -120,21 +131,6 @@ export default function EditUserScreen() {
                         if (parts.length === 3) {
                             setDateObject(new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])));
                         }
-                    }
-
-                    // Load Reminder settings
-                    if (data.reminderDays) {
-                        setReminderDays(data.reminderDays);
-                    }
-                    if (data.reminderTime) {
-                         // Firestore Timestamp to js Date? Assuming stored as object or timestamp
-                         // If stored as {hour: 8, minute: 30}
-                         if (data.reminderTime.hour !== undefined && data.reminderTime.minute !== undefined) {
-                             const d = new Date();
-                             d.setHours(data.reminderTime.hour);
-                             d.setMinutes(data.reminderTime.minute);
-                             setReminderTime(d);
-                         } 
                     }
                 }
             } catch (e) {
@@ -168,13 +164,13 @@ export default function EditUserScreen() {
 
             // Sync notifications
             await cancelAllNotifications();
-            if (reminderDays.length > 0) {
+            if (formData.reminderDays.length > 0) {
                 await scheduleWeeklyWorkoutReminder(
                     "Zeit fürs Training!",
                     "Dein Workout wartet auf dich.",
-                    reminderTime.getHours(),
-                    reminderTime.getMinutes(),
-                    reminderDays
+                    formData.reminderTime.getHours(),
+                    formData.reminderTime.getMinutes(),
+                    formData.reminderDays
                 );
             }
 
@@ -188,10 +184,10 @@ export default function EditUserScreen() {
                 profilePicture: finalPhotoUrl,
                 updatedAt: serverTimestamp(),
                 // Save Reminder Settings
-                reminderDays: reminderDays,
+                reminderDays: formData.reminderDays,
                 reminderTime: {
-                    hour: reminderTime.getHours(),
-                    minute: reminderTime.getMinutes()
+                    hour: formData.reminderTime.getHours(),
+                    minute: formData.reminderTime.getMinutes()
                 }
             });
 
@@ -206,11 +202,13 @@ export default function EditUserScreen() {
     };
 
     const toggleDay = (day: number) => {
-        if (reminderDays.includes(day)) {
-            setReminderDays(reminderDays.filter(d => d !== day));
+        let newDays;
+        if (formData.reminderDays.includes(day)) {
+            newDays = formData.reminderDays.filter(d => d !== day);
         } else {
-            setReminderDays([...reminderDays, day]);
+            newDays = [...formData.reminderDays, day];
         }
+        setFormData({ ...formData, reminderDays: newDays });
     };
 
 
@@ -285,7 +283,7 @@ export default function EditUserScreen() {
 
                             <EditRow
                                 label="Uhrzeit"
-                                value={reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                value={formData.reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 isPressable
                                 onPress={() => setShowTimePicker(true)}
                                 placeholder="Zeit wählen"
@@ -293,7 +291,7 @@ export default function EditUserScreen() {
 
                             <View style={{ gap: 10 }}>
                                 <Text style={[userStyles.text, { marginLeft: 30 }]}>Tage</Text>
-                                <WeekdayPicker selectedDays={reminderDays} onToggleDay={toggleDay} />
+                                <WeekdayPicker selectedDays={formData.reminderDays} onToggleDay={toggleDay} />
                             </View>
 
                         </View>
@@ -317,14 +315,14 @@ export default function EditUserScreen() {
 
                         {showTimePicker && (
                             <DateTimePicker
-                                value={reminderTime}
+                                value={formData.reminderTime}
                                 mode="time"
                                 is24Hour={true}
                                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                                 onChange={(event, date) => {
                                     if (Platform.OS === 'android') setShowTimePicker(false);
                                     if (date) {
-                                        setReminderTime(date);
+                                        setFormData({ ...formData, reminderTime: date });
                                     }
                                 }}
                             />

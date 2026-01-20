@@ -52,6 +52,8 @@ export default function RegisterScreen() {
                 weight: null,
                 updatedAt: serverTimestamp(),
                 createdAt: serverTimestamp(),
+                reminderTime: { hour: 20, minute: 0 },
+                reminderDays: [],
             }, { merge: true });
 
             console.log("User registered and document created.");

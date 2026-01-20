@@ -134,30 +134,25 @@ export default function UserScreen() {
 
                     <View style={userStyles.line}/>
 
-                    <Text style={[userStyles.text, { marginLeft: 30, marginTop: 10, marginBottom: 5 }]}>Trainingserinnerung</Text>
-                    <View style={{flexDirection:'row', justifyContent:'space-between', paddingRight: 20}}>
-                        <View style={{flex: 1}}>
-                            <DataRow 
-                                label="Uhrzeit" 
-                                value={
-                                    userData?.reminderTime 
-                                        ? `${String(userData.reminderTime.hour).padStart(2, '0')}:${String(userData.reminderTime.minute).padStart(2, '0')}` 
-                                        : "Nicht gesetzt"
-                                } 
-                            />
-                        </View>
-                        <View style={{flex: 1}}>
-                            <DataRow 
-                                label="Tage" 
-                                value={(() => {
-                                    if (!userData?.reminderDays || userData.reminderDays.length === 0) return "Keine";
-                                    const map: any = { 1: "Mo", 2: "Di", 3: "Mi", 4: "Do", 5: "Fr", 6: "Sa", 7: "So" };
-                                    const sorted = [...userData.reminderDays].sort((a, b) => a - b);
-                                    return sorted.map(d => map[d]).join(", ");
-                                })()} 
-                            />
-                        </View>
-                    </View>
+                    <Text style={[userStyles.text, { marginLeft: 30, marginBottom: 5 }]}>Trainingserinnerung</Text>
+                        
+                        <DataRow 
+                            label="Uhrzeit" 
+                            value={
+                                userData?.reminderTime 
+                                    ? `${String(userData.reminderTime.hour).padStart(2, '0')}:${String(userData.reminderTime.minute).padStart(2, '0')}` 
+                                    : "Nicht gesetzt"
+                            } 
+                        />
+                        <DataRow 
+                            label="Tage" 
+                            value={(() => {
+                                if (!userData?.reminderDays || userData.reminderDays.length === 0) return "Keine";
+                                const map: any = { 1: "Mo", 2: "Di", 3: "Mi", 4: "Do", 5: "Fr", 6: "Sa", 7: "So" };
+                                const sorted = [...userData.reminderDays].sort((a, b) => a - b);
+                                return sorted.map(d => map[d]).join(", ");
+                            })()} 
+                        />
                 </View>
 
 
