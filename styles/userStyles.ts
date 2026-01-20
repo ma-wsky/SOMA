@@ -1,5 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet,Dimensions } from 'react-native';
 import { Colors } from "./theme";
+
+
+const { width } = Dimensions.get('window');
 
 export const userStyles = StyleSheet.create({
     editUserContainer: {
@@ -10,6 +13,7 @@ export const userStyles = StyleSheet.create({
     userContainer: {
         flex: 1,
         backgroundColor: Colors.background,
+        marginBottom:50,
     },
 
     scrollView: {
@@ -89,5 +93,28 @@ export const userStyles = StyleSheet.create({
         borderWidth: 4,
         borderColor: 'black',
         resizeMode: 'cover',
+    },
+    //SettingsOverlay
+    settingsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 15,
+        paddingHorizontal: 15,
+    },
+    rowWrap: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 15,
+    },
+    menu: {
+        width: width * 0.75,
+        maxWidth: 320,
+        backgroundColor: Colors.background,
+        shadowColor: '#000',
+        shadowOffset: { width: -2, height: 0 },
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        elevation: 10,
     },
 })

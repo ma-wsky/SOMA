@@ -1,17 +1,10 @@
-/**
- * 
- * TODO:
- * - Kann damit die useRestTimer entfernt werden, wenn die floatingBar sich darum kümmert?
- */
-
 import { useState, useEffect, useRef } from "react";
-import { Vibration } from "react-native";
 
 export const useWorkoutTimer = (workoutId?: string | null) => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize timer and restore previous elapsed time if resuming
+
   useEffect(() => {
     const savedTimer = require("@/utils/store/workoutTimerStore").getWorkoutTimer();
     if (savedTimer && workoutId === savedTimer?.workoutId) {
@@ -45,6 +38,7 @@ export const useWorkoutTimer = (workoutId?: string | null) => {
 };
 
 import { playSound } from "@/utils/helper/soundHelper";
+import { vibrate } from "@/utils/helper/vibrationHelper";
 
 export const useRestTimer = () => {
   const [restTimeRemaining, setRestTimeRemaining] = useState(0);
@@ -59,7 +53,7 @@ export const useRestTimer = () => {
               setRestTimeRemaining(status.timeRemaining);
           } else {
             if (status && status.timeRemaining <= 0) {
-              Vibration.vibrate([0, 200, 100, 200]);
+              vibrate([0, 200, 100, 200]);
               try {
                 playSound(require('@/assets/sounds/timer.mp3'));
               } catch (e) {}
@@ -72,7 +66,7 @@ export const useRestTimer = () => {
       restTimerRef.current = setInterval(tick, 1000) as unknown as NodeJS.Timeout;
   };
 
-  // Resume timer
+  //Resume timer
   useEffect(() => {
     const saved = require("@/utils/store/restTimerStore").getRestTimer();
     if (saved && saved.isActive) {

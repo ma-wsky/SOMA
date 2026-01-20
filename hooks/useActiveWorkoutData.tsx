@@ -13,8 +13,8 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
   const baseData = useBaseWorkoutData(initialWorkout);
   const { 
     workout, 
-    setWorkout,
-    isEditMode,
+    //setWorkout,
+    //isEditMode,
     setIsEditMode,
     setLoading,
     updateWorkoutState 
@@ -142,6 +142,7 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
 
         clearActiveWorkout();
         require("@/utils/store/workoutTimerStore").clearWorkoutTimer();
+        require("@/utils/store/restTimerStore").clearRestTimer();
         if (editIdRef.current) require("@/utils/store/workoutEditingStore").clearEditingWorkout(editIdRef.current);
 
         router.dismissAll();

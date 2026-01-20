@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  Vibration,
   BackHandler
 } from "react-native";
 
@@ -13,6 +12,7 @@ import { TopBar } from "@/components/TopBar";
 import BottomSheet, { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { minSecToSeconds } from "@/components/NumberStepper";
+import { vibrate } from "@/utils/helper/vibrationHelper";
 
 import type { Workout, ExerciseSet } from "@/types/workoutTypes";
 import { useOverlayHandlers } from "@/hooks/useOverlayHandlers";
@@ -172,7 +172,7 @@ export default function ActiveWorkoutScreen() {
 
   const handleSetCheckWithTimer = useCallback(
     (setIndex: number, breaktime: number) => {
-      Vibration.vibrate(50);
+      vibrate(50);
       handleSetCheck(setIndex);
       if (workout?.exerciseSets[setIndex].isDone === false && breaktime > 0) {
         startRestTimer(breaktime);

@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet, Vibration } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { subscribeToActiveWorkout, getActiveWorkout } from "@/utils/store/activeWorkoutStore";
 import { subscribeToRestTimer } from "@/utils/store/restTimerStore";
 import { playSound } from "@/utils/helper/soundHelper";
+import { vibrate } from "@/utils/helper/vibrationHelper";
 import { Colors } from "@/styles/theme";
 import { formatTimeShort } from "@/utils/helper/formatTimeHelper";
 
@@ -65,7 +66,7 @@ export const ActiveWorkoutFloatingBar = () => {
             // ONLY if not on ActiveScreen
             if (remain <= 0 && lastRestTimeRef.current > 0) {
                 if (!pathname.includes('ActiveWorkoutScreen')) {
-                    Vibration.vibrate([0, 200, 100, 200]);
+                    vibrate([0, 200, 100, 200]);
                     try {
                         playSound(require('@/assets/sounds/timer.mp3'));
                     } catch (e) {}
