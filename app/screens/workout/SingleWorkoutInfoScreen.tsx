@@ -1,6 +1,6 @@
 import { TopBar } from "@/components/TopBar";
 import { workoutStyles } from "@/styles/workoutStyles";
-import { View, Text, FlatList, TextInput, Pressable, ScrollView, Modal } from "react-native";
+import { ActionSheetIOS, View, Text, FlatList, TextInput, Pressable, ScrollView, Modal, BackHandler } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState, useEffect, useCallback } from "react";
 import LoadingOverlay from "@/components/LoadingOverlay";
@@ -164,6 +164,21 @@ export default function SingleWorkoutInfoScreen() {
       setIsEditMode(false);
     }
   }, [id, handleCancel, setIsEditMode]);
+
+  // Back Handler to prevent navigation loops
+  useEffect(() => {
+    const onBackPress = () => {
+      if (isEditMode) {
+        handleCancelPressed();
+      } else {
+        router.navigate("/(tabs)/WorkoutScreenProxy");
+      }
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => backHandler.remove();
+  }, [isEditMode, handleCancelPressed]);
 
   if (!workout) {
     return (
