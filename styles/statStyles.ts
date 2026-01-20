@@ -59,7 +59,7 @@ export const statStyles = StyleSheet.create({
         paddingHorizontal: 10,
         marginLeft: 30,
         borderRadius: 20,
-        backgroundColor: Colors.iconInactive,
+        backgroundColor: Colors.black,
     },
     infoMuscle: {
         fontSize: 14,

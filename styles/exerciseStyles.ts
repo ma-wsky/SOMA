@@ -31,7 +31,7 @@ export const exerciseStyles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 20,
-        backgroundColor: Colors.iconInactive,
+        backgroundColor: Colors.black,
     },
     filterTagActive: {
         backgroundColor: Colors.primary,
@@ -123,7 +123,7 @@ export const exerciseStyles = StyleSheet.create({
         flexDirection: "row",
         borderWidth: 2,
         borderRadius: 10,
-        borderColor: Colors.iconInactive,
+        borderColor: Colors.black,
     },
     input: {
         flex: 1,
@@ -180,7 +180,7 @@ export const exerciseStyles = StyleSheet.create({
         paddingHorizontal: 10,
         marginLeft: 30,
         borderRadius: 20,
-        backgroundColor: Colors.iconInactive,
+        backgroundColor: Colors.black,
     },
     infoMuscle: {
         fontSize: 14,

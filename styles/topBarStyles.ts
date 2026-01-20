@@ -17,7 +17,7 @@ export const topBarStyles = StyleSheet.create({
         borderColor: Colors.primary,
     },
     buttonText: {
-        color: Colors.black,
+        color: Colors.white,
         fontWeight: "bold",
         fontSize: 16,
     },
