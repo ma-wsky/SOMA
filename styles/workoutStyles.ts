@@ -223,7 +223,7 @@ export const workoutStyles = StyleSheet.create({
     },
     
     sheetContainer: {
-        flex: 1,
+        flex:1,
         backgroundColor: Colors.background,
     },
     sheetContainerContent: {
@@ -232,7 +232,7 @@ export const workoutStyles = StyleSheet.create({
         backgroundColor: Colors.darkBackground,
         flexDirection: "column",
         height: "100%",
-        gap: 20,
+        gap: 50,
     },
 
 

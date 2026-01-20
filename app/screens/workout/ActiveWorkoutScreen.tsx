@@ -3,17 +3,18 @@ import {
   Text,
   TextInput,
   Pressable,
-  ScrollView,
   Vibration,
   BackHandler
 } from "react-native";
+import { ScrollView } from 'react-native-gesture-handler';
+
 import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { workoutStyles as styles } from "@/styles/workoutStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { TopBar } from "@/components/TopBar";
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import BottomSheet,  {BottomSheetScrollView, BottomSheetView}  from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { minSecToSeconds } from "@/components/NumberStepper";
 import { Colors } from "@/styles/theme";
@@ -287,7 +288,8 @@ export default function ActiveWorkoutScreen() {
         onChange={handleSheetChanges}
         enablePanDownToClose={true}
       >
-        <View style={styles.sheetContainerContent}>
+        
+          <BottomSheetView >
           <TopBar
             leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
             titleText={isEditMode ? "Training bearbeiten" : timerString}
@@ -295,12 +297,16 @@ export default function ActiveWorkoutScreen() {
             onLeftPress={() => (isEditMode ? handleCancel() : handleDiscardWorkout())}
             onRightPress={() => (isEditMode ? handleSaveChangesWithTimer() : handleFinishWorkout())}
           />
+          
 
           {isEditMode ? renderActiveEditMode(renderProps as any) : renderActiveViewMode(renderProps as any)}
           <LoadingOverlay visible={loading} />
           {renderActiveOverlays(renderProps as any)}
           {renderActiveRestTimerBar(restTimeRemaining, stopRestTimer)}
-        </View>
+
+
+        </BottomSheetView>
+          
       </BottomSheet>
     </GestureHandlerRootView>
   );

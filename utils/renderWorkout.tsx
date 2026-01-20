@@ -44,7 +44,7 @@ export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.Rea
   const groupedSets = groupSetsByExercise(props.workout.exerciseSets);
 
   return (
-    <ScrollView contentContainerStyle={{ paddingBottom: 120, padding: 16 }}>
+    <View >
       <Text 
         style={{ color: Colors.black, marginBottom: 10, fontSize: 24, textAlign: 'center' }}
         numberOfLines={2}
@@ -65,7 +65,7 @@ export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.Rea
           <Text style={styles.topBarButtonText}>Bearbeiten</Text>
         </Pressable>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
@@ -73,7 +73,7 @@ export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.Rea
   const groupedSets = groupSetsByExercise(props.workout.exerciseSets);
 
   return (
-    <ScrollView contentContainerStyle={{ paddingBottom: 120, padding: 16 }}>
+    <View >
       <View style={{ padding: 16 }}>
         <Text style={{ color: Colors.black, width: 800, marginBottom: 4, fontSize: 24 }}>
           Trainingsname:
@@ -101,7 +101,7 @@ export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.Rea
       >
         <Text style={styles.addExerciseButtonText}>Übung hinzufügen +</Text>
       </Pressable>
-    </ScrollView>
+    </View>
   );
 };
 
