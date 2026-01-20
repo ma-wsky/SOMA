@@ -150,7 +150,7 @@ export default function CreateExerciseScreen() {
                                 ]}
                             >
                                 <Image
-                                    source={image ? { uri: image } : require('@/assets/default-exercise-picture/default-exercise-picture.jpg')}
+                                    source={image ? { uri: image } : require('@/assets/default-exercise-picture/users.png')}
                                     style={exerciseStyles.picture}/>
 
                                 {!hasImage && (

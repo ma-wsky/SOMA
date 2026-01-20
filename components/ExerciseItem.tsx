@@ -14,6 +14,10 @@ interface Props {
 }
 
 export default function ExerciseItem({ exercise, onPress, onAddToWorkout, showAddButton = false }: Props) {
+
+    const ADMIN_DEFAULT = require("@/assets/default-exercise-picture/admin.png");
+    const USER_DEFAULT = require("@/assets/default-exercise-picture/users.png");
+
     return (
         <Pressable
             onPress={() => onPress?.(exercise)}
@@ -28,8 +32,10 @@ export default function ExerciseItem({ exercise, onPress, onAddToWorkout, showAd
                     source={
                         exercise.image
                             ? { uri: exercise.image }
-                            : require('@/assets/default-exercise-picture/default-exercise-picture.jpg')
-                    }
+                            : (exercise.isOwn
+                                ? USER_DEFAULT
+                                : ADMIN_DEFAULT
+                            )}
                     style={exerciseStyles.itemPicture}
                 />
 
