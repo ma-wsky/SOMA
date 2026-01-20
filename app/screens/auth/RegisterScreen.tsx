@@ -1,5 +1,5 @@
 import {useRouter} from "expo-router";
-import { Text, View, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, View, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useState } from "react";
 import { db, auth } from "@/firebaseConfig";
 import { createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential } from "firebase/auth";
@@ -19,12 +19,17 @@ export default function RegisterScreen() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [passwordAgain, setPasswordAgain] = useState("");
     const [loading, setLoading] = useState(false);
     const { isGuestLoading } = useGuestLogin();
 
     const handleRegister = async () => {
         if (!email || !password) {
             Alert.alert("Fehler", "Bitte fülle alle Felder aus.");
+            return;
+        }
+        if (password !== passwordAgain){
+            Alert.alert("Fehler", "Die Passwörter müssen gleich sein.");
             return;
         }
         setLoading(true);
@@ -73,58 +78,68 @@ export default function RegisterScreen() {
             behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={authStyles.container}>
+                <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 10 }} keyboardShouldPersistTaps="handled">
+                    <View style={authStyles.container}>
 
-                    {/* Title */}
-                    <View style={authStyles.titleWrapper}>
-                        <Text style={authStyles.titleText}>Willkommen bei</Text>
-                        <Text style={authStyles.appnameText}>Appname!</Text>
+                        {/* Title */}
+                        <View style={authStyles.titleWrapper}>
+                            <Text style={authStyles.titleText}>Willkommen bei</Text>
+                            <Text style={authStyles.appnameText}>Appname!</Text>
+                        </View>
+
+                        {/* Inputs */}
+                        <View style={authStyles.authInputsWrapper}>
+
+                            {/* E-Mail */}
+                            <AuthInput placeholder="E-Mail"
+                                       value={email}
+                                       onChangeText={setEmail}
+                                       iconName="person-outline"
+                                       keyboardType="email-address"
+                            />
+
+                            {/* Password */}
+                            <AuthInput placeholder="Passwort"
+                                       value={password}
+                                       onChangeText={setPassword}
+                                       iconName="lock-closed-outline"
+                                       isPassword={true}
+                            />
+
+                            {/* Password again*/}
+                            <AuthInput placeholder="Passwort wiederholen"
+                                       value={passwordAgain}
+                                       onChangeText={setPasswordAgain}
+                                       iconName="lock-closed-outline"
+                                       isPassword={true}
+                            />
+
+                        </View>
+
+                        {/* Register */}
+                        <View style={authStyles.buttonWrapper}>
+                            <AuthButton title="Registrieren"
+                                        onPress={handleRegister}
+                            />
+                        </View>
+
+                        {/* Bereits ein Konto */}
+                        <View style={{marginTop: 40,}}>
+
+                            <DividingLine text="Bereits ein Konto?" />
+
+                            {/* to LoginScreen */}
+                            <AuthButton title="Einloggen"
+                                        onPress={() => router.replace("/screens/auth/LoginScreen")}
+                                        variant="secondary"
+                            />
+                        </View>
+
+                        {/* Loading Overlay */}
+                        <LoadingOverlay visible={loading || isGuestLoading} />
+
                     </View>
-
-                    {/* Inputs */}
-                    <View style={authStyles.authInputsWrapper}>
-
-                        {/* E-Mail */}
-                        <AuthInput placeholder="E-Mail"
-                                   value={email}
-                                   onChangeText={setEmail}
-                                   iconName="person-outline"
-                                   keyboardType="email-address"
-                        />
-
-                        {/* Password */}
-                        <AuthInput placeholder="Passwort"
-                                   value={password}
-                                   onChangeText={setPassword}
-                                   iconName="lock-closed-outline"
-                                   isPassword={true}
-                        />
-
-                    </View>
-
-                    {/* Register */}
-                    <View style={authStyles.buttonWrapper}>
-                        <AuthButton title="Registrieren"
-                                    onPress={handleRegister}
-                        />
-                    </View>
-
-                    {/* Bereits ein Konto */}
-                    <View style={{marginTop: 40,}}>
-
-                        <DividingLine text="Bereits ein Konto?" />
-
-                        {/* to LoginScreen */}
-                        <AuthButton title="Einloggen"
-                                    onPress={() => router.replace("/screens/auth/LoginScreen")}
-                                    variant="secondary"
-                        />
-                    </View>
-
-                    {/* Loading Overlay */}
-                    <LoadingOverlay visible={loading || isGuestLoading} />
-
-                </View>
+                </ScrollView>
             </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
     );
