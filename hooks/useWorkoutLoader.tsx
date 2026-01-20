@@ -94,10 +94,13 @@ export const useWorkoutLoader = ({
                 startTime: preservedStartTime || draft.startTime || Date.now(),
               });
             } else {
+              // Reset isDone when starting fresh from a template
+              const cleanSets = exerciseSets.map(s => ({ ...s, isDone: false }));
+              
               const loadedW = {
                 id: userSnap.id,
                 ...workoutData,
-                exerciseSets,
+                exerciseSets: cleanSets,
                 startTime: preservedStartTime || Date.now(),
               };
               setWorkout(loadedW);

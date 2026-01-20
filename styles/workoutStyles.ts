@@ -231,7 +231,6 @@ export const workoutStyles = StyleSheet.create({
         padding: 10,
         backgroundColor: Colors.darkBackground,
         flexDirection: "column",
-
         height: "100%",
         gap: 20,
     },

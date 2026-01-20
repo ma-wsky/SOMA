@@ -4,9 +4,11 @@ import {
   TextInput,
   Pressable,
   ScrollView,
+  Vibration,
+  BackHandler
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { workoutStyles as styles } from "@/styles/workoutStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -60,7 +62,10 @@ export default function ActiveWorkoutScreen() {
   // Timer Management
   const { elapsedTime, timerRef } = useWorkoutTimer(workout?.id);
   const { restTimeRemaining, restTimerRef, startRestTimer, stopRestTimer } = useRestTimer();
-
+  
+  // Memoize snapPoints to prevent re-renders causing sheet to jump
+  const snapPoints = useMemo(() => ["99%"], []);
+  
   // Overlay Management
   const {
     activeOverlay,
@@ -127,8 +132,38 @@ export default function ActiveWorkoutScreen() {
 
 
 
+  // Back Handler for Phone
+  useEffect(() => {
+    const onBackPress = () => {
+
+      if (router.canDismiss()) {
+          router.dismiss();
+      } else {
+          router.back();
+      }
+      
+       // Ensure store is updated (same as sheet close)
+      setActiveWorkout({
+          id: workout?.id ?? null,
+          startTime: workout?.startTime ?? Date.now(),
+          setsCount: workout?.exerciseSets.length ?? 0,
+      });
+
+       return true; // Prevent default behavior
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      onBackPress
+    );
+
+    return () => backHandler.remove();
+  }, [workout]);
+
+
+
   // Bottom Sheet Management
-  const snapPoints = ['99%'];
+  // snapPoints defined above
   const [isMinimized, setIsMinimized] = useState(false);
 
   const handleSheetChanges = useCallback(
@@ -136,19 +171,17 @@ export default function ActiveWorkoutScreen() {
       if (index === -1) {
         setIsMinimized(true);
         try {
-          router.push({
-            pathname: '/(tabs)/HomeScreenProxy',
-            params: {
-              activeOverlayWorkout: JSON.stringify({
-                id: workout?.id ?? null,
-                setsCount: workout?.exerciseSets.length ?? 0,
-                startTime: workout?.startTime ?? Date.now(),
-              }),
-            },
-          });
+          // Just dismiss the modal/screen, the global store + FloatingBar handles the rest
+          if (router.canDismiss()) {
+             router.dismiss();
+          } else {
+             // Fallback if not modally presented
+             router.back();
+          }
         } catch (e) {
-          console.warn('Navigation to home failed', e);
+          console.warn('Navigation failed', e);
         }
+        
         setActiveWorkout({
           id: workout?.id ?? null,
           startTime: workout?.startTime ?? Date.now(),
@@ -156,7 +189,6 @@ export default function ActiveWorkoutScreen() {
         });
       } else {
         setIsMinimized(false);
-        clearActiveWorkout();
       }
     },
     [workout]
@@ -165,6 +197,7 @@ export default function ActiveWorkoutScreen() {
   // Handle Set Check - Enhanced with rest timer
   const handleSetCheckWithTimer = useCallback(
     (setIndex: number, breaktime: number) => {
+      Vibration.vibrate(50);
       handleSetCheck(setIndex);
       if (workout?.exerciseSets[setIndex].isDone === false && breaktime > 0) {
         startRestTimer(breaktime);
@@ -203,24 +236,13 @@ export default function ActiveWorkoutScreen() {
     });
   }, [workout, workoutEditId, setEditIdRef]);
 
-  if (!workout) {
-    return (
-      <GestureHandlerRootView style={styles.sheetContainer}>
-        <BottomSheet snapPoints={['99%']} enablePanDownToClose={true}>
-          <BottomSheetView style={styles.sheetContainerContent}>
-            <Text>Workout wird geladen...</Text>
-            <LoadingOverlay visible={loading} />
-          </BottomSheetView>
-        </BottomSheet>
-      </GestureHandlerRootView>
-    );
-  }
+  
 
   const timerString = activeOverlay === 'restTimer'
     ? `  Pausenzeit\n${Math.floor(restTimeRemaining / 60)}:${(restTimeRemaining % 60).toString().padStart(2, '0')}`
     : `  Dauer\n${Math.floor(elapsedTime / 3600).toString().padStart(2, '0')}:${Math.floor((elapsedTime % 3600) / 60).toString().padStart(2, '0')}:${(elapsedTime % 60).toString().padStart(2, '0')}`;
 
-  const renderProps = {
+  const renderProps = useMemo(() => ({
     workout,
     isEditMode,
     activeOverlay,
@@ -241,7 +263,21 @@ export default function ActiveWorkoutScreen() {
     onCloseOverlay: closeOverlay,
     onRestTimerClose: stopRestTimer,
     onWorkoutNameChange: (name: string) => setWorkout((prev) => prev ? { ...prev, name } : null),
-  };
+  }), [workout, isEditMode, activeOverlay, restTimeRemaining, tempBreakTime, tempSetData, openBreakTimeOverlay, openEditSetOverlay, openAddSetOverlay, handleSetCheckWithTimer, handleRemoveSet, handleAddExercise, handleSaveModalChanges, closeOverlay, stopRestTimer, setOriginalWorkout, setWorkout]);
+
+
+  if (!workout) {
+    return (
+      <GestureHandlerRootView style={styles.sheetContainer}>
+        <BottomSheet snapPoints={snapPoints} enablePanDownToClose={true}>
+          <BottomSheetView style={styles.sheetContainerContent}>
+            <Text>Workout wird geladen...</Text>
+            <LoadingOverlay visible={loading} />
+          </BottomSheetView>
+        </BottomSheet>
+      </GestureHandlerRootView>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={styles.sheetContainer}>
@@ -251,7 +287,7 @@ export default function ActiveWorkoutScreen() {
         onChange={handleSheetChanges}
         enablePanDownToClose={true}
       >
-        <BottomSheetView style={styles.sheetContainerContent}>
+        <View style={styles.sheetContainerContent}>
           <TopBar
             leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
             titleText={isEditMode ? "Training bearbeiten" : timerString}
@@ -260,11 +296,11 @@ export default function ActiveWorkoutScreen() {
             onRightPress={() => (isEditMode ? handleSaveChangesWithTimer() : handleFinishWorkout())}
           />
 
-          {isEditMode ? renderActiveEditMode(renderProps) : renderActiveViewMode(renderProps)}
+          {isEditMode ? renderActiveEditMode(renderProps as any) : renderActiveViewMode(renderProps as any)}
           <LoadingOverlay visible={loading} />
-          {renderActiveOverlays(renderProps)}
+          {renderActiveOverlays(renderProps as any)}
           {renderActiveRestTimerBar(restTimeRemaining, stopRestTimer)}
-        </BottomSheetView>
+        </View>
       </BottomSheet>
     </GestureHandlerRootView>
   );

@@ -140,10 +140,10 @@ export default function SingleWorkoutInfoScreen() {
       pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
       params: {
         returnTo: "edit",
-        workoutEditId: workoutEditId,
+        workoutEditId: workout?.id || workoutEditId, // Fallback to workout.id which holds the currentEditId
       },
     });
-  }, [workoutEditId]);
+  }, [workoutEditId, workout]);
 
   // Handle Save Workout
   const handleSaveWorkoutPressed = useCallback(() => {

@@ -1,6 +1,18 @@
 type RestTimerState = { endTime: number } | null;
 
 let restTimer: RestTimerState = null;
+const listeners = new Set<(timer: RestTimerState) => void>();
+
+const notify = () => {
+    listeners.forEach(l => l(restTimer));
+};
+
+export const subscribeToRestTimer = (listener: (timer: RestTimerState) => void) => {
+    listeners.add(listener);
+    // Immediately call with current state
+    listener(restTimer); 
+    return () => { listeners.delete(listener); };
+};
 
 export const setRestTimer = (val: any) => {
     // Legacy support or direct set if needed, but prefer startRestTimer
@@ -13,10 +25,12 @@ export const setRestTimer = (val: any) => {
 
 export const startRestTimer = (seconds: number) => {
   restTimer = { endTime: Date.now() + seconds * 1000 };
+  notify();
 };
 
 export const clearRestTimer = () => {
   restTimer = null;
+  notify();
 };
 
 export const getRestTimer = () => {

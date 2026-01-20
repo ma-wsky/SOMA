@@ -68,7 +68,7 @@ export async function scheduleWorkoutReminder(
  * @param body Text der Benachrichtigung
  * @param hour Stunde (0-23)
  * @param minute Minute (0-59)
- * @param weekdays Array von Wochentagen (1 = Sonntag, 2 = Montag, ..., 7 = Samstag)
+ * @param weekdays Array von Wochentagen (1 = Montag, bis  7 = Sonntag)
  */
 export async function scheduleWeeklyWorkoutReminder(
     title: string, 
@@ -81,6 +81,11 @@ export async function scheduleWeeklyWorkoutReminder(
     if (!hasPermission) return;
 
     for (const day of weekdays) {
+        // Expo Notifications uses 1 = Sunday, 2 = Monday, ... 7 = Saturday
+        // We use 1 = Monday, ... 7 = Sunday
+        
+        const expoDay = day === 7 ? 1 : day + 1;
+
         await Notifications.scheduleNotificationAsync({
             content: {
                 title: title,
@@ -89,12 +94,12 @@ export async function scheduleWeeklyWorkoutReminder(
             },
             trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-                weekday: day,
+                weekday: expoDay, 
                 hour: hour,
                 minute: minute,
             },
         });
-    }
+    };
 }
 
 

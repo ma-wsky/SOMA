@@ -38,13 +38,13 @@ const EditRow = ({ label, value, onChangeText, placeholder, keyboardType = "defa
 
 const WeekdayPicker = ({ selectedDays, onToggleDay }: { selectedDays: number[], onToggleDay: (day: number) => void }) => {
     const days = [
-        { id: 2, label: "Mo" },
-        { id: 3, label: "Di" },
-        { id: 4, label: "Mi" },
-        { id: 5, label: "Do" },
-        { id: 6, label: "Fr" },
-        { id: 7, label: "Sa" },
-        { id: 1, label: "So" },
+        { id: 1, label: "Mo" },
+        { id: 2, label: "Di" },
+        { id: 3, label: "Mi" },
+        { id: 4, label: "Do" },
+        { id: 5, label: "Fr" },
+        { id: 6, label: "Sa" },
+        { id: 7, label: "So" },
     ];
 
     return (

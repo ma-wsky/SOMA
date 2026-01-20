@@ -6,6 +6,7 @@ import { setAudioModeAsync } from 'expo-audio';
 import { requestNotificationPermissions } from "@/utils/notificationHelper";
 import { StatusBar } from 'expo-status-bar';
 import { useAutoBrightness } from '@/hooks/useAutoBrightness';
+import { ActiveWorkoutFloatingBar } from "@/components/ActiveWorkoutFloatingBar";
 
 
 export default function Layout() {
@@ -29,6 +30,7 @@ export default function Layout() {
                 style="dark"
             />
             <Slot />
+            <ActiveWorkoutFloatingBar />
             <Toast/>
         </>
     );

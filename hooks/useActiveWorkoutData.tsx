@@ -105,26 +105,25 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
         const user = auth.currentUser;
         if (!user || !workout) return;
 
-        // We never overwrite the source template.
-        const workoutId = `workout_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-        const workoutRef = doc(db, "users", user.uid, "workouts", workoutId);
-
         const batch = writeBatch(db);
-        batch.set(workoutRef, {
+        const duration = workout.startTime ? Math.floor((Date.now() - workout.startTime)/1000) : 0;
+
+        // 1. ALWAYS save as History Log
+        const historyId = `workout_${Date.now()}_his`;
+        const historyRef = doc(db, "users", user.uid, "workouts", historyId);
+        
+        batch.set(historyRef, {
           date: workout.date,
           name: workout.name,
-          duration: 0, // Should be calculated from timer
-          type: type,
+          duration: duration,
+          type: "history",
         });
 
-        const setsRef = collection(workoutRef, "exerciseSets");
-        const existingSets = await getDocs(setsRef);
-        existingSets.forEach((d) => batch.delete(d.ref));
-
+        // Sets for History
+        const setsRef = collection(historyRef, "exerciseSets");
         workout.exerciseSets.forEach((set, index) => {
-          const setDocName = `set_${index.toString().padStart(3, "0")}`;
-          const setRef = doc(setsRef, setDocName);
-          batch.set(setRef, {
+           const setDocName = `set_${index.toString().padStart(3, "0")}`;
+           batch.set(doc(setsRef, setDocName), {
             exerciseId: set.exerciseId,
             exerciseName: set.exerciseName || null,
             name: set.name || null,
@@ -132,8 +131,35 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
             weight: set.weight,
             reps: set.reps,
             isDone: set.isDone || false,
-          });
+           });
         });
+
+        // 2. IF Template selected, save AS ALSO as Template
+        if (type === "template") {
+            const templateId = `workout_${Date.now()}_tpl`;
+            const templateRef = doc(db, "users", user.uid, "workouts", templateId);
+            
+            // Templates shouldn't have specific duration or date usually, but we keep the date of creation
+            batch.set(templateRef, {
+              date: new Date().toISOString(), 
+              name: workout.name, 
+              type: "template",
+            });
+
+             const tplSetsRef = collection(templateRef, "exerciseSets");
+             workout.exerciseSets.forEach((set, index) => {
+               const setDocName = `set_${index.toString().padStart(3, "0")}`;
+               batch.set(doc(tplSetsRef, setDocName), {
+                exerciseId: set.exerciseId,
+                exerciseName: set.exerciseName || null,
+                name: set.name || null,
+                breaktime: set.breaktime ?? 30,
+                weight: set.weight,
+                reps: set.reps,
+                isDone: false, // Reset done state for template
+               });
+            });
+        }
 
         await batch.commit();
 
