@@ -81,8 +81,8 @@ export const ActiveWorkoutFloatingBar = () => {
         return () => clearInterval(interval);
     }, [restTimer, pathname]);
 
-    // Hide if no workout active OR if we are currently on the workout screen
-    if (!activeWorkout || pathname.includes('ActiveWorkoutScreen')) {
+    // Hide if no workout active OR if we are currently on the workout screen OR adding an exercise to it
+    if (!activeWorkout || pathname.includes('ActiveWorkoutScreen') || pathname.includes('AddExerciseToWorkoutScreen')) {
         return null;
     }
 

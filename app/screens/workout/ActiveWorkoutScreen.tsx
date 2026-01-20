@@ -135,12 +135,8 @@ export default function ActiveWorkoutScreen() {
   // Back Handler for Phone
   useEffect(() => {
     const onBackPress = () => {
-
-      if (router.canDismiss()) {
-          router.dismiss();
-      } else {
-          router.back();
-      }
+      // Always navigate to HomeScreen when minimizing via back button
+      router.navigate("/(tabs)/HomeScreenProxy");
       
        // Ensure store is updated (same as sheet close)
       setActiveWorkout({
@@ -171,13 +167,8 @@ export default function ActiveWorkoutScreen() {
       if (index === -1) {
         setIsMinimized(true);
         try {
-          // Just dismiss the modal/screen, the global store + FloatingBar handles the rest
-          if (router.canDismiss()) {
-             router.dismiss();
-          } else {
-             // Fallback if not modally presented
-             router.back();
-          }
+          // Always navigate to HomeScreen when minimizing via gesture
+          router.navigate("/(tabs)/HomeScreenProxy");
         } catch (e) {
           console.warn('Navigation failed', e);
         }
