@@ -7,10 +7,9 @@ import {
   Text,
   TextInput,
   Pressable,
-  ScrollView,
   Modal,
 } from "react-native";
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { ScrollView } from 'react-native-gesture-handler';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ExerciseSet, Workout, OverlayTypes } from "@/types/workoutTypes";
 import { workoutStyles as styles } from "@/styles/workoutStyles";
@@ -44,7 +43,7 @@ export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.Rea
   const groupedSets = groupSetsByExercise(props.workout.exerciseSets);
 
   return (
-    <View >
+    <ScrollView >
       <Text 
         style={{ color: Colors.black, marginBottom: 10, fontSize: 24, textAlign: 'center' }}
         numberOfLines={2}
@@ -65,7 +64,7 @@ export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.Rea
           <Text style={styles.topBarButtonText}>Bearbeiten</Text>
         </Pressable>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -73,7 +72,7 @@ export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.Rea
   const groupedSets = groupSetsByExercise(props.workout.exerciseSets);
 
   return (
-    <View >
+    <ScrollView >
       <View style={{ padding: 16 }}>
         <Text style={{ color: Colors.black, width: 800, marginBottom: 4, fontSize: 24 }}>
           Trainingsname:
@@ -95,13 +94,16 @@ export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.Rea
         renderActiveExerciseCard(exerciseId, sets, true, props)
       )}
 
-      <Pressable
+      <View style={{alignItems:'center'}}>      
+        <Pressable
         onPress={props.onAddExercise}
-        style={styles.addExerciseButton}
-      >
-        <Text style={styles.addExerciseButtonText}>Übung hinzufügen +</Text>
-      </Pressable>
-    </View>
+        style={styles.topBarLikeButton }
+        >
+        <Text style={styles.topBarButtonText}>Übung hinzufügen +</Text>
+        </Pressable>
+      </View>
+
+    </ScrollView>
   );
 };
 

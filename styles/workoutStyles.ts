@@ -189,8 +189,9 @@ export const workoutStyles = StyleSheet.create({
     },
 
     topBarLikeButton: {
-        width: 100,
+        minWidth: 100,
         paddingVertical: 8,
+        paddingHorizontal: 10,
         borderRadius: 10,
         alignItems: "center",
         borderWidth: 2,
@@ -228,11 +229,11 @@ export const workoutStyles = StyleSheet.create({
     },
     sheetContainerContent: {
         flex: 1,
-        padding: 10,
+        paddingBottom: 20,
         backgroundColor: Colors.darkBackground,
         flexDirection: "column",
         height: "100%",
-        gap: 50,
+        gap: 10,
     },
 
 

@@ -6,7 +6,6 @@ import {
   Vibration,
   BackHandler
 } from "react-native";
-import { ScrollView } from 'react-native-gesture-handler';
 
 import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -289,7 +288,7 @@ export default function ActiveWorkoutScreen() {
         enablePanDownToClose={true}
       >
         
-          <BottomSheetView >
+          <BottomSheetView style={styles.sheetContainerContent}>
           <TopBar
             leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
             titleText={isEditMode ? "Training bearbeiten" : timerString}
