@@ -1,29 +1,27 @@
-// Custom hook for managing SingleWorkoutInfoScreen data and operations
-// Handles template/workout editing and database operations
-
-import { useState, useRef, useCallback } from "react";
+import { useCallback } from "react";
 import { writeBatch, doc, collection, getDocs } from "firebase/firestore";
 import { db, auth } from "@/firebaseConfig";
-import { showAlert, showConfirm } from "@/utils/alertHelper";
-import type { Workout, Exercise, ExerciseSet } from "@/types/workoutTypes";
+import { showAlert, showConfirm } from "@/utils/helper/alertHelper";
+import type { Workout } from "@/types/workoutTypes";
+import { useBaseWorkoutData } from "@/hooks/useBaseWorkoutData";
 
 export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
-  const [workout, setWorkout] = useState<Workout | null>(initialWorkout || null);
-  const [originalWorkout, setOriginalWorkout] = useState<Workout | null>(initialWorkout || null);
-  const [exercisesMap, setExercisesMap] = useState<Map<string, Exercise>>(new Map());
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const editIdRef = useRef<string | string[]>(null);
 
-  // Handle Remove Set
-  const handleRemoveSet = useCallback((index: number) => {
-    setWorkout((prev: Workout | null) => {
-      if (!prev) return null;
-      return { ...prev, exerciseSets: prev.exerciseSets.filter((_: ExerciseSet, i: number) => i !== index) };
-    });
-  }, []);
+  const baseData = useBaseWorkoutData(initialWorkout);
+  const { 
+    workout, 
+    setWorkout,
+    originalWorkout,
+    setOriginalWorkout,
+    setLoading
+  } = baseData;
 
-  // Handle Save Workout
+  const editIdRef = { current: null as string | string[] | null };
+  const setEditIdRefWrapped = useCallback((id: string | string[]) => {
+    editIdRef.current = id;
+    baseData.setEditIdRef(id as string);
+  }, [baseData]);
+
   const handleSaveWorkout = useCallback(
     async (id?: string | string[], onSuccess?: (newId: string) => void) => {
       if (!workout) return;
@@ -44,7 +42,7 @@ export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
           try {
             const user = auth.currentUser;
             if (!user) {
-              showAlert("Fehler", "Sie müssen angemeldet sein");
+              showAlert("Fehler", "Sie müssen angemeldet sein.");
               return;
             }
 
@@ -84,10 +82,9 @@ export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
             await batch.commit();
 
             if (editIdRef.current) {
-              require("@/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
+              require("@/utils/store/workoutEditingStore").clearEditingWorkout(editIdRef.current);
             }
 
-            // Update local state to match saved state
             const updatedWorkout = { ...workout, id: workoutId };
             setWorkout(updatedWorkout);
             setOriginalWorkout(updatedWorkout);
@@ -103,92 +100,15 @@ export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
         }
       );
     },
-    [workout]
+    [workout, setWorkout, setOriginalWorkout, setLoading]
   );
-
-  const handleCancel = useCallback(() => {
-    if (originalWorkout) {
-      setWorkout(originalWorkout);
-      if (editIdRef.current) {
-        require("@/utils/workoutEditingStore").clearEditingWorkout(editIdRef.current);
-      }
-    }
-  }, [originalWorkout]);
-
-  // Save Breaktime Change
-  const saveBreakTime = useCallback(
-    (exerciseId: string, newSeconds: number) => {
-      setWorkout((prev: Workout | null) => {
-        if (!prev) return null;
-        const newSets = prev.exerciseSets.map((s: ExerciseSet) =>
-          s.exerciseId === exerciseId ? { ...s, breaktime: newSeconds } : s
-        );
-        return { ...prev, exerciseSets: newSets };
-      });
-    },
-    []
-  );
-
-  // Save Set Data from Modal
-  const saveSetData = useCallback(
-    (
-      tempSetData: { weight: number; reps: number },
-      activeOverlay: string,
-      targetSetIndex: number | null,
-      targetExerciseId: string | null,
-      targetExerciseName: string | null
-    ) => {
-      setWorkout((prev: Workout | null) => {
-        if (!prev) return null;
-        let newSets = [...prev.exerciseSets];
-
-        if (activeOverlay === "breaktime" && targetExerciseId) {
-          // Already handled by saveBreakTime
-          return prev;
-        } else if (activeOverlay === "editSet" && targetSetIndex !== null) {
-          newSets[targetSetIndex] = { ...newSets[targetSetIndex], ...tempSetData };
-        } else if (activeOverlay === "addSet" && targetExerciseId) {
-          newSets.push({
-            id: `set_${Date.now()}`,
-            exerciseId: targetExerciseId,
-            exerciseName: targetExerciseName || "",
-            weight: tempSetData.weight,
-            reps: tempSetData.reps,
-            breaktime: 30,
-            isDone: false,
-          });
-        }
-
-        return { ...prev, exerciseSets: newSets };
-      });
-    },
-    []
-  );
-
-  const setEditIdRef = useCallback((id: string | string[]) => {
-    editIdRef.current = id;
-  }, []);
 
   return {
-    // State
-    workout,
-    originalWorkout,
-    exercisesMap,
-    isEditMode,
-    loading,
+    ...baseData,
+    exercisesMap: baseData.exercises,
+    setExercisesMap: baseData.setExercises,
+    setEditIdRef: setEditIdRefWrapped,
     editIdRef,
-    // Setters
-    setWorkout,
-    setOriginalWorkout,
-    setExercisesMap: setExercisesMap,
-    setIsEditMode,
-    setLoading,
-    setEditIdRef,
-    // Handlers
-    handleRemoveSet,
     handleSaveWorkout,
-    saveBreakTime,
-    saveSetData,
-    handleCancel,
   };
 };

@@ -9,19 +9,16 @@ const notify = () => {
 
 export const subscribeToRestTimer = (listener: (timer: RestTimerState) => void) => {
     listeners.add(listener);
-    // Immediately call with current state
     listener(restTimer); 
     return () => { listeners.delete(listener); };
 };
 
+/*
 export const setRestTimer = (val: any) => {
-    // Legacy support or direct set if needed, but prefer startRestTimer
-    if (val && val.timeRemaining) {
-       // Converting legacy calls to new system is hard without modifying caller
-       // So we keep this for compatibility if something else calls it, but we change the implementation
-       // actually, only useRestTimer calls this. I will update useRestTimer.
-    }
+    // Legacy support - nicht mehr in Verwendung
+    console.warn('setRestTimer is deprecated, use startRestTimer instead');
 };
+*/
 
 export const startRestTimer = (seconds: number) => {
   restTimer = { endTime: Date.now() + seconds * 1000 };

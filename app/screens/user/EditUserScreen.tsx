@@ -11,7 +11,7 @@ import { UserButton } from "@/components/user/userButton";
 import { validateEmail } from "@/utils/user/validateEmail";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { uploadImage } from "@/utils/uploadImage";
-import { scheduleWeeklyWorkoutReminder, cancelAllNotifications } from "@/utils/notificationHelper";
+import { scheduleWeeklyWorkoutReminder, cancelAllNotifications } from "@/utils/helper/notificationHelper";
 
 const EditRow = ({ label, value, onChangeText, placeholder, keyboardType = "default", isPressable = false, onPress = () => {} }: any) => (
     <View style={userStyles.rowWrapper}>

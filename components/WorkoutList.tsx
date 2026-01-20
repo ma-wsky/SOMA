@@ -1,8 +1,7 @@
 import { useMemo } from "react";
-import { FlatList, View, Text, StyleSheet } from "react-native";
-import { workoutStyles } from "../styles/workoutStyles";
+import { FlatList, View, Text } from "react-native";
 import WorkoutItem from "@/components/WorkoutItem";
-import {Workout, ListItem} from "@/types/workoutTypes";
+import { Workout, ListItem } from "@/types/workoutTypes";
 
 interface Props {
   workouts: Workout[];
@@ -24,7 +23,7 @@ export default function WorkoutList({workouts, filter = "", onItemPress, onDelet
     return data;
   }, [workouts, filter]);
 
-  console.log(workouts);
+
   return (
     <FlatList
       data={listData}

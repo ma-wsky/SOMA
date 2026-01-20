@@ -1,10 +1,27 @@
-// Custom hook for loading workout data from Firebase
-// Shared logic for both ActiveWorkoutScreen and SingleWorkoutInfoScreen
+/**
+ * 1. useWorkoutLoader - Für ActiveWorkoutScreen
+ *    - Lädt existierende Workouts ODER erstellt neue
+ *    - Stellt Entwürfe aus workoutEditingStore wieder her
+ *    - Setzt isDone auf false bei templates
+ *    - Erhält startTime aus activeWorkoutStore
+ *
+ * 2. useSingleWorkoutLoader - Für SingleWorkoutInfoScreen
+ *    - Lädt existierende Templates zur Bearbeitung
+ *    - Erstellt leere Workouts für "Neues Training"
+ *    - Stellt Entwürfe wieder her
+ *    - Kein startTime-Handling (nicht für aktive Workouts)
+ * 
+ * TODO: 3 verschiedene Files
+ * - Die gemeinsame Logik (Exercise-Loading, Set-Loading)
+ *   in separate Utility-Funktionen extrahiert werden. (Alle identischen funktionen in useBaseWorkoutLoader)
+ * - useWorkoutLoader -> useActiveWorkoutLoader
+ * - useSingleWorkoutLoader -> uSeSingleWorkoutLoader
+ */
 
 import { useEffect, useState, Dispatch, SetStateAction } from "react";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db, auth } from "@/firebaseConfig";
-import { showAlert } from "@/utils/alertHelper";
+import { showAlert } from "@/utils/helper/alertHelper";
 import type { Workout, Exercise, ExerciseSet } from "@/types/workoutTypes";
 
 interface LoadWorkoutParams {
@@ -17,10 +34,7 @@ interface LoadWorkoutParams {
   setEditIdRef?: (id: string) => void;
 }
 
-/**
- * Hook for loading workout data from Firebase
- * Handles both new and existing workouts, including draft restoration
- */
+
 export const useWorkoutLoader = ({
   id,
   workoutEditId,
@@ -79,10 +93,10 @@ export const useWorkoutLoader = ({
             });
 
             // Try to restore draft first
-            const draft = require("@/utils/workoutEditingStore").getEditingWorkout(currentEditId);
+            const draft = require("@/utils/store/workoutEditingStore").getEditingWorkout(currentEditId);
             
             // Try to get active start time
-            const activeStore = require("@/utils/activeWorkoutStore").getActiveWorkout();
+            const activeStore = require("@/utils/store/activeWorkoutStore").getActiveWorkout();
             const preservedStartTime = (activeStore?.id === id) ? activeStore.startTime : undefined;
 
             if (draft) {
@@ -110,14 +124,12 @@ export const useWorkoutLoader = ({
           }
         }
 
-        // Case 2: New Workout (no id provided)
-        const draft = require("@/utils/workoutEditingStore").getEditingWorkout(currentEditId);
+        const draft = require("@/utils/store/workoutEditingStore").getEditingWorkout(currentEditId);
         
-        const activeStore = require("@/utils/activeWorkoutStore").getActiveWorkout();
+        const activeStore = require("@/utils/store/activeWorkoutStore").getActiveWorkout();
         const preservedStartTime = activeStore ? activeStore.startTime : undefined;
 
         if (draft) {
-          // Prevent infinite loop by checking if draft is different from current state
           setWorkout((currentWorkout) => {
             if (JSON.stringify(currentWorkout) !== JSON.stringify(draft)) {
               return draft;
@@ -147,12 +159,10 @@ export const useWorkoutLoader = ({
     };
 
     loadWorkoutData();
-  }, [id, workoutEditId, setWorkout, setOriginalWorkout, setExercises, setLoading, setEditIdRef]);
+  }, [id, workoutEditId]);
 };
 
-/**
- * Hook for loading a specific workout (Single Workout Info Screen)
- */
+
 export const useSingleWorkoutLoader = ({
   id,
   workoutEditId,
@@ -197,7 +207,7 @@ export const useSingleWorkoutLoader = ({
             setOriginalWorkout(emptyWorkout);
           }
 
-          const draft = editId ? require("@/utils/workoutEditingStore").getEditingWorkout(editId) : null;
+          const draft = editId ? require("@/utils/store/workoutEditingStore").getEditingWorkout(editId) : null;
           if (draft) {
             // Prevent infinite loop by checking if draft is different from current state
             setWorkout((currentWorkout) => {
@@ -254,7 +264,7 @@ export const useSingleWorkoutLoader = ({
           }
 
           // Check if there is a draft overlaying the existing workout
-          const draft = editId ? require("@/utils/workoutEditingStore").getEditingWorkout(editId) : null;
+          const draft = editId ? require("@/utils/store/workoutEditingStore").getEditingWorkout(editId) : null;
           if (draft) {
              setWorkout(draft);
           }
@@ -267,5 +277,6 @@ export const useSingleWorkoutLoader = ({
     };
 
     fetchWorkout();
-  }, [id, workoutEditId, setWorkout, setOriginalWorkout, setExercises, setLoading, setEditIdRef]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, workoutEditId]); // Nur id und workoutEditId als Dependencies - Setter sind stabil
 };

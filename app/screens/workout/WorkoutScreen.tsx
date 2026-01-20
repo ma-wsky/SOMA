@@ -9,20 +9,20 @@ import { useLoadWorkouts } from "@/hooks/useLoadWorkouts";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { doc, deleteDoc, collection } from "firebase/firestore";
 import { auth, db } from "@/firebaseConfig";
-import { showAlert } from "@/utils/alertHelper";
+import { showAlert } from "@/utils/helper/alertHelper";
 
 export default function WorkoutScreen() {
   const router = useRouter();
   const [filter, setFilter] = useState("");
-  const [hasActiveWorkout, setHasActiveWorkout] = useState(false);
+  //const [hasActiveWorkout, setHasActiveWorkout] = useState(false);
   const [loading, setLoading] = useState(false);
   const { workouts, loading: workoutsLoading, refetch } = useLoadWorkouts();
 
-  // When this tab is focused, open the ActiveWorkoutScreen if there is an active workout stored
+  //Handle focus
   useFocusEffect(
     useCallback(() => {
       try {
-        const active = require("@/utils/activeWorkoutStore").getActiveWorkout();
+        const active = require("@/utils/store/activeWorkoutStore").getActiveWorkout();
         if (active?.id) {
           router.push({ pathname: '/screens/workout/ActiveWorkoutScreen', params: { id: active.id } });
         }
@@ -32,12 +32,13 @@ export default function WorkoutScreen() {
     }, [])
   );
 
+  //Handle delete
   const handleDeleteWorkout = async (workoutId: string) => {
     setLoading(true);
     try {
       const user = auth.currentUser;
       if (!user) {
-        showAlert("Fehler", "Sie müssen angemeldet sein");
+        showAlert("Fehler", "Sie müssen angemeldet sein.");
         return;
       }
 
@@ -45,11 +46,10 @@ export default function WorkoutScreen() {
       await deleteDoc(workoutRef);
 
       showAlert("Erfolg", "Training gelöscht");
-      // Refresh the list
       refetch?.();
     } catch (e) {
       console.error("Fehler beim Löschen:", e);
-      showAlert("Fehler", "Training konnte nicht gelöscht werden");
+      showAlert("Fehler", "Training konnte nicht gelöscht werden.");
     } finally {
       setLoading(false);
     }
@@ -57,7 +57,7 @@ export default function WorkoutScreen() {
 
   return (
     <View style={styles.container}>
-      {/* EmptyWorkout Button */}
+      
       <View style={{ marginHorizontal: 20 }}>
         <Pressable
           onPress={() => {
@@ -75,7 +75,6 @@ export default function WorkoutScreen() {
         </Pressable>
       </View>
 
-      {/* Search Bar */}
       <TextInput
         placeholder={"Training suchen..."}
         placeholderTextColor="white"
@@ -84,7 +83,6 @@ export default function WorkoutScreen() {
         style={styles.searchbar}
       />
 
-      {/* Saved Workouts List */}
       <WorkoutList
         workouts={workouts}
         filter={filter}
@@ -97,7 +95,6 @@ export default function WorkoutScreen() {
         onDelete={handleDeleteWorkout}
       />
 
-      {/* create Workout Button */}
       <View style={{ marginHorizontal: 20, marginBottom: 20 }}>
         <Pressable
           onPress={() => {

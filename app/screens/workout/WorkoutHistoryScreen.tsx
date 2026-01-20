@@ -8,9 +8,10 @@ import { workoutStyles } from "@/styles/workoutStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { renderHistoryCard } from "@/utils/renderWorkout";
-import { exportWorkoutsToPDF } from "@/utils/exportHelper";
+import { exportWorkoutsToPDF } from "@/utils/helper/exportHelper";
 import { ExerciseSet, Workout } from "@/types/workoutTypes";
-import { groupSetsByExercise } from "@/utils/workoutExerciseHelper";
+import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
+import { formatTimeDynamic } from "@/utils/helper/formatTimeHelper";
 
 export default function WorkoutHistoryScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
@@ -28,7 +29,7 @@ export default function WorkoutHistoryScreen() {
           return;
         }
 
-        // Query Workouts für diesen Tag
+        // Query Workouts
         const workoutsRef = collection(db, "users", user.uid, "workouts");
         const snapshot = await getDocs(workoutsRef);
 
@@ -36,13 +37,12 @@ export default function WorkoutHistoryScreen() {
 
         for (const workoutDoc of snapshot.docs) {
           const workoutData = workoutDoc.data();
-          // Filter by date and type !== "template" (only show history)
           if (
             workoutData.date &&
             workoutData.date.startsWith(date) &&
             workoutData.type !== "template"
           ) {
-            // Load exercise sets from subcollection
+            // Load from subcollection
             const setsSnapshot = await getDocs(
               collection(workoutDoc.ref, "exerciseSets")
             );
@@ -66,7 +66,6 @@ export default function WorkoutHistoryScreen() {
           }
         }
 
-        // Sort by date descending
         loadedWorkouts.sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );
@@ -84,16 +83,7 @@ export default function WorkoutHistoryScreen() {
 
   const formatTime = (seconds?: number) => {
     if (!seconds) return "0:00";
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
-        .toString()
-        .padStart(2, "0")}`;
-    }
-    return `${minutes}:${secs.toString().padStart(2, "0")}`;
+    return formatTimeDynamic(seconds);
   };
 
   const formatDate = (dateStr: string) => {
@@ -215,21 +205,19 @@ export default function WorkoutHistoryScreen() {
             </View>
           </View>
 
-          {/* Workouts */}
           {workouts.map((workout) => {
             const groupedExercises = groupSetsByExercise(workout.exerciseSets);
             const exerciseIds = Object.keys(groupedExercises);
 
             return (
               <View key={workout.id} style={{
-                  backgroundColor: '#f0f0f0', // Grey container
+                  backgroundColor: '#f0f0f0',
                   borderRadius: 12,
                   padding: 10,
                   marginBottom: 20,
                   borderWidth: 1,
                   borderColor: '#ddd'
               }}>
-                {/* Workout Title Header */}
                 <View
                   style={{
                     flexDirection: "row",
@@ -243,7 +231,7 @@ export default function WorkoutHistoryScreen() {
                     <Text
                       style={{
                         color: "#000",
-                        fontSize: 24, // Bigger font
+                        fontSize: 24,
                         fontWeight: "bold",
                         marginBottom: 2,
                       }}
@@ -278,13 +266,12 @@ export default function WorkoutHistoryScreen() {
                           fontWeight: "700",
                         }}
                       >
-                        ⏱ {formatTime(workout.duration)}
+                        Time: {formatTime(workout.duration)}
                       </Text>
                     </View>
                   )}
                 </View>
 
-                {/* Exercise Cards using renderHistoryCard */}
                 {exerciseIds.map((exerciseId) => {
                   const sets = groupedExercises[exerciseId];
                   return renderHistoryCard(exerciseId, sets);

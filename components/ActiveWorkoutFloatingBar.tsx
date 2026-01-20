@@ -1,18 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, Vibration } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
-import { subscribeToActiveWorkout, getActiveWorkout } from "@/utils/activeWorkoutStore";
-import { subscribeToRestTimer } from "@/utils/restTimerStore";
-import { playSound } from "@/utils/soundHelper";
+import { subscribeToActiveWorkout, getActiveWorkout } from "@/utils/store/activeWorkoutStore";
+import { subscribeToRestTimer } from "@/utils/store/restTimerStore";
+import { playSound } from "@/utils/helper/soundHelper";
 import { Colors } from "@/styles/theme";
+import { formatTimeShort } from "@/utils/helper/formatTimeHelper";
 
 export const ActiveWorkoutFloatingBar = () => {
     const router = useRouter();
     const pathname = usePathname();
     const [activeWorkout, setActiveWorkoutState] = useState(getActiveWorkout());
     const [elapsedTime, setElapsedTime] = useState(0);
-    
-    // Rest Timer State
     const [restTimer, setRestTimerState] = useState<{ endTime: number } | null>(null);
     const [restTimeRemaining, setRestTimeRemaining] = useState(0);
     const lastRestTimeRef = useRef<number>(0);
@@ -53,8 +52,8 @@ export const ActiveWorkoutFloatingBar = () => {
     // Rest Timer Tick & Sound
     useEffect(() => {
         if (!restTimer) {
-             setRestTimeRemaining(0);
-             return;
+            setRestTimeRemaining(0);
+            return;
         }
 
         const interval = setInterval(() => {
@@ -63,17 +62,15 @@ export const ActiveWorkoutFloatingBar = () => {
             setRestTimeRemaining(remain);
 
             // Handle Finish (Sound/Vibration)
-            // ONLY if we are not on the ActiveScreen (which handles it itself)
+            // ONLY if not on ActiveScreen
             if (remain <= 0 && lastRestTimeRef.current > 0) {
-                 if (!pathname.includes('ActiveWorkoutScreen')) {
-                     Vibration.vibrate([0, 200, 100, 200]);
-                     try {
-                         playSound(require('@/assets/sounds/timer.mp3'));
-                     } catch (e) {}
-                     // Clear timer after notifying? 
-                     // Usually we keep it at 0 or clear it
-                     require("@/utils/restTimerStore").clearRestTimer();
-                 }
+                if (!pathname.includes('ActiveWorkoutScreen')) {
+                    Vibration.vibrate([0, 200, 100, 200]);
+                    try {
+                        playSound(require('@/assets/sounds/timer.mp3'));
+                    } catch (e) {}
+                    require("@/utils/store/restTimerStore").clearRestTimer();
+                }
             }
             lastRestTimeRef.current = remain;
         }, 1000);
@@ -81,7 +78,7 @@ export const ActiveWorkoutFloatingBar = () => {
         return () => clearInterval(interval);
     }, [restTimer, pathname]);
 
-    // Hide if no workout active OR if we are currently on the workout screen OR adding an exercise to it
+    // Hide if..
     if (!activeWorkout || pathname.includes('ActiveWorkoutScreen') || pathname.includes('AddExerciseToWorkoutScreen')) {
         return null;
     }
@@ -94,13 +91,6 @@ export const ActiveWorkoutFloatingBar = () => {
         });
     };
 
-    const formatTime = (totalSeconds: number) => {
-        const mins = Math.floor(totalSeconds / 60);
-        const secs = totalSeconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    // Determine what to show: Rest Timer (Priority) or Workout Timer
     const showRestTimer = restTimeRemaining > 0;
 
     return (
@@ -112,8 +102,8 @@ export const ActiveWorkoutFloatingBar = () => {
                     </Text>
                     <Text style={[styles.timer, showRestTimer && styles.restTimerText]}>
                         {showRestTimer 
-                            ? `${formatTime(restTimeRemaining)} Pause` 
-                            : `${formatTime(elapsedTime)} min • ${activeWorkout.setsCount || 0} Sätze`
+                            ? `${formatTimeShort(restTimeRemaining)} Pause` 
+                            : `${formatTimeShort(elapsedTime)} min • ${activeWorkout.setsCount || 0} Sätze`
                         }
                     </Text>
                 </View>
@@ -142,7 +132,7 @@ const styles = StyleSheet.create({
         zIndex: 9999,
     },
     restContainer: {
-        backgroundColor: Colors.secondary, // Or a distinct color for rest
+        backgroundColor: Colors.secondary,
     },
     content: {
         flexDirection: 'row',

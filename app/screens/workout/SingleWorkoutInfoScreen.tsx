@@ -1,21 +1,17 @@
 import { TopBar } from "@/components/TopBar";
-import { workoutStyles } from "@/styles/workoutStyles";
-import { ActionSheetIOS, View, Text, FlatList, TextInput, Pressable, ScrollView, Modal, BackHandler } from "react-native";
+import { View, Text, TextInput, Pressable, ScrollView, BackHandler } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState, useEffect, useCallback } from "react";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { showAlert, showConfirm } from "@/utils/alertHelper";
 import { workoutStyles as styles } from "@/styles/workoutStyles";
 import { Colors } from "@/styles/theme";
 import { minSecToSeconds } from "@/components/NumberStepper";
 
-// Imports for extracted hooks and utils
-import type { Workout, ExerciseSet, Exercise } from "@/types/workoutTypes";
+import type { Workout, ExerciseSet } from "@/types/workoutTypes";
 import { useOverlayHandlers } from "@/hooks/useOverlayHandlers";
 import { useSingleWorkoutData } from "@/hooks/useSingleWorkoutData";
 import { useSingleWorkoutLoader } from "@/hooks/useWorkoutLoader";
-import { groupSetsByExercise } from "@/utils/workoutExerciseHelper";
+import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import {
   renderSingleCard,
   renderSingleOverlays,
@@ -28,7 +24,6 @@ export default function SingleWorkoutInfoScreen() {
   const workoutEditId = Array.isArray(params.workoutEditId) ? params.workoutEditId[0] : params.workoutEditId;
   const { selectedExerciseId, selectedExerciseName, selectedBreakTime } = params;
 
-  // Data Management
   const {
     workout,
     exercisesMap,
@@ -49,7 +44,6 @@ export default function SingleWorkoutInfoScreen() {
 
   const isCreateMode = !id && !!workoutEditId;
 
-  // Overlay Management
   const {
     activeOverlay,
     targetSetIndex,
@@ -57,16 +51,15 @@ export default function SingleWorkoutInfoScreen() {
     targetExerciseName,
     tempSetData,
     tempBreakTime,
-    setActiveOverlay,
-    setTempSetData,
-    setTempBreakTime,
-    openBreaktime,
-    openEditSet,
-    openAddSet,
+    //setActiveOverlay,
+    //setTempSetData,
+    //setTempBreakTime,
+    openBreakTimeOverlay,
+    openEditSetOverlay,
+    openAddSetOverlay,
     closeOverlay,
   } = useOverlayHandlers();
 
-  // Load Workout Data
   useSingleWorkoutLoader({
     id: id as string,
     workoutEditId: workoutEditId as string,
@@ -78,22 +71,22 @@ export default function SingleWorkoutInfoScreen() {
     isCreateMode,
   });
 
-  // Initialize edit mode for new workouts
+  // Initialize edit
   useEffect(() => {
     if (isCreateMode) {
       setIsEditMode(true);
     }
   }, [isCreateMode, setIsEditMode]);
 
-  // Persist workout changes to draft store
+  // Workout to draft
   useEffect(() => {
     if (workout && isEditMode && workoutEditId) {
       const editId = Array.isArray(workoutEditId) ? workoutEditId[0] : workoutEditId;
-      require("@/utils/workoutEditingStore").setEditingWorkout(editId, workout);
+      require("@/utils/store/workoutEditingStore").setEditingWorkout(editId, workout);
     }
   }, [workout, isEditMode, workoutEditId]);
 
-  // Handle Return from AddExercise
+  // Handle Return (AddExercise)
   useEffect(() => {
     if (selectedExerciseId && workout) {
       const foundName = selectedExerciseName || exercisesMap.get(selectedExerciseId as string)?.name || "Unbekannte Übung";
@@ -123,7 +116,6 @@ export default function SingleWorkoutInfoScreen() {
 
 
 
-  // Save Modal Changes Handler
   const handleSaveModalChanges = useCallback(() => {
     if (activeOverlay === "breaktime" && targetExerciseId) {
       const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
@@ -134,18 +126,16 @@ export default function SingleWorkoutInfoScreen() {
     closeOverlay();
   }, [activeOverlay, targetExerciseId, targetSetIndex, targetExerciseName, tempSetData, tempBreakTime, saveBreakTime, saveSetData, closeOverlay]);
 
-  // Add Exercise navigation
   const handleAddExercise = useCallback(() => {
     router.push({
       pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
       params: {
         returnTo: "edit",
-        workoutEditId: workout?.id || workoutEditId, // Fallback to workout.id which holds the currentEditId
+        workoutEditId: workout?.id || workoutEditId,
       },
     });
   }, [workoutEditId, workout]);
 
-  // Handle Save Workout
   const handleSaveWorkoutPressed = useCallback(() => {
     handleSaveWorkout(id, (newId) => {
       setIsEditMode(false);
@@ -157,7 +147,6 @@ export default function SingleWorkoutInfoScreen() {
 
   const handleCancelPressed = useCallback(() => {
     handleCancel();
-    // Wenn kein existierendes Workout (keine ID in Params), gehen wir zurück
     if (!id) {
         router.navigate("/(tabs)/WorkoutScreenProxy")
       } else {
@@ -165,7 +154,7 @@ export default function SingleWorkoutInfoScreen() {
     }
   }, [id, handleCancel, setIsEditMode]);
 
-  // Back Handler to prevent navigation loops
+  // Back Handler
   useEffect(() => {
     const onBackPress = () => {
       if (isEditMode) {
@@ -195,9 +184,9 @@ export default function SingleWorkoutInfoScreen() {
     activeOverlay,
     tempBreakTime,
     tempSetData,
-    onOpenBreakTime: openBreaktime,
-    onOpenEditSet: openEditSet,
-    onOpenAddSet: openAddSet,
+    onOpenBreakTime: openBreakTimeOverlay,
+    onOpenEditSet: openEditSetOverlay,
+    onOpenAddSet: openAddSetOverlay,
     onRemoveSet: handleRemoveSet,
     onSaveModalChanges: handleSaveModalChanges,
     onCloseOverlay: closeOverlay,

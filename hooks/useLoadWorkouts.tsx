@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { auth, db } from "../firebaseConfig";
-import { collection, getDocs, doc } from "firebase/firestore";
-import { Workout,Exercise, ExerciseSet } from "@/types/workoutTypes";
+import { collection, getDocs } from "firebase/firestore";
+import { Workout, Exercise, ExerciseSet } from "@/types/workoutTypes";
 
+// TODO in file
 
+// Loading all template Workouts
 export function useLoadWorkouts() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(false);
@@ -18,14 +20,12 @@ export function useLoadWorkouts() {
     }
 
     try {
-      // Load exercises first for enrichment
       const exercisesMap = new Map<string, Exercise>();
       const exercisesSnapshot = await getDocs(collection(db, "exercises"));
       exercisesSnapshot.forEach((doc) => {
         exercisesMap.set(doc.id, { id: doc.id, ...doc.data() } as Exercise);
       });
 
-      // Load user's workouts
       const userWorkoutsRef = collection(db, "users", user.uid, "workouts");
       const snapshotU = await getDocs(userWorkoutsRef);
 
@@ -33,10 +33,8 @@ export function useLoadWorkouts() {
       for (const workoutDoc of snapshotU.docs) {
         const workoutData = workoutDoc.data();
         
-        // Only include "template" workouts (skip "history" only ones)
         if (workoutData.type === "history") continue;
         
-        // Load exercise sets from subcollection
         const setsSnapshot = await getDocs(collection(workoutDoc.ref, "exerciseSets"));
         const sets: ExerciseSet[] = [];
         setsSnapshot.forEach((setDoc) => {
@@ -49,7 +47,7 @@ export function useLoadWorkouts() {
           } as ExerciseSet);
         });
 
-        //TODO andere attribute nicht ??
+        //TODO: Weitere Attribute wie duration, lastUsed etc. hinzufügen wenn benötigt
         userWorkouts.push({
           id: workoutDoc.id,
           date: workoutData.date || "",

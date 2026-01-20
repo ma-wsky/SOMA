@@ -1,4 +1,3 @@
-
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Workout, ExerciseSet } from '@/types/workoutTypes';
@@ -8,6 +7,8 @@ export const exportWorkoutsToPDF = async (workouts: Workout[], date: string) => 
         alert("Keine Workouts zum Exportieren vorhanden.");
         return;
     }
+
+
 
     const htmlContent = `
     <html>
@@ -69,6 +70,8 @@ export const exportWorkoutsToPDF = async (workouts: Workout[], date: string) => 
     </html>
   `;
 
+
+
     try {
         const { uri } = await Print.printToFileAsync({ html: htmlContent });
         await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
@@ -78,7 +81,7 @@ export const exportWorkoutsToPDF = async (workouts: Workout[], date: string) => 
     }
 };
 
-// Helper for grouping sets (duplicate logic from components, but handled here for clean isolation)
+
 const groupSetsByExercise = (sets: ExerciseSet[]) => {
     const grouped: { [key: string]: { exerciseName: string; sets: ExerciseSet[] } } = {};
     sets.forEach((set) => {

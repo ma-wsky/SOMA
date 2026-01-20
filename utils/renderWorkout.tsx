@@ -1,6 +1,3 @@
-// Render functions for workout UI components
-// Separated for better organization and reusability
-
 import React from "react";
 import {
   View,
@@ -15,9 +12,11 @@ import type { ExerciseSet, Workout, OverlayTypes } from "@/types/workoutTypes";
 import { workoutStyles as styles } from "@/styles/workoutStyles";
 import { NumberStepper, newStyles, minSecToSeconds } from "@/components/NumberStepper";
 import { Colors } from "@/styles/theme";
-import { groupSetsByExercise } from "@/utils/workoutExerciseHelper";
+import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
+import { formatTimeShort } from "@/utils/helper/formatTimeHelper";
 
-// ==================== ACTIVEWORKOUTSCREEN RENDERS ====================
+
+//TODO Nutzt wirklich RenderBase??
 
 interface ActiveWorkoutRenderProps {
   workout: Workout;
@@ -94,7 +93,7 @@ export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.Rea
         renderActiveExerciseCard(exerciseId, sets, true, props)
       )}
 
-      <View style={{alignItems:'center'}}>      
+      <View style={{alignItems:'center'}}>
         <Pressable
         onPress={props.onAddExercise}
         style={styles.topBarLikeButton }
@@ -115,9 +114,7 @@ const renderActiveExerciseCard = (
 ): React.ReactNode => (
   <View key={exerciseId} style={styles.exerciseCard}>
     <View style={styles.exerciseCardHeader}>
-      <Text style={{ fontSize: 22, fontWeight: "bold", color: "white", marginRight: 8 }}>
-        Pic
-      </Text>
+      <Text style={{ fontSize: 22, fontWeight: "bold", color: "white", marginRight: 8 }}>Pic</Text>
 
       <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
 
@@ -216,18 +213,14 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
                 style={newStyles.timeInput}
                 keyboardType="numeric"
                 value={props.tempBreakTime.mins.toString()}
-                onChangeText={(v) => {
-                  // This will be handled by the parent component's state
-                }}
+                onChangeText={() => {}}
               />
               <Text style={newStyles.label}>Min</Text>
               <TextInput
                 style={newStyles.timeInput}
                 keyboardType="numeric"
                 value={props.tempBreakTime.secs.toString()}
-                onChangeText={(v) => {
-                  // This will be handled by the parent component's state
-                }}
+                onChangeText={() => {}}
               />
               <Text style={newStyles.label}>Sek</Text>
             </View>
@@ -236,17 +229,13 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
               <NumberStepper
                 label="Gewicht (kg)"
                 value={props.tempSetData.weight}
-                onChange={(v) => {
-                  // This will be handled by the parent component's state
-                }}
+                onChange={() => {}}
                 step={0.5}
               />
               <NumberStepper
                 label="Wiederholungen"
                 value={props.tempSetData.reps}
-                onChange={(v) => {
-                  // This will be handled by the parent component's state
-                }}
+                onChange={() => {}}
                 step={1}
               />
             </View>
@@ -283,7 +272,7 @@ export const renderActiveRestTimerBar = (
           Pausenzeit
         </Text>
         <Text style={{ color: Colors.white, fontSize: 24, fontWeight: "bold", marginTop: 4 }}>
-          {Math.floor(restTimeRemaining / 60)}:{(restTimeRemaining % 60).toString().padStart(2, "0")}
+          {formatTimeShort(restTimeRemaining)}
         </Text>
       </View>
       <Pressable
@@ -296,7 +285,6 @@ export const renderActiveRestTimerBar = (
   );
 };
 
-// ==================== SINGLEWORKOUTINFOSCREEN RENDERS ====================
 
 interface SingleWorkoutRenderProps {
   workout: Workout;
@@ -377,7 +365,67 @@ export const renderSingleCard = (
   </View>
 );
 
-// ==================== WORKOUT HISTORY RENDER ====================
+export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.ReactNode => {
+  if (props.activeOverlay === "none") return null;
+  const isBreaktime = props.activeOverlay === "breaktime";
+  const isEdit = props.activeOverlay === "editSet";
+  const isAdd = props.activeOverlay === "addSet";
+
+  return (
+    <Modal visible={true} transparent animationType="fade" onRequestClose={props.onCloseOverlay}>
+      <View style={newStyles.overlay}>
+        <View style={newStyles.content}>
+          <View style={newStyles.header}>
+            <Pressable onPress={props.onCloseOverlay}>
+              <Text style={{ color: "#ff4444" }}>Abbrechen</Text>
+            </Pressable>
+            <Text style={newStyles.headerTitle}>
+              {isBreaktime ? "Pausenzeit" : isEdit ? "Satz bearbeiten" : "Satz hinzufügen"}
+            </Text>
+            <Pressable style={newStyles.saveButton} onPress={props.onSaveModalChanges}>
+              <Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text>
+            </Pressable>
+          </View>
+
+          {isBreaktime ? (
+            <View style={newStyles.timeInputContainer}>
+              <TextInput
+                style={newStyles.timeInput}
+                keyboardType="numeric"
+                value={props.tempBreakTime.mins.toString()}
+                onChangeText={() => {}}
+              />
+              <Text style={newStyles.label}>Min</Text>
+              <TextInput
+                style={newStyles.timeInput}
+                keyboardType="numeric"
+                value={props.tempBreakTime.secs.toString()}
+                onChangeText={() => {}}
+              />
+              <Text style={newStyles.label}>Sek</Text>
+            </View>
+          ) : (
+            <View>
+              <NumberStepper
+                label="Gewicht (kg)"
+                value={props.tempSetData.weight}
+                onChange={() => {}}
+                step={0.5}
+              />
+              <NumberStepper
+                label="Wiederholungen"
+                value={props.tempSetData.reps}
+                onChange={() => {}}
+                step={1}
+              />
+            </View>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 
 export const renderHistoryCard = (
   exerciseId: string,
@@ -391,7 +439,6 @@ export const renderHistoryCard = (
 
       <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
 
-      {/* Breaktime displayed but not interactive */}
       <View style={{ flexDirection: "row", alignItems: "center", padding: 8 }}>
         <Ionicons name="alarm-outline" size={20} color={Colors.primary} />
         <Text style={{ color: Colors.primary, marginLeft: 4, fontSize: 12 }}>
@@ -425,72 +472,3 @@ export const renderHistoryCard = (
     })}
   </View>
 );
-
-export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.ReactNode => {
-  if (props.activeOverlay === "none") return null;
-  const isBreaktime = props.activeOverlay === "breaktime";
-  const isEdit = props.activeOverlay === "editSet";
-  const isAdd = props.activeOverlay === "addSet";
-
-  return (
-    <Modal visible={true} transparent animationType="fade" onRequestClose={props.onCloseOverlay}>
-      <View style={newStyles.overlay}>
-        <View style={newStyles.content}>
-          <View style={newStyles.header}>
-            <Pressable onPress={props.onCloseOverlay}>
-              <Text style={{ color: "#ff4444" }}>Abbrechen</Text>
-            </Pressable>
-            <Text style={newStyles.headerTitle}>
-              {isBreaktime ? "Pausenzeit" : isEdit ? "Satz bearbeiten" : "Satz hinzufügen"}
-            </Text>
-            <Pressable style={newStyles.saveButton} onPress={props.onSaveModalChanges}>
-              <Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text>
-            </Pressable>
-          </View>
-
-          {isBreaktime ? (
-            <View style={newStyles.timeInputContainer}>
-              <TextInput
-                style={newStyles.timeInput}
-                keyboardType="numeric"
-                value={props.tempBreakTime.mins.toString()}
-                onChangeText={(v) => {
-                  // This will be handled by the parent component's state
-                }}
-              />
-              <Text style={newStyles.label}>Min</Text>
-              <TextInput
-                style={newStyles.timeInput}
-                keyboardType="numeric"
-                value={props.tempBreakTime.secs.toString()}
-                onChangeText={(v) => {
-                  // This will be handled by the parent component's state
-                }}
-              />
-              <Text style={newStyles.label}>Sek</Text>
-            </View>
-          ) : (
-            <View>
-              <NumberStepper
-                label="Gewicht (kg)"
-                value={props.tempSetData.weight}
-                onChange={(v) => {
-                  // This will be handled by the parent component's state
-                }}
-                step={0.5}
-              />
-              <NumberStepper
-                label="Wiederholungen"
-                value={props.tempSetData.reps}
-                onChange={(v) => {
-                  // This will be handled by the parent component's state
-                }}
-                step={1}
-              />
-            </View>
-          )}
-        </View>
-      </View>
-    </Modal>
-  );
-};

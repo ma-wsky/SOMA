@@ -1,5 +1,4 @@
 import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
 
 
 Notifications.setNotificationHandler({
@@ -36,13 +35,13 @@ export async function scheduleWorkoutReminder(
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) return;
 
-    // Zeit für heute setzen
+    // Today
     const trigger = new Date();
     trigger.setHours(triggerHour);
     trigger.setMinutes(triggerMinute);
     trigger.setSeconds(0);
 
-    // Wenn die Zeit heute schon vorbei ist, für morgen planen
+    //Next day
     if (trigger.getTime() <= Date.now()) {
         trigger.setDate(trigger.getDate() + 1);
     }
@@ -59,17 +58,9 @@ export async function scheduleWorkoutReminder(
         },
     });
 
-    return trigger; // Rückgabe des Datums zur Bestätigung
+    return trigger;
 }
 
-/**
- * Plant wiederkehrende Benachrichtigungen für bestimmte Wochentage.
- * @param title Titel der Benachrichtigung
- * @param body Text der Benachrichtigung
- * @param hour Stunde (0-23)
- * @param minute Minute (0-59)
- * @param weekdays Array von Wochentagen (1 = Montag, bis  7 = Sonntag)
- */
 export async function scheduleWeeklyWorkoutReminder(
     title: string, 
     body: string, 
@@ -81,8 +72,8 @@ export async function scheduleWeeklyWorkoutReminder(
     if (!hasPermission) return;
 
     for (const day of weekdays) {
-        // Expo Notifications uses 1 = Sunday, 2 = Monday, ... 7 = Saturday
-        // We use 1 = Monday, ... 7 = Sunday
+        // Expo Notifications : 1 = Sunday... 7 = Saturday
+        // We 1=Mon... 7=Sun
         
         const expoDay = day === 7 ? 1 : day + 1;
 

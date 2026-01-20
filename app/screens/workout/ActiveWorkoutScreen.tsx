@@ -1,8 +1,6 @@
 import {
   View,
   Text,
-  TextInput,
-  Pressable,
   Vibration,
   BackHandler
 } from "react-native";
@@ -11,32 +9,28 @@ import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { workoutStyles as styles } from "@/styles/workoutStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { TopBar } from "@/components/TopBar";
-import BottomSheet,  {BottomSheetScrollView, BottomSheetView}  from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { minSecToSeconds } from "@/components/NumberStepper";
-import { Colors } from "@/styles/theme";
 
-// Imports for extracted hooks and utils
-import type { Workout, ExerciseSet, Exercise } from "@/types/workoutTypes";
+import type { Workout, ExerciseSet } from "@/types/workoutTypes";
 import { useOverlayHandlers } from "@/hooks/useOverlayHandlers";
 import { useWorkoutTimer, useRestTimer } from "@/hooks/useWorkoutTimer";
 import { useActiveWorkoutData } from "@/hooks/useActiveWorkoutData";
 import { useWorkoutLoader } from "@/hooks/useWorkoutLoader";
-import { groupSetsByExercise } from "@/utils/workoutExerciseHelper";
 import {
   renderActiveViewMode,
   renderActiveEditMode,
   renderActiveOverlays,
   renderActiveRestTimerBar,
 } from "@/utils/renderWorkout";
-import { setActiveWorkout, clearActiveWorkout } from "@/utils/activeWorkoutStore";
+import { setActiveWorkout } from "@/utils/store/activeWorkoutStore";
+import { formatTime, formatTimeShort } from "@/utils/helper/formatTimeHelper";
 
 export default function ActiveWorkoutScreen() {
   const { id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime } = useLocalSearchParams();
   
-  // Data Management
   const {
     workout,
     exercises,
@@ -59,14 +53,9 @@ export default function ActiveWorkoutScreen() {
     handleCancel,
   } = useActiveWorkoutData();
 
-  // Timer Management
   const { elapsedTime, timerRef } = useWorkoutTimer(workout?.id);
   const { restTimeRemaining, restTimerRef, startRestTimer, stopRestTimer } = useRestTimer();
   
-  // Memoize snapPoints to prevent re-renders causing sheet to jump
-  const snapPoints = useMemo(() => ["99%"], []);
-  
-  // Overlay Management
   const {
     activeOverlay,
     targetSetIndex,
@@ -83,7 +72,6 @@ export default function ActiveWorkoutScreen() {
     closeOverlay,
   } = useOverlayHandlers();
 
-  // Load Workout Data
   useWorkoutLoader({
     id: id as string,
     workoutEditId: workoutEditId as string,
@@ -96,14 +84,13 @@ export default function ActiveWorkoutScreen() {
   
 
 
-  // Persist workout changes to edit store during editing
   useEffect(() => {
     if (workout && isEditMode && workoutEditId) {
-       require("@/utils/workoutEditingStore").setEditingWorkout(workoutEditId as string, workout);
+      require("@/utils/store/workoutEditingStore").setEditingWorkout(workoutEditId as string, workout);
     }
   }, [workout, isEditMode, workoutEditId]);
 
-  // Handle Return from AddExercise
+  // Handle Return (AddExercise)
   useEffect(() => {
     if (selectedExerciseId && workout) {
       const foundName = selectedExerciseName || exercises.get(selectedExerciseId as string)?.name || "Unbekannte Übung";
@@ -132,20 +119,18 @@ export default function ActiveWorkoutScreen() {
 
 
 
-  // Back Handler for Phone
+  // Back Handler
   useEffect(() => {
     const onBackPress = () => {
-      // Always navigate to HomeScreen when minimizing via back button
       router.navigate("/(tabs)/HomeScreenProxy");
       
-       // Ensure store is updated (same as sheet close)
       setActiveWorkout({
           id: workout?.id ?? null,
           startTime: workout?.startTime ?? Date.now(),
           setsCount: workout?.exerciseSets.length ?? 0,
       });
 
-       return true; // Prevent default behavior
+      return true;
     };
 
     const backHandler = BackHandler.addEventListener(
@@ -158,16 +143,16 @@ export default function ActiveWorkoutScreen() {
 
 
 
-  // Bottom Sheet Management
-  // snapPoints defined above
   const [isMinimized, setIsMinimized] = useState(false);
+  // Memoize snapPoints to prevent re-renders
+  const snapPoints = useMemo(() => ["99%"], []);
+  
 
   const handleSheetChanges = useCallback(
     (index: number) => {
       if (index === -1) {
         setIsMinimized(true);
         try {
-          // Always navigate to HomeScreen when minimizing via gesture
           router.navigate("/(tabs)/HomeScreenProxy");
         } catch (e) {
           console.warn('Navigation failed', e);
@@ -185,7 +170,6 @@ export default function ActiveWorkoutScreen() {
     [workout]
   );
 
-  // Handle Set Check - Enhanced with rest timer
   const handleSetCheckWithTimer = useCallback(
     (setIndex: number, breaktime: number) => {
       Vibration.vibrate(50);
@@ -197,7 +181,6 @@ export default function ActiveWorkoutScreen() {
     [workout, handleSetCheck, startRestTimer]
   );
 
-  // Save Modal Changes Handler
   const handleSaveModalChanges = useCallback(() => {
     if (activeOverlay === "breaktime" && targetExerciseId) {
       const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
@@ -208,17 +191,15 @@ export default function ActiveWorkoutScreen() {
     closeOverlay();
   }, [activeOverlay, targetExerciseId, targetSetIndex, targetExerciseName, tempSetData, tempBreakTime, saveBreakTime, saveSetData, closeOverlay]);
 
-  // Handle Save Changes with Timer
   const handleSaveChangesWithTimer = useCallback(() => {
     handleSaveChanges(elapsedTime);
   }, [elapsedTime, handleSaveChanges]);
 
-  // Navigate to Add Exercise
   const handleAddExercise = useCallback(() => {
     if (!workout) return;
     
     const idToUse = (workoutEditId as string) || workout.id || `active_temp_${Date.now()}`;
-    require("@/utils/workoutEditingStore").setEditingWorkout(idToUse, workout);
+    require("@/utils/store/workoutEditingStore").setEditingWorkout(idToUse, workout);
     setEditIdRef(idToUse);
 
     router.push({
@@ -228,10 +209,9 @@ export default function ActiveWorkoutScreen() {
   }, [workout, workoutEditId, setEditIdRef]);
 
   
-
   const timerString = activeOverlay === 'restTimer'
-    ? `  Pausenzeit\n${Math.floor(restTimeRemaining / 60)}:${(restTimeRemaining % 60).toString().padStart(2, '0')}`
-    : `  Dauer\n${Math.floor(elapsedTime / 3600).toString().padStart(2, '0')}:${Math.floor((elapsedTime % 3600) / 60).toString().padStart(2, '0')}:${(elapsedTime % 60).toString().padStart(2, '0')}`;
+    ? `  Pausenzeit\n${formatTimeShort(restTimeRemaining)}`
+    : `  Dauer\n${formatTime(elapsedTime)}`;
 
   const renderProps = useMemo(() => ({
     workout,
@@ -246,15 +226,18 @@ export default function ActiveWorkoutScreen() {
     onSetCheck: handleSetCheckWithTimer,
     onRemoveSet: handleRemoveSet,
     onEditModeToggle: (enabled: boolean) => {
-       if (enabled && workout) setOriginalWorkout(workout);
-       setIsEditMode(enabled);
+      if (enabled && workout) setOriginalWorkout(workout);
+      setIsEditMode(enabled);
     },
     onAddExercise: handleAddExercise,
     onSaveModalChanges: handleSaveModalChanges,
     onCloseOverlay: closeOverlay,
     onRestTimerClose: stopRestTimer,
     onWorkoutNameChange: (name: string) => setWorkout((prev) => prev ? { ...prev, name } : null),
-  }), [workout, isEditMode, activeOverlay, restTimeRemaining, tempBreakTime, tempSetData, openBreakTimeOverlay, openEditSetOverlay, openAddSetOverlay, handleSetCheckWithTimer, handleRemoveSet, handleAddExercise, handleSaveModalChanges, closeOverlay, stopRestTimer, setOriginalWorkout, setWorkout]);
+  }), [workout, isEditMode, activeOverlay, restTimeRemaining, tempBreakTime, tempSetData, 
+    openBreakTimeOverlay, openEditSetOverlay, openAddSetOverlay, 
+    handleSetCheckWithTimer, handleRemoveSet, handleAddExercise, handleSaveModalChanges, 
+    closeOverlay, stopRestTimer, setOriginalWorkout, setWorkout]);
 
 
   if (!workout) {
