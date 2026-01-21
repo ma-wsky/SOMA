@@ -21,7 +21,6 @@ export default function StatisticScreen() {
                        onChangeText={setFilter}
                        style={styles.search}/>
 
-            {/* TODO: Filter with tags */}
 
             {/* Exercise List with favorites and regular */}
             <ExerciseList

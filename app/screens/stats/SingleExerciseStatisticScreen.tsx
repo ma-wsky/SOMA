@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { View, Text, Image, Pressable, Alert } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { TopBar } from "@/components/TopBar"
 import { auth } from "@/firebaseConfig";
 import LoadingOverlay from "@/components/LoadingOverlay";
@@ -11,6 +11,7 @@ import { statStyles } from "@/styles/statStyles"
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { transformHistoryToChartData } from "@/utils/transformHistoryToChartData"
 import { ExerciseService } from "@/services/exerciseService"
+import { exportExerciseStatisticsToPDF } from "@/utils/helper/exportHelper"
 
 
 interface MyChartData {
@@ -18,9 +19,15 @@ interface MyChartData {
     datasets: [
         {
             data: number[];
-            // Hier können später noch optionale Felder wie 'color' stehen
         }
     ];
+}
+
+interface HistoryEntry {
+    date: Date;
+    weight: number;
+    reps?: number;
+    timestamp: number;
 }
 
 export default function SingleExerciseStatisticScreen() {
@@ -29,6 +36,7 @@ export default function SingleExerciseStatisticScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const [exercise, setExercise] = useState<Exercise | null>(null);
     const [chartData, setChartData] = useState<MyChartData | null>(null);
+    const historyRef = useRef<HistoryEntry[]>([]);
 
     const ADMIN_DEFAULT = require("@/assets/default-exercise-picture/admin.png");
     const USER_DEFAULT = require("@/assets/default-exercise-picture/users.png");
@@ -48,10 +56,12 @@ export default function SingleExerciseStatisticScreen() {
                 if (exercise){
                     const history = await ExerciseService.fetchHistory(id);
                     if(history && history.length > 0) {
+                        historyRef.current = history;
                         const formattedData = transformHistoryToChartData(history);
                         setChartData(formattedData);
 
                     } else {
+                        historyRef.current = [];
                         setChartData(null);
                     }
 
@@ -77,6 +87,11 @@ export default function SingleExerciseStatisticScreen() {
         }
     }
 
+    async function handleDownload() {
+        if (!exercise) return;
+        await exportExerciseStatisticsToPDF(exercise, historyRef.current);
+    }
+
     if (!exercise) return;
 
     return (
@@ -86,8 +101,8 @@ export default function SingleExerciseStatisticScreen() {
             <TopBar leftButtonText={"Zurück"}
                     titleText={"Übung Statistik"}
                     rightButtonText={"Download"}
-                    onLeftPress={() => router.replace("../../(tabs)/StatisticScreenProxy")}
-                    onRightPress={() => console.log("download")}
+                    onLeftPress={() => router.replace("/(tabs)/StatisticScreenProxy")}
+                    onRightPress={handleDownload}
             ></TopBar>
 
             {/* Exercise Picture */}

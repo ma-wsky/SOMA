@@ -4,7 +4,8 @@ import { workoutStyles as styles } from "../styles/workoutStyles"
 import { Colors } from "../styles/theme"
 import { useRef, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { showConfirm } from "@/utils/alertHelper";
+import { showConfirm } from "@/utils/helper/alertHelper";
+import {Workout} from "@/types/workoutTypes";
 
 
 interface Props {
@@ -13,24 +14,6 @@ interface Props {
     onDelete?: (workoutId: string) => void;
 }
 
-type Workout = {
-    id?: string;
-    name?: string;
-    date: string;
-    duration?: number;
-    exerciseSets: ExerciseSet[];
-};
-
-type ExerciseSet = {
-    id: string;
-    name?: string;
-    exerciseName?: string;
-    exerciseId: string;
-    breaktime?: number;
-    weight?: number;
-    reps?: number;
-    isDone?: boolean;
-};
 
 export default function WorkoutItem({workout, onPress, onDelete}: Props) {
     const pan = useRef(new Animated.ValueXY()).current;
@@ -43,14 +26,14 @@ export default function WorkoutItem({workout, onPress, onDelete}: Props) {
             onPanResponderMove: Animated.event([null, { dx: pan.x }], { useNativeDriver: false }),
             onPanResponderRelease: (_, gestureState) => {
                 if (gestureState.dx < -100) {
-                    // Swiped left - show delete
+                    //Swipe
                     Animated.spring(pan, {
                         toValue: { x: -100, y: 0 },
                         useNativeDriver: false,
                     }).start();
                     setIsDeleting(true);
                 } else {
-                    // Snap back
+                    //Snap back
                     Animated.spring(pan, {
                         toValue: { x: 0, y: 0 },
                         useNativeDriver: false,
@@ -75,39 +58,46 @@ export default function WorkoutItem({workout, onPress, onDelete}: Props) {
     };
 
     return (
-        <View style={{...styles.itemContainer, overflow: 'hidden', position: 'relative'}}>
-            {/* Delete Background */}
-            <View style={{position: 'absolute', right: 0, top: 0, bottom: 0, width: 100, backgroundColor: '#ff4444', justifyContent: 'center', alignItems: 'center'}}>
+        <View>
+            <View style={{position: 'absolute', borderRadius:10, right: 20, top: 5, bottom: 5, width: 100, backgroundColor: '#ff4444', justifyContent: 'center', alignItems: 'center'}}>
                 <Pressable onPress={handleDelete}>
-                    <Ionicons name="trash" size={28} color="white" />
+                    <Ionicons name="trash" size={28} color="white"  />
                 </Pressable>
             </View>
 
-            {/* Swipeable Content */}
             <Animated.View 
                 style={[{ transform: [{ translateX: pan.x }] }]} 
                 {...panResponder.panHandlers}
             >
+            <View style={{...styles.itemContainer, overflow: 'hidden', position: 'relative'}}>
 
-            <Pressable
-                onPress={() => {router.push({pathname: "/screens/workout/SingleWorkoutInfoScreen", params: {id: workout.id}})}}
-            >
+                <View style={{backgroundColor:"black"}}>
+
+                <Pressable
+                    onPress={() => {router.push({pathname: "/screens/workout/SingleWorkoutInfoScreen", params: {id: workout.id}})}}
+                >
                 <Text style={styles.itemTitle}>{workout.name}</Text>
                 <Text style={{color: "#aaa", fontSize: 12, marginTop: 4}}>
                     {workout.exerciseSets.length} Sets
                 </Text>
-            </Pressable>
+                </Pressable>
+                            
 
-            <Pressable
-                onPress={() => {router.push({pathname: "/screens/workout/ActiveWorkoutScreen", params: {id: workout.id}})}}
-                style={({ pressed }) => [
-                    styles.itemButton,
-                    {backgroundColor: pressed ? Colors.secondary : Colors.primary},
-                    {borderColor: pressed ? Colors.secondary : Colors.primary}
-                ]}
-            >
+
+                <Pressable
+                    onPress={() => {router.push({pathname: "/screens/workout/ActiveWorkoutScreen", params: {id: workout.id}})}}
+                    style={({ pressed }) => [
+                        styles.itemButton,
+                        {backgroundColor: pressed ? Colors.secondary : Colors.primary},
+                        {borderColor: pressed ? Colors.secondary : Colors.primary}
+                    ]}
+                >
                 <Text style={styles.itemButtonText}>Training starten</Text>
-            </Pressable>
+                </Pressable>
+            
+                </View>
+            
+            </View>
             </Animated.View>
         </View>
     );

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { FlatList, View, Text, StyleSheet } from "react-native";
-import { workoutStyles } from "../styles/workoutStyles";
-import WorkoutItem from "./WorkoutItem";
+import { FlatList, View, Text } from "react-native";
+import WorkoutItem from "@/components/WorkoutItem";
+import { Workout, ListItem } from "@/types/workoutTypes";
 
 interface Props {
   workouts: Workout[];
@@ -10,33 +10,11 @@ interface Props {
   onDelete?: (workoutId: string) => void;
 }
 
-type Workout = {
-  id: string;
-  name: string;
-  date: string;
-  duration: number;
-  exerciseSets: ExerciseSet[];
-};
-
-type ExerciseSet = {
-  id: string;
-  exerciseId: string;
-  exerciseName?: string;
-  name?: string;
-  breaktime?: number;
-  weight?: number;
-  reps?: number;
-  isDone?: boolean;
-};
-
-
-
-type ListItem = { type: "workout"; data: Workout };
 
 export default function WorkoutList({workouts, filter = "", onItemPress, onDelete}: Props) {
   const listData: ListItem[] = useMemo(() => {
     const filtered = workouts.filter((w) =>
-      w.date.toLowerCase().includes(filter.toLowerCase()),
+      (w.name || "").toLowerCase().includes(filter.toLowerCase()),
     );
     const data: ListItem[] = [];
 
@@ -45,11 +23,11 @@ export default function WorkoutList({workouts, filter = "", onItemPress, onDelet
     return data;
   }, [workouts, filter]);
 
-  console.log(workouts);
+
   return (
     <FlatList
       data={listData}
-      keyExtractor={(item) => (item.type === "workout" ? item.data.id : "")}
+      keyExtractor={(item) => (item.type === "workout" ? item.data.id as string: "")}
       renderItem={({ item }) => {
         if (item.type === "workout") {
           return (

@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { auth, db } from "@/firebaseConfig";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { userStyles } from "@/styles/userStyles";
+import { Colors } from "@/styles/theme";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { UserButton } from "@/components/user/userButton";
 import { validateEmail } from "@/utils/user/validateEmail";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { uploadImage } from "@/utils/uploadImage";
+import { scheduleWeeklyWorkoutReminder, cancelAllNotifications } from "@/utils/helper/notificationHelper";
 
 const EditRow = ({ label, value, onChangeText, placeholder, keyboardType = "default", isPressable = false, onPress = () => {} }: any) => (
     <View style={userStyles.rowWrapper}>
@@ -34,6 +36,42 @@ const EditRow = ({ label, value, onChangeText, placeholder, keyboardType = "defa
     </View>
 );
 
+const WeekdayPicker = ({ selectedDays, onToggleDay }: { selectedDays: number[], onToggleDay: (day: number) => void }) => {
+    const days = [
+        { id: 1, label: "Mo" },
+        { id: 2, label: "Di" },
+        { id: 3, label: "Mi" },
+        { id: 4, label: "Do" },
+        { id: 5, label: "Fr" },
+        { id: 6, label: "Sa" },
+        { id: 7, label: "So" },
+    ];
+
+    return (
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20,paddingBottom:50 }}>
+            {days.map((day) => {
+                const isSelected = selectedDays.includes(day.id);
+                return (
+                    <Pressable
+                        key={day.id}
+                        onPress={() => onToggleDay(day.id)}
+                        style={{
+                            width: 35,
+                            height: 35,
+                            borderRadius: 17.5,
+                            backgroundColor: isSelected ? Colors.primary : '#e0e0e0',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Text style={{ color: isSelected ? 'white' : 'black', fontWeight: 'bold' }}>{day.label}</Text>
+                    </Pressable>
+                );
+            })}
+        </View>
+    );
+};
+
 export default function EditUserScreen() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -45,8 +83,12 @@ export default function EditUserScreen() {
         birthdate: "",
         weight: "",
         height: "",
-        profilePicture: ""
+        profilePicture: "",
+        reminderTime: new Date(),
+        reminderDays: [] as number[],
     });
+
+    const [showTimePicker, setShowTimePicker] = useState(false);
 
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [dateObject, setDateObject] = useState(new Date());
@@ -63,13 +105,25 @@ export default function EditUserScreen() {
 
                 if (snapshot.exists()) {
                     const data = snapshot.data();
+                    
+                    let loadedDate = new Date();
+                    // Load Reminder settings
+                    if (data.reminderTime && data.reminderTime.hour !== undefined && data.reminderTime.minute !== undefined) {
+                         const d = new Date();
+                         d.setHours(data.reminderTime.hour);
+                         d.setMinutes(data.reminderTime.minute);
+                         loadedDate = d;
+                    }
+
                     setFormData({
                         name: data.name || "",
                         email: data.email || "",
                         birthdate: data.birthdate || "",
                         weight: data.weight?.toString() || "",
                         height: data.height?.toString() || "",
-                        profilePicture: data.profilePicture || ""
+                        profilePicture: data.profilePicture || "",
+                        reminderDays: data.reminderDays || [],
+                        reminderTime: loadedDate
                     });
 
                     if (data.birthdate) {
@@ -108,6 +162,18 @@ export default function EditUserScreen() {
                 }
             }
 
+            // Sync notifications
+            await cancelAllNotifications();
+            if (formData.reminderDays.length > 0) {
+                await scheduleWeeklyWorkoutReminder(
+                    "Zeit fürs Training!",
+                    "Dein Workout wartet auf dich.",
+                    formData.reminderTime.getHours(),
+                    formData.reminderTime.getMinutes(),
+                    formData.reminderDays
+                );
+            }
+
             const userRef = doc(db, "users", uid);
             await updateDoc(userRef, {
                 name: formData.name,
@@ -117,6 +183,12 @@ export default function EditUserScreen() {
                 height: parseFloat(formData.height) || 0,
                 profilePicture: finalPhotoUrl,
                 updatedAt: serverTimestamp(),
+                // Save Reminder Settings
+                reminderDays: formData.reminderDays,
+                reminderTime: {
+                    hour: formData.reminderTime.getHours(),
+                    minute: formData.reminderTime.getMinutes()
+                }
             });
 
             Alert.alert("Erfolg", "Profil aktualisiert.");
@@ -128,6 +200,17 @@ export default function EditUserScreen() {
             setLoading(false);
         }
     };
+
+    const toggleDay = (day: number) => {
+        let newDays;
+        if (formData.reminderDays.includes(day)) {
+            newDays = formData.reminderDays.filter(d => d !== day);
+        } else {
+            newDays = [...formData.reminderDays, day];
+        }
+        setFormData({ ...formData, reminderDays: newDays });
+    };
+
 
     return (
         <KeyboardAvoidingView
@@ -193,6 +276,24 @@ export default function EditUserScreen() {
                                 onChangeText={(t: string) => setFormData({...formData, height: t})}
                                 placeholder="cm"
                                 keyboardType="numeric"/>
+
+                            <View style={userStyles.line}/>
+
+                            <Text style={[userStyles.text, { marginLeft: 30, marginTop: 10 }]}>Trainingserinnerung</Text>
+
+                            <EditRow
+                                label="Uhrzeit"
+                                value={formData.reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                isPressable
+                                onPress={() => setShowTimePicker(true)}
+                                placeholder="Zeit wählen"
+                            />
+
+                            <View style={{ gap: 10 }}>
+                                <Text style={[userStyles.text, { marginLeft: 30 }]}>Tage</Text>
+                                <WeekdayPicker selectedDays={formData.reminderDays} onToggleDay={toggleDay} />
+                            </View>
+
                         </View>
 
                         {showDatePicker && (
@@ -211,7 +312,23 @@ export default function EditUserScreen() {
                                 }}
                             />
                         )}
+
+                        {showTimePicker && (
+                            <DateTimePicker
+                                value={formData.reminderTime}
+                                mode="time"
+                                is24Hour={true}
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                onChange={(event, date) => {
+                                    if (Platform.OS === 'android') setShowTimePicker(false);
+                                    if (date) {
+                                        setFormData({ ...formData, reminderTime: date });
+                                    }
+                                }}
+                            />
+                        )}
                     </View>
+
 
                     {/* Loading Overlay */}
                     <LoadingOverlay visible={loading} />

@@ -7,31 +7,11 @@ import { TopBar } from "@/components/TopBar";
 import { workoutStyles } from "@/styles/workoutStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
-
-type ExerciseSet = {
-  id?: string;
-  exerciseId: string;
-  exerciseName?: string;
-  weight: number;
-  reps: number;
-  isDone?: boolean;
-};
-
-type Workout = {
-  id: string;
-  name?: string;
-  date: string;
-  duration?: number;
-  type?: "template" | "history";
-  exerciseSets: ExerciseSet[];
-};
-
-type GroupedExercises = {
-  [key: string]: {
-    exerciseName: string;
-    sets: ExerciseSet[];
-  };
-};
+import { renderHistoryCard } from "@/utils/renderWorkout";
+import { exportWorkoutsToPDF } from "@/utils/helper/exportHelper";
+import { ExerciseSet, Workout } from "@/types/workoutTypes";
+import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
+import { formatTimeDynamic } from "@/utils/helper/formatTimeHelper";
 
 export default function WorkoutHistoryScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
@@ -49,7 +29,7 @@ export default function WorkoutHistoryScreen() {
           return;
         }
 
-        // Query Workouts für diesen Tag
+        // Query Workouts
         const workoutsRef = collection(db, "users", user.uid, "workouts");
         const snapshot = await getDocs(workoutsRef);
 
@@ -57,13 +37,12 @@ export default function WorkoutHistoryScreen() {
 
         for (const workoutDoc of snapshot.docs) {
           const workoutData = workoutDoc.data();
-          // Filter by date and type !== "template" (only show history)
           if (
             workoutData.date &&
             workoutData.date.startsWith(date) &&
             workoutData.type !== "template"
           ) {
-            // Load exercise sets from subcollection
+            // Load from subcollection
             const setsSnapshot = await getDocs(
               collection(workoutDoc.ref, "exerciseSets")
             );
@@ -87,7 +66,6 @@ export default function WorkoutHistoryScreen() {
           }
         }
 
-        // Sort by date descending
         loadedWorkouts.sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );
@@ -105,16 +83,7 @@ export default function WorkoutHistoryScreen() {
 
   const formatTime = (seconds?: number) => {
     if (!seconds) return "0:00";
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
-        .toString()
-        .padStart(2, "0")}`;
-    }
-    return `${minutes}:${secs.toString().padStart(2, "0")}`;
+    return formatTimeDynamic(seconds);
   };
 
   const formatDate = (dateStr: string) => {
@@ -127,156 +96,17 @@ export default function WorkoutHistoryScreen() {
     });
   };
 
-  const groupSetsByExercise = (sets: ExerciseSet[]): GroupedExercises => {
-    const grouped: GroupedExercises = {};
-
-    sets.forEach((set) => {
-      const exerciseId = set.exerciseId;
-      if (!grouped[exerciseId]) {
-        grouped[exerciseId] = {
-          exerciseName: set.exerciseName || exerciseId,
-          sets: [],
-        };
-      }
-      grouped[exerciseId].sets.push(set);
-    });
-
-    return grouped;
-  };
-
   const handleDownloadPDF = async () => {
-    try {
-      const message = `Workout History für ${formatDate(date || "")}`;
-      await Share.share({
-        message: message,
-      });
-    } catch (error) {
-      console.error("Fehler beim Download:", error);
-    }
-  };
-
-  const renderExerciseCard = (
-    exerciseName: string,
-    sets: ExerciseSet[]
-  ) => {
-    const completedSets = sets.filter((s) => s.isDone).length;
-
-    return (
-      <View
-        key={exerciseName}
-        style={{
-          backgroundColor: "#222",
-          borderRadius: 12,
-          marginBottom: 16,
-          overflow: "hidden",
-        }}
-      >
-        {/* Exercise Header */}
-        <View
-          style={{
-            backgroundColor: "#AB8FFF",
-            paddingVertical: 12,
-            paddingHorizontal: 16,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                color: "#000",
-                fontSize: 16,
-                fontWeight: "700",
-                marginBottom: 4,
-              }}
-            >
-              {exerciseName}
-            </Text>
-            <Text style={{ color: "rgba(0,0,0,0.6)", fontSize: 12 }}>
-              {completedSets}/{sets.length} Sätze abgeschlossen
-            </Text>
-          </View>
-          <View
-            style={{
-              backgroundColor: "rgba(0,0,0,0.2)",
-              paddingVertical: 4,
-              paddingHorizontal: 8,
-              borderRadius: 6,
-            }}
-          >
-            <Text style={{ color: "#000", fontSize: 12, fontWeight: "600" }}>
-              {sets.length}
-            </Text>
-          </View>
-        </View>
-
-        {/* Sets List */}
-        <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
-          {sets.map((set, index) => (
-            <View
-              key={index}
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingVertical: 10,
-                paddingHorizontal: 12,
-                backgroundColor: "#1a1a1a",
-                borderRadius: 8,
-                marginBottom: index < sets.length - 1 ? 8 : 0,
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    color: "#fff",
-                    fontSize: 14,
-                    fontWeight: "600",
-                    marginBottom: 4,
-                  }}
-                >
-                  Satz {index + 1}
-                </Text>
-                <Text
-                  style={{
-                    color: "#aaa",
-                    fontSize: 12,
-                  }}
-                >
-                  {set.reps} × {set.weight} kg
-                </Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                {set.isDone ? (
-                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                ) : (
-                  <Ionicons
-                    name="ellipse-outline"
-                    size={20}
-                    color="#666"
-                  />
-                )}
-              </View>
-            </View>
-          ))}
-        </View>
-      </View>
-    );
+    if (!date) return;
+    await exportWorkoutsToPDF(workouts, date);
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#1a1a1a" }}>
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <TopBar
         leftButtonText="Zurück"
         titleText="Verlauf"
-        rightButtonText="PDF"
+        rightButtonText="Export"
         onLeftPress={() => router.back()}
         onRightPress={handleDownloadPDF}
       />
@@ -375,36 +205,44 @@ export default function WorkoutHistoryScreen() {
             </View>
           </View>
 
-          {/* Workouts */}
           {workouts.map((workout) => {
             const groupedExercises = groupSetsByExercise(workout.exerciseSets);
             const exerciseIds = Object.keys(groupedExercises);
 
             return (
-              <View key={workout.id}>
-                {/* Workout Header */}
+              <View key={workout.id} style={{
+                  backgroundColor: '#f0f0f0',
+                  borderRadius: 12,
+                  padding: 10,
+                  marginBottom: 20,
+                  borderWidth: 1,
+                  borderColor: '#ddd'
+              }}>
                 <View
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
                     alignItems: "center",
                     marginBottom: 12,
+                    marginLeft: 5
                   }}
                 >
-                  <View>
+                  <View style={{ flex: 1, marginRight: 12 }}>
                     <Text
                       style={{
-                        color: "#fff",
-                        fontSize: 14,
-                        fontWeight: "600",
+                        color: "#000",
+                        fontSize: 24,
+                        fontWeight: "bold",
                         marginBottom: 2,
                       }}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
                     >
                       {workout.name || "Training"}
                     </Text>
                     <Text
                       style={{
-                        color: "#aaa",
+                        color: "#666",
                         fontSize: 12,
                       }}
                     >
@@ -421,29 +259,27 @@ export default function WorkoutHistoryScreen() {
                         paddingVertical: 6,
                         paddingHorizontal: 12,
                         borderRadius: 20,
+                        flexShrink: 0,
                       }}
                     >
                       <Text
                         style={{
-                          color: "#000",
+                          color: "#fff",
                           fontSize: 12,
                           fontWeight: "700",
                         }}
                       >
-                        ⏱ {formatTime(workout.duration)}
+                        Time: {formatTime(workout.duration)}
                       </Text>
                     </View>
                   )}
                 </View>
 
-                {/* Exercise Cards */}
                 {exerciseIds.map((exerciseId) => {
-                  const exercise = groupedExercises[exerciseId];
-                  return renderExerciseCard(exercise.exerciseName, exercise.sets);
+                  const sets = groupedExercises[exerciseId];
+                  return renderHistoryCard(exerciseId, sets);
                 })}
 
-                {/* Spacing between workouts */}
-                <View style={{ height: 16 }} />
               </View>
             );
           })}
@@ -472,3 +308,4 @@ export default function WorkoutHistoryScreen() {
     </View>
   );
 }
+

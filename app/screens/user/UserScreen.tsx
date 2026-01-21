@@ -1,12 +1,16 @@
 import { useRouter } from "expo-router";
-import { View, Text, ScrollView, Alert, Image } from "react-native";
+import { View, Text, ScrollView, Alert, Image, Pressable, StyleSheet } from "react-native";
 import { useState, useEffect } from 'react';
 import { auth, db } from "@/firebaseConfig";
 import { signOut, deleteUser } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { userStyles } from "@/styles/userStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import { UserButton } from "@/components/user/userButton"
+import { UserButton } from "@/components/user/userButton";
+import { SettingsOverlay } from "@/components/user/SettingsOverlay";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Colors } from "@/styles/theme";
+import { loadSettings } from "@/utils/store/settingsStore";
 
 const DataRow = ({ label, value, unit = "" }: { label: string, value?: string | number, unit?: string }) => (
     <View style={userStyles.rowWrapper}>
@@ -26,10 +30,14 @@ export default function UserScreen() {
     const [loading, setLoading] = useState(false);
     const [userData, setUserData] = useState<any>(null);
     const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
+    const [settingsVisible, setSettingsVisible] = useState(false);
 
     const defaultPic = require('@/assets/default-profile-picture/default-profile-picture.jpg');
 
     useEffect(() => {
+        // Lade gespeicherte Einstellungen beim Start
+        loadSettings();
+        
         const loadUserData = async () => {
             setLoading(true);
             const user = auth.currentUser;
@@ -77,6 +85,7 @@ export default function UserScreen() {
 
     const handleLogout = async () => {
         setLoading(true);
+        setSettingsVisible(false);
 
         try{
             const user = auth.currentUser;
@@ -102,15 +111,35 @@ export default function UserScreen() {
         <ScrollView style={userStyles.scrollView}>
             <View style={userStyles.userContainer}>
 
-                {/* Header */}
-                <View style={userStyles.buttonWrapper}>
-                    <UserButton title={isAnonymous ? "Registrieren" : "Bearbeiten"}
-                                onPress={() => isAnonymous
-                                    ? router.push("/screens/auth/RegisterScreen")
-                                    : router.push("/screens/user/EditUserScreen")}
-                    />
-                </View>
+                {/* Settings Gear Icon - oben rechts */}
+                <Pressable 
+                    style={localStyles.settingsIcon} 
+                    onPress={() => setSettingsVisible(true)}
+                >
+                    <Ionicons name="settings-outline" size={28} color={Colors.black} />
+                </Pressable>
 
+                {/* Settings Overlay */}
+                <SettingsOverlay
+                    visible={settingsVisible}
+                    onClose={() => setSettingsVisible(false)}
+                    onEdit={() => {
+                        setSettingsVisible(false);
+                        if (isAnonymous) {
+                            router.push("/screens/auth/RegisterScreen");
+                        } else {
+                            router.push("/screens/user/EditUserScreen");
+                        }
+                    }}
+                    onLogout={confirmLogout}
+                    onImpressum={() => {
+                        setSettingsVisible(false);
+                        router.push("/screens/user/ImpressumScreen");
+                    }}
+                    isAnonymous={isAnonymous}
+                />
+
+                
                 {/* Profile Picture */}
                 <View style={userStyles.profilePictureWrapper}>
                     <Image
@@ -131,12 +160,32 @@ export default function UserScreen() {
                     <DataRow label="Geburtsdatum" value={userData?.birthdate} />
                     <DataRow label="Gewicht" value={userData?.weight} unit=" kg" />
                     <DataRow label="Größe" value={userData?.height} unit=" cm" />
+
+                    <View style={userStyles.line}/>
+
+                    <Text style={[userStyles.text, { marginLeft: 30, marginBottom: 5 }]}>Trainingserinnerung</Text>
+                        
+                        <DataRow 
+                            label="Uhrzeit" 
+                            value={
+                                userData?.reminderTime 
+                                    ? `${String(userData.reminderTime.hour).padStart(2, '0')}:${String(userData.reminderTime.minute).padStart(2, '0')}` 
+                                    : "Nicht gesetzt"
+                            } 
+                        />
+                        <DataRow 
+                            label="Tage" 
+                            value={(() => {
+                                if (!userData?.reminderDays || userData.reminderDays.length === 0) return "Keine";
+                                const map: any = { 1: "Mo", 2: "Di", 3: "Mi", 4: "Do", 5: "Fr", 6: "Sa", 7: "So" };
+                                const sorted = [...userData.reminderDays].sort((a, b) => a - b);
+                                return sorted.map(d => map[d]).join(", ");
+                            })()} 
+                        />
                 </View>
 
-                {/* Logout */}
-                <View style={userStyles.buttonWrapper}>
-                    <UserButton title="Abmelden" onPress={confirmLogout}/>
-                </View>
+
+        
 
                 {/* Loading Overlay */}
                 <LoadingOverlay visible={loading} />
@@ -145,3 +194,13 @@ export default function UserScreen() {
         </ScrollView>
     );
 }
+
+const localStyles = StyleSheet.create({
+    settingsIcon: {
+        position: 'absolute',
+        top: 50,
+        right: 20,
+        zIndex: 10,
+        padding: 8,
+    },
+});

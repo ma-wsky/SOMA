@@ -30,7 +30,8 @@ export const workoutStyles = StyleSheet.create({
 
     setRowHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    gap:15,
+    justifyContent: 'flex-start',
     paddingVertical: 6,
     marginHorizontal: 10,
 
@@ -43,7 +44,8 @@ export const workoutStyles = StyleSheet.create({
 
     setRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    gap:15,
+    justifyContent: 'flex-start',
     paddingVertical: 6,
     marginHorizontal: 12,
     marginVertical: 4,
@@ -54,7 +56,8 @@ export const workoutStyles = StyleSheet.create({
     },
     setEditRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    gap:15,
+    justifyContent: 'flex-start',
     paddingVertical: 6,
     marginHorizontal: 12,
     marginVertical: 4,
@@ -189,8 +192,9 @@ export const workoutStyles = StyleSheet.create({
     },
 
     topBarLikeButton: {
-        width: 100,
+        minWidth: 100,
         paddingVertical: 8,
+        paddingHorizontal: 10,
         borderRadius: 10,
         alignItems: "center",
         borderWidth: 2,
@@ -223,17 +227,16 @@ export const workoutStyles = StyleSheet.create({
     },
     
     sheetContainer: {
-        flex: 1,
+        flex:1,
         backgroundColor: Colors.background,
     },
     sheetContainerContent: {
         flex: 1,
-        padding: 10,
+        paddingBottom: 20,
         backgroundColor: Colors.darkBackground,
         flexDirection: "column",
-
         height: "100%",
-        gap: 20,
+        gap: 10,
     },
 
 

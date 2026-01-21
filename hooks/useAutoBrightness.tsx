@@ -1,12 +1,29 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { LightSensor } from 'expo-sensors';
 import * as Brightness from 'expo-brightness';
+import { isAutoBrightnessEnabled, subscribeToSettings } from '@/utils/store/settingsStore';
 
 export function useAutoBrightness() {
+    const [enabled, setEnabled] = useState(isAutoBrightnessEnabled());
+
+    // Subscribe to settings changes
+    useEffect(() => {
+        const unsubscribe = subscribeToSettings((settings) => {
+            setEnabled(settings.autoBrightnessEnabled);
+        });
+        return unsubscribe;
+    }, []);
+
     useEffect(() => {
         let subscription: any;
 
         const setupBrightness = async () => {
+            // Nur aktivieren wenn in Settings eingeschaltet
+            if (!enabled) {
+                if (subscription) subscription.remove();
+                return;
+            }
+
             // Berechtigung anfragen (Wichtig für iOS/Android)
             const { status } = await Brightness.requestPermissionsAsync();
             if (status !== 'granted') return;
@@ -36,5 +53,5 @@ export function useAutoBrightness() {
         return () => {
             if (subscription) subscription.remove();
         };
-    }, []);
+    }, [enabled]);
 }

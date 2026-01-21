@@ -32,7 +32,15 @@ export function TopBar({ leftButtonText, titleText, rightButtonText, onLeftPress
                 <View style={styles.placeholder}></View>
             )}
 
-            <Text style={styles.text}>{titleText}</Text>
+            <View style={{flex: 1, paddingHorizontal: 4, justifyContent: 'center', alignItems: 'center'}}>
+                <Text 
+                    style={[styles.text, {textAlign: 'center'}]} 
+                    numberOfLines={2} 
+                    ellipsizeMode="tail"
+                >
+                    {titleText}
+                </Text>
+            </View>
 
             {rightButtonText ? (
                 <Pressable
