@@ -139,7 +139,8 @@ export const workoutStyles = StyleSheet.create({
         color: 'white',
         fontSize:20,
         backgroundColor:'black',
-        margin:20,
+        marginHorizontal:20,
+        marginBottom: 20,
         borderRadius: 50,
 
     },

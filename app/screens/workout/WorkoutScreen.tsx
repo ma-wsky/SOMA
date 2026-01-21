@@ -58,7 +58,7 @@ export default function WorkoutScreen() {
   return (
     <View style={styles.container}>
       
-      <View style={{ marginHorizontal: 20 }}>
+      <View style={{ marginHorizontal: 20, marginTop: 20, }}>
         <Pressable
           onPress={() => {
             router.push("/screens/workout/ActiveWorkoutScreen");
