@@ -2,7 +2,7 @@
 export const Colors = {
     primary: "#AB8FFF",
     secondary: "#8A70CC",
-    background: "#fff",
+    background: "#34f70d",
     iconActive: "#000",
     iconInactive: "#fff",
     icon: "#555",

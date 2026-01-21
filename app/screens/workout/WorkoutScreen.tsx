@@ -11,6 +11,7 @@ import { doc, deleteDoc } from "firebase/firestore";
 import { auth, db } from "@/firebaseConfig";
 import { showAlert } from "@/utils/helper/alertHelper";
 import { Colors } from "@/styles/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function WorkoutScreen() {
   const router = useRouter();
@@ -57,7 +58,7 @@ export default function WorkoutScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: Colors.background }]}>
+    <SafeAreaView style={[styles.container]}>
       
       <View style={{ marginHorizontal: 20, marginTop: 20, }}>
         <Pressable
@@ -96,7 +97,7 @@ export default function WorkoutScreen() {
         onDelete={handleDeleteWorkout}
       />
 
-      <View style={{ marginVertical: 20, marginHorizontal: 20 }}>
+      <View style={{ marginHorizontal: 20, marginTop:20 }}>
         <Pressable
           onPress={() => {
             router.push({
@@ -117,6 +118,6 @@ export default function WorkoutScreen() {
       </View>
 
       <LoadingOverlay visible={loading || workoutsLoading} />
-    </View>
+    </SafeAreaView>
   );
 }

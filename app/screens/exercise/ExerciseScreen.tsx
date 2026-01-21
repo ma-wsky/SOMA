@@ -7,6 +7,8 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import { useLoadExercises } from "@/hooks/useLoadExercises";
 import { exerciseStyles } from "@/styles/exerciseStyles";
 import { Colors } from "@/styles/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "Bauch"];
 
@@ -17,7 +19,7 @@ export default function ExerciseScreen() {
     const { exercises, loading } = useLoadExercises();
 
     return (
-        <View style={[exerciseStyles.container, {backgroundColor: Colors.background}]}>
+        <SafeAreaView style={[exerciseStyles.container]}>
 
             {/* Top Bar */}
             <TopBar leftButtonText={"Zurück"}
@@ -77,6 +79,6 @@ export default function ExerciseScreen() {
             {/* Loading Overlay */}
             <LoadingOverlay visible={loading} />
 
-        </View>
+        </SafeAreaView>
     );
 }

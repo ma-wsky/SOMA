@@ -13,6 +13,8 @@ import { transformHistoryToChartData } from "@/utils/transformHistoryToChartData
 import { ExerciseService } from "@/services/exerciseService"
 import { exportExerciseStatisticsToPDF } from "@/utils/helper/exportHelper"
 import { Colors } from "@/styles/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 
 interface MyChartData {
@@ -46,7 +48,7 @@ export default function SingleExerciseStatisticScreen() {
     useEffect(() => {
         const loadData = async () => {
             const user = auth.currentUser;
-            if (!id || !user) return;
+            if (!id || !user) return ;
 
             setLoading(true);
 
@@ -89,14 +91,21 @@ export default function SingleExerciseStatisticScreen() {
     }
 
     async function handleDownload() {
-        if (!exercise) return;
+        if (!exercise) return ;
         await exportExerciseStatisticsToPDF(exercise, historyRef.current);
     }
 
-    if (!exercise) return;
+    if (!exercise) {
+        return (
+          <View style={statStyles.container}>
+            <TopBar leftButtonText="Zurück" onLeftPress={() => router.back()} />
+            <LoadingOverlay visible={true} />
+          </View>
+        );
+      }
 
     return (
-        <View style={[statStyles.container, { backgroundColor: Colors.background }]}>
+        <SafeAreaView style={[statStyles.container]}>
 
             {/* Top Bar */}
             <TopBar leftButtonText={"Zurück"}
@@ -176,6 +185,6 @@ export default function SingleExerciseStatisticScreen() {
             {/* Loading Overlay */}
             <LoadingOverlay visible={loading} />
 
-        </View>
+        </SafeAreaView>
     );
 }

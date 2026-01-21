@@ -105,7 +105,6 @@ export const workoutStyles = StyleSheet.create({
     },
     //Old Styles
     container: {
-        marginTop: 30,
         flex: 1,
         backgroundColor: Colors.background,
     },
@@ -139,6 +138,7 @@ export const workoutStyles = StyleSheet.create({
         fontSize:20,
         backgroundColor:Colors.black,
         marginHorizontal:20,
+        marginTop:20,
         marginBottom: 20,
         borderRadius: 50,
 
@@ -152,13 +152,11 @@ export const workoutStyles = StyleSheet.create({
     bigButton: {
         paddingVertical: 16,
         borderRadius: 10,
-        marginBottom: 20,
     },
     bigButtonTextWrapper: {
         flexDirection: "row",
         alignItems: "flex-start",
         marginLeft: 30,
-        gap: 80,
     },
     
     //Active Workout

@@ -16,6 +16,7 @@ import {
   renderSingleCard,
   renderSingleOverlays,
 } from "@/utils/renderWorkout";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 export default function SingleWorkoutInfoScreen() {
@@ -170,10 +171,10 @@ export default function SingleWorkoutInfoScreen() {
 
   if (!workout) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <TopBar leftButtonText="Zurück" onLeftPress={() => router.back()} />
         <LoadingOverlay visible={true} />
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -196,7 +197,7 @@ export default function SingleWorkoutInfoScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <TopBar
         leftButtonText={isEditMode ? "Abbrechen" : "Zurück"}
         titleText={workout.name || "Training Info"}
@@ -257,6 +258,6 @@ export default function SingleWorkoutInfoScreen() {
 
       {renderSingleOverlays(renderProps)}
       <LoadingOverlay visible={loading} />
-    </View>
+    </SafeAreaView>
   );
 }

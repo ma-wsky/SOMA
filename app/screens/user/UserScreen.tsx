@@ -11,6 +11,8 @@ import { SettingsOverlay } from "@/components/user/SettingsOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/styles/theme";
 import { loadSettings } from "@/utils/store/settingsStore";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 const DataRow = ({ label, value, unit = "" }: { label: string, value?: string | number, unit?: string }) => (
     <View style={userStyles.rowWrapper}>
@@ -107,10 +109,9 @@ export default function UserScreen() {
     }
 
     return (
-
-        <ScrollView style={userStyles.scrollView}>
-            <View style={userStyles.userContainer}>
-
+        <SafeAreaView style={userStyles.userContainer}>
+            <ScrollView >
+            
                 {/* Settings Gear Icon - oben rechts */}
                 <Pressable 
                     style={localStyles.settingsIcon} 
@@ -189,17 +190,17 @@ export default function UserScreen() {
 
                 {/* Loading Overlay */}
                 <LoadingOverlay visible={loading} />
-
-            </View>
-        </ScrollView>
+            </ScrollView>
+        </SafeAreaView>
+        
     );
 }
 
 const localStyles = StyleSheet.create({
     settingsIcon: {
         position: 'absolute',
-        top: 50,
-        right: 20,
+        top: 10,
+        right: 10,
         zIndex: 10,
         padding: 8,
     },

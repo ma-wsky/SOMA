@@ -13,12 +13,6 @@ export const userStyles = StyleSheet.create({
     userContainer: {
         flex: 1,
         backgroundColor: Colors.background,
-        marginBottom:50,
-        paddingTop: 40,
-    },
-
-    scrollView: {
-        backgroundColor: Colors.background,
     },
 
     layout: {
