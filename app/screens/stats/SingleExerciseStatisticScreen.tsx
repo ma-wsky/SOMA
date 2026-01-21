@@ -12,6 +12,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { transformHistoryToChartData } from "@/utils/transformHistoryToChartData"
 import { ExerciseService } from "@/services/exerciseService"
 import { exportExerciseStatisticsToPDF } from "@/utils/helper/exportHelper"
+import { Colors } from "@/styles/theme";
 
 
 interface MyChartData {
@@ -157,10 +158,20 @@ export default function SingleExerciseStatisticScreen() {
                                 backgroundGradientFrom: "#ffffff",
                                 backgroundGradientTo: "#ffffff",
                                 decimalPlaces: 1,
-                                color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
+
+                                color: (opacity = 1) => `rgba(171, 143, 255, ${opacity})`,
+                                fillShadowGradientFrom: Colors.primary,
+                                fillShadowGradientTo: "#ffffff",
+                                fillShadowGradientOpacity: 0.5,
+
                                 labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
                                 style: { borderRadius: 16, },
-                                propsForDots: { r: "5", strokeWidth: "2", stroke: "#007AFF" },
+                                propsForDots: {
+                                    r: "5",
+                                    strokeWidth: "2",
+                                    stroke: Colors.primary,
+                                    fill: Colors.white,
+                                },
                             }}
                             bezier
                             style={statStyles.chart}
