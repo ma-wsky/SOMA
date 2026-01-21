@@ -14,9 +14,10 @@ import { NumberStepper, newStyles, minSecToSeconds } from "@/components/NumberSt
 import { Colors } from "@/styles/theme";
 import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import { formatTimeShort } from "@/utils/helper/formatTimeHelper";
-
+import { TopBar } from "@/components/TopBar";
 
 //TODO Nutzt wirklich RenderBase??
+//TODO RenderOverlay raus holen
 
 interface ActiveWorkoutRenderProps {
   workout: Workout;
@@ -202,17 +203,14 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
       <View style={newStyles.overlay}>
         <View style={newStyles.content}>
           {/* TopBar Style Header */}
-          <View style={newStyles.header}>
-            <Pressable onPress={props.onCloseOverlay} style={{ padding: 8 }}>
-              <Text style={{ color: Colors.black, fontSize: 16 }}>Zurück</Text>
-            </Pressable>
-            <Text style={newStyles.headerTitle}>
-              {isBreaktime ? "Pausenzeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
-            </Text>
-            <Pressable style={newStyles.saveButton} onPress={props.onSaveModalChanges}>
-              <Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text>
-            </Pressable>
-          </View>
+          <TopBar
+                  leftButtonText={ "Zurück"}
+                  titleText={isBreaktime ? "Pausen zeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
+                  rightButtonText={isAdd ? "Hinzufügen" : "Speichern"}
+                  onLeftPress={props.onCloseOverlay}
+                  onRightPress={props.onSaveModalChanges}
+                />
+          
 
           {isBreaktime ? (
             /* Pausenzeit Overlay */
@@ -419,17 +417,13 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
       <View style={newStyles.overlay}>
         <View style={newStyles.content}>
           {/* TopBar Style Header */}
-          <View style={newStyles.header}>
-            <Pressable onPress={props.onCloseOverlay} style={{ padding: 8 }}>
-              <Text style={{ color: Colors.black, fontSize: 16 }}>Zurück</Text>
-            </Pressable>
-            <Text style={newStyles.headerTitle}>
-              {isBreaktime ? "Pausenzeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
-            </Text>
-            <Pressable style={newStyles.saveButton} onPress={props.onSaveModalChanges}>
-              <Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text>
-            </Pressable>
-          </View>
+          <TopBar
+                  leftButtonText={ "Zurück"}
+                  titleText={isBreaktime ? "Pausen zeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
+                  rightButtonText={isAdd ? "Hinzufügen" : "Speichern"}
+                  onLeftPress={props.onCloseOverlay}
+                  onRightPress={props.onSaveModalChanges}
+                />
 
           {isBreaktime ? (
             /* Pausenzeit Overlay */

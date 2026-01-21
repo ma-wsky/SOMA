@@ -53,13 +53,13 @@ export const newStyles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    padding: 20,
+    alignContent:'space-between',
+    justifyContent: 'center',
+    padding: 5,
   },
   content: {
     backgroundColor: Colors.background,
     borderRadius: 12,
-    padding: 20,
     borderWidth: 1,
     borderColor: Colors.darkBackground,
   },
