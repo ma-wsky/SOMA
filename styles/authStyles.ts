@@ -15,13 +15,14 @@ export const authStyles = StyleSheet.create({
         alignItems: "center",
     },
     titleText: {
-        fontSize: 40,
-        fontWeight: "condensedBold",
+        fontSize: 20,
+        fontWeight: "bold",
         alignSelf: "center",
     },
     appnameText: {
-        fontSize: 45,
-        fontWeight: "bold",
+        fontFamily: "SomaLogo",
+        fontSize: 60,
+        fontWeight: "400",
         alignSelf: "center",
     },
 

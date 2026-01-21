@@ -15,11 +15,15 @@ export default function TabLayout() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <View style={{flex: 1, backgroundColor: Colors.background}}>
+
+            <View style={styles.backdrop}/>
+
             <Tabs
                 screenOptions={({ route }) => ({
                     headerShown: false,
                     tabBarActiveTintColor: Colors.primary,
+                    tabBarInactiveTintColor: Colors.white,
                     tabBarStyle: styles.tabBar,
                     tabBarItemStyle: styles.tabBarItem,
                     tabBarLabelStyle: styles.tabBarLabel,
@@ -44,14 +48,20 @@ export default function TabLayout() {
                 <Tabs.Screen name="StatisticScreenProxy" options={{ title: "Statistik" }} />
                 <Tabs.Screen name="UserScreenProxy" options={{ title: "Benutzer" }} />
             </Tabs>
-        </SafeAreaView>
+
+            <SafeAreaView style={{backgroundColor: Colors.black}}
+                          edges={["bottom"]}>
+            </SafeAreaView>
+
+        </View>
+
     );
 }
 
 export const styles = StyleSheet.create({
     tabBar: {
-        backgroundColor: "#fff",
-        borderTopColor: "#ccc",
+        backgroundColor: Colors.black,
+        borderRadius: 20,
         height: 70,
     },
     tabBarItem: {
@@ -67,6 +77,14 @@ export const styles = StyleSheet.create({
         alignItems: "center",
         width: 50,
         height: 30,
-        borderRadius: 15, // height / 2
+        borderRadius: 15,
+    },
+    backdrop: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 65,
+        backgroundColor: Colors.black
     },
 });

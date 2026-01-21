@@ -8,6 +8,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useAutoBrightness } from '@/hooks/useAutoBrightness';
 import { ActiveWorkoutFloatingBar } from "@/components/ActiveWorkoutFloatingBar";
 
+import { useFonts, Righteous_400Regular } from '@expo-google-fonts/righteous';
 
 export default function Layout() {
     usePathname();
@@ -23,6 +24,10 @@ export default function Layout() {
 
         requestNotificationPermissions();
     }, []);
+    // Font laden
+    const [fontsLoaded, fontError] = useFonts({
+        'SomaLogo': Righteous_400Regular,
+    });
 
     return (
         <>

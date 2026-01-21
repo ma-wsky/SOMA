@@ -17,6 +17,9 @@ export default function SingleExerciseInfoScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const [exercise, setExercise] = useState<Exercise | null>(null);
 
+    const ADMIN_DEFAULT = require("@/assets/default-exercise-picture/admin.png");
+    const USER_DEFAULT = require("@/assets/default-exercise-picture/users.png");
+
     useEffect(() => {
         if (!id) return;
 
@@ -109,7 +112,9 @@ export default function SingleExerciseInfoScreen() {
                     source={
                         exercise.image
                             ? { uri: exercise.image }
-                            : require('@/assets/default-exercise-picture/default-exercise-picture.jpg')
+                            : (exercise.isOwn
+                                ? USER_DEFAULT
+                                : ADMIN_DEFAULT)
                     }
                     style={exerciseStyles.picture}
                 />

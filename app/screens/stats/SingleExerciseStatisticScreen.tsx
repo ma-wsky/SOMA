@@ -38,6 +38,9 @@ export default function SingleExerciseStatisticScreen() {
     const [chartData, setChartData] = useState<MyChartData | null>(null);
     const historyRef = useRef<HistoryEntry[]>([]);
 
+    const ADMIN_DEFAULT = require("@/assets/default-exercise-picture/admin.png");
+    const USER_DEFAULT = require("@/assets/default-exercise-picture/users.png");
+
 
     useEffect(() => {
         const loadData = async () => {
@@ -108,7 +111,10 @@ export default function SingleExerciseStatisticScreen() {
                     source={
                         exercise.image
                             ? { uri: exercise.image }
-                            : require('@/assets/default-exercise-picture/default-exercise-picture.jpg')
+                            : (exercise.isOwn
+                                ? USER_DEFAULT
+                                : ADMIN_DEFAULT
+                            )
                     }
                     style={statStyles.picture}
                 />
