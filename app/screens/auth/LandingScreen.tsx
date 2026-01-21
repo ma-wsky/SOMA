@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { Text, View } from 'react-native';
+import { Text, View,ScrollView } from 'react-native';
 import { authStyles } from "@/styles/authStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { useGuestLogin } from "@/hooks/useGuestLogin";
@@ -13,6 +13,7 @@ export default function LoginScreen(){
     const { handleGuestLogin, isGuestLoading } = useGuestLogin();
 
     return(
+        <ScrollView>
         <View style={authStyles.container}>
 
             {/* Title */}
@@ -57,7 +58,8 @@ export default function LoginScreen(){
 
             {/* Loading Overlay */}
             <LoadingOverlay visible={isGuestLoading} />
-
+            
         </View>
+        </ScrollView>
     );
 }

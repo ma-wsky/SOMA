@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { Text, View, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, View,ScrollView, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import {useState} from "react";
 import { auth } from "@/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -47,6 +47,7 @@ export default function LoginScreen(){
             style={{ flex: 1 }}
             behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
         >
+            <ScrollView>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <View style={authStyles.container}>
 
@@ -101,6 +102,7 @@ export default function LoginScreen(){
 
                 </View>
             </TouchableWithoutFeedback>
+            </ScrollView>
         </KeyboardAvoidingView>
 
     );

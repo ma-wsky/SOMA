@@ -17,7 +17,7 @@ export default function Home(){
             <View style={{marginHorizontal: 40,}}>
                 <Calendar
                     onDayPress={(day) => {
-                         router.push({
+                        router.push({
                             pathname: "/screens/workout/WorkoutHistoryScreen",
                             params: { date: day.dateString }
                         });
