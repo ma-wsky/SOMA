@@ -46,18 +46,30 @@ export const ExerciseService = {
 
             const qSnapshot = await getDocs(q);
 
-            const data = qSnapshot.docs.map(doc => {
+            const data = await Promise.all(qSnapshot.docs.map(async (doc) => {
                 const setData = doc.data();
-                const workoutId = doc.ref.parent.parent?.id;
+                const parentDocRef = doc.ref.parent.parent;
 
-                const timestamp = workoutId ? parseInt(workoutId) : 0;
+                let dateValue = new Date(); // Fallback
+
+                if (parentDocRef){
+                    const parentSnap = await getDoc(parentDocRef);
+                    if (parentSnap.exists()) {
+                        const parentData = parentSnap.data();
+                        if (parentData.date){
+                            dateValue = new Date(parentData.date);
+                        }
+
+                    }
+                }
 
                 return {
                     weight: setData.weight,
-                    timestamp: timestamp,
-                    date: timestamp > 0 ? new Date(timestamp) : new Date()
+                    timestamp: dateValue.getTime(),
+                    date: dateValue,
                 };
-            });
+
+            }));
 
             return data.sort((a, b) => a.timestamp - b.timestamp);
         } catch (error) {
