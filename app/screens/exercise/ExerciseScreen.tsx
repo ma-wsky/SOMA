@@ -23,6 +23,7 @@ export default function ExerciseScreen() {
 
             {/* Top Bar */}
             <TopBar leftButtonText={"Zurück"}
+                    isSheet={false}
                     titleText={"Übungen"}
                     rightButtonText={"Erstellen"}
                     onLeftPress={() => router.push("/(tabs)/HomeScreenProxy")}

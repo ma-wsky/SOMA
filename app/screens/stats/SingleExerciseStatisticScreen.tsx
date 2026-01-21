@@ -98,7 +98,7 @@ export default function SingleExerciseStatisticScreen() {
     if (!exercise) {
         return (
           <View style={statStyles.container}>
-            <TopBar leftButtonText="Zurück" onLeftPress={() => router.back()} />
+            <TopBar isSheet={false} leftButtonText="Zurück" onLeftPress={() => router.back()} />
             <LoadingOverlay visible={true} />
           </View>
         );
@@ -108,7 +108,9 @@ export default function SingleExerciseStatisticScreen() {
         <SafeAreaView style={[statStyles.container]}>
 
             {/* Top Bar */}
-            <TopBar leftButtonText={"Zurück"}
+            <TopBar 
+                    isSheet={false}
+                    leftButtonText={"Zurück"}
                     titleText={"Statistik"}
                     rightButtonText={"Export"}
                     onLeftPress={() => router.replace("/(tabs)/StatisticScreenProxy")}

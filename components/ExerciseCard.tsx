@@ -21,7 +21,7 @@ interface UniversalCardProps {
     sets: ExerciseSet[];
     mode: CardMode;
     isEditing?: boolean;
-    props: any; // Hier könntest du deine Interfaces noch strikter machen
+    props: any;
 }
 
 export const ExerciseCard = ({ exerciseId, sets, mode, isEditing, props }: UniversalCardProps) => {

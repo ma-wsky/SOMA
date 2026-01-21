@@ -249,8 +249,14 @@ export default function ActiveWorkoutScreen() {
   if (!workout) {
     return (
       <GestureHandlerRootView style={styles.sheetContainer}>
-        <BottomSheet snapPoints={snapPoints} enablePanDownToClose={true}>
-          <BottomSheetView style={styles.sheetContainerContent}>
+        <BottomSheet 
+          snapPoints={snapPoints} 
+          enablePanDownToClose={true}
+          backgroundStyle={{ 
+            backgroundColor: Colors.bottomSheet || Colors.background,
+          }}
+        >
+          <BottomSheetView style={[styles.sheetContainerContent]}>
             <LoadingOverlay visible={loading} />
           </BottomSheetView>
         </BottomSheet>
@@ -265,10 +271,21 @@ export default function ActiveWorkoutScreen() {
         snapPoints={snapPoints}
         onChange={handleSheetChanges}
         enablePanDownToClose={true}
+        backgroundStyle={{ 
+          backgroundColor: Colors.bottomSheet || Colors.background,
+          borderRadius:30,
+        }}
+        handleIndicatorStyle={{ backgroundColor: Colors.primary }}
+        handleStyle={{ backgroundColor: Colors.bottomSheet || Colors.background,
+          height:45,
+          paddingTop:30,
+          borderRadius:30, }}
       >
         
-          <BottomSheetView style={styles.sheetContainerContent}>
+          <BottomSheetView style={[
+            styles.sheetContainerContent]}>
           <TopBar
+            isSheet={true}
             backgroundColor={Colors.bottomSheet}
             leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
             titleText={isEditMode ? "Training bearbeiten" : timerString}

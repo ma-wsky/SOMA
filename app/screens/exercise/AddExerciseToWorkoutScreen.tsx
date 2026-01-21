@@ -55,6 +55,7 @@ export default function AddExerciseToWorkoutScreen() {
 
             {/* Top Bar */}
             <TopBar 
+                isSheet={false}
                 leftButtonText={"Zurück"}
                 titleText={"Übung hinzufügen"}
                 onLeftPress={() => router.back()}

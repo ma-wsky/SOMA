@@ -140,6 +140,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
         <View style={newStyles.content}>
           {/* TopBar Style Header */}
           <TopBar
+                  isSheet={false}
                   leftButtonText={ "Zurück"}
                   titleText={isBreaktime ? "Pausenzeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
                   rightButtonText={isAdd ? "Hinzufügen" : "Speichern"}
@@ -291,6 +292,7 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
         <View style={newStyles.content}>
           {/* TopBar Style Header */}
           <TopBar
+                  isSheet={false}
                   leftButtonText={ "Zurück"}
                   titleText={isBreaktime ? "Pausenzeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
                   rightButtonText={isAdd ? "Hinzufügen" : "Speichern"}

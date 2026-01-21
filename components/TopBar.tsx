@@ -1,10 +1,11 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, DimensionValue } from "react-native";
 import {Colors} from "@/styles/theme";
 import { topBarStyles as styles } from "@/styles/topBarStyles";
 
 
 interface TopBarProps {
+    isSheet:boolean,
     backgroundColor?: string,
     leftButtonText?: string,
     titleText?: string,
@@ -13,11 +14,12 @@ interface TopBarProps {
     onRightPress?: () => void,
 }
 
-export function TopBar({ backgroundColor, leftButtonText, titleText, rightButtonText, onLeftPress, onRightPress }: TopBarProps){
+export function TopBar({ isSheet, backgroundColor, leftButtonText, titleText, rightButtonText, onLeftPress, onRightPress }: TopBarProps){
 
     return(
         <View style={[
             styles.container,
+            isSheet && { marginTop: 0 },
             { backgroundColor: backgroundColor || Colors.background }
         ]}>
 
