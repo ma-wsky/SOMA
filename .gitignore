@@ -44,3 +44,5 @@ app-example
 
 .idea/misc.xml
 .idea/workspace.xml
+
+.env
