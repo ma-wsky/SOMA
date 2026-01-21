@@ -3,17 +3,23 @@
     "name": "SOMA",
     "slug": "fitnessapp",
     "version": "1.0.0",
+    "icon": "./assets/appIcon/SOMA.png",
     "orientation": "portrait",
     "scheme": "fitnessapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIndentifier": "com.soma.app"
+      "bundleIdentifier": "com.soma.app",
+      "icon": "./assets/appIcon/SOMA.png"
     },
     "android": {
       "edgeToEdgeEnabled": true,
-      "package": "com.soma.app"
+      "package": "com.soma.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/appIcon/SOMA.png",
+        "backgroundColor": "#AB8FFF"
+      }
     },
     "web": {
       "output": "static"
