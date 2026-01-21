@@ -4,7 +4,6 @@ import { topBarStyles } from './topBarStyles';
 
 export const workoutStyles = StyleSheet.create({
 
-    //New experimental :/
     exerciseCard: {
     padding: 12,
     borderRadius: 10,
@@ -21,7 +20,7 @@ export const workoutStyles = StyleSheet.create({
     justifyContent: 'space-between',
     },
     exerciseTitle: {
-    color: "#fff",
+    color: Colors.white,
     fontSize: 16,
     fontWeight: "bold",
     marginLeft:0,
@@ -47,11 +46,10 @@ export const workoutStyles = StyleSheet.create({
     gap:15,
     justifyContent: 'flex-start',
     paddingVertical: 6,
-    marginHorizontal: 12,
     marginVertical: 4,
     borderColor: Colors.black,
     borderWidth: 1,
-    padding: 6,
+    padding: 8,
 
     },
     setEditRow: {
@@ -59,11 +57,10 @@ export const workoutStyles = StyleSheet.create({
     gap:15,
     justifyContent: 'flex-start',
     paddingVertical: 6,
-    marginHorizontal: 12,
     marginVertical: 4,
     borderColor: Colors.black,
     borderWidth: 1,
-    padding: 6,
+    padding:8,
 
 
     },
@@ -73,8 +70,8 @@ export const workoutStyles = StyleSheet.create({
     },
 
     input: {
-    backgroundColor: "#222",
-    color: "#fff",
+    backgroundColor: Colors.black,
+    color: Colors.white,
     padding: 6,
     borderRadius: 6,
     width: 60,
@@ -85,11 +82,11 @@ export const workoutStyles = StyleSheet.create({
     marginTop: 8,
     padding: 8,
     borderRadius: 6,
-    backgroundColor: "#2b2b2b",
+    backgroundColor: Colors.darkGray,
     alignItems: "center",
     },
     addSetButtonText: {
-    color: "#fff",
+    color: Colors.white,
     fontWeight: "600",
     },
 
@@ -106,14 +103,13 @@ export const workoutStyles = StyleSheet.create({
     },
     //Old Styles
     container: {
-        marginTop: 30,
         flex: 1,
         backgroundColor: Colors.background,
     },
     itemContainer: {
         gap: 10,
         padding:12,
-        backgroundColor: "black",
+        backgroundColor: Colors.black,
         marginVertical: 5,
         marginHorizontal: 20,
         borderRadius: 10,
@@ -121,7 +117,7 @@ export const workoutStyles = StyleSheet.create({
     itemTitle: {
         fontSize: 22,
         fontWeight: "bold",
-        color: "white",
+        color: Colors.white,
     },
     itemButton: {
         paddingVertical: 8,
@@ -130,16 +126,17 @@ export const workoutStyles = StyleSheet.create({
         alignItems: "center",
     },
     itemButtonText: {
-        color: "white",
+        color: Colors.white,
         fontWeight: "bold",
         fontSize: 16,
     },
     searchbar:{
         padding:10,
-        color: 'white',
+        color: Colors.white,
         fontSize:20,
-        backgroundColor:'black',
+        backgroundColor:Colors.black,
         marginHorizontal:20,
+        marginTop:20,
         marginBottom: 20,
         borderRadius: 50,
 
@@ -153,20 +150,18 @@ export const workoutStyles = StyleSheet.create({
     bigButton: {
         paddingVertical: 16,
         borderRadius: 10,
-        marginBottom: 20,
     },
     bigButtonTextWrapper: {
         flexDirection: "row",
         alignItems: "flex-start",
         marginLeft: 30,
-        gap: 80,
     },
     
     //Active Workout
     workoutName: {
         fontSize: 16,
         fontWeight: "bold",
-        color: "#222",
+        color: Colors.black,
     },
     setTitles:{
         flexDirection: "row",
@@ -177,12 +172,12 @@ export const workoutStyles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         padding: 12,
-        backgroundColor: "#111",
+        backgroundColor: Colors.black,
         borderRadius: 8,
         marginBottom: 8,
     },
     setButton:{
-        backgroundColor: "#aaa",
+        backgroundColor: Colors.gray,
         padding: 8,
         borderRadius: 6,
         marginLeft: 8,
@@ -209,15 +204,12 @@ export const workoutStyles = StyleSheet.create({
     topBarText: topBarStyles.text,
     topBarContainer:topBarStyles.container,
 
-
-    
-
     checkbox: {
         width: 24,
         height: 24,
         borderRadius: 6,
         borderWidth: 2,
-        borderColor: "#666",
+        borderColor: Colors.darkGray,
         marginRight: 12,
         alignItems: "center",
         justifyContent: "center",
@@ -234,7 +226,7 @@ export const workoutStyles = StyleSheet.create({
     sheetContainerContent: {
         flex: 1,
         paddingBottom: 20,
-        backgroundColor: Colors.gray,
+        backgroundColor: Colors.bottomSheet,
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
         flexDirection: "column",

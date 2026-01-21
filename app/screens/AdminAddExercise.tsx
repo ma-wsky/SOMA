@@ -2,6 +2,7 @@ import { View, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
+import { Colors } from "@/styles/theme";
 
 export default function AdminAddExerciseScreen() {
     const [name, setName] = useState("");
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
     },
     input: {
         borderWidth: 1,
-        borderColor: "#ccc",
+        borderColor: Colors.gray,
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 8,

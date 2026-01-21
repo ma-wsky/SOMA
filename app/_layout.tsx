@@ -1,5 +1,6 @@
 import { Slot, usePathname } from "expo-router";
 import React, { useEffect } from "react";
+import { Platform } from "react-native";
 import Toast from 'react-native-toast-message'
 import { useNetworkMonitor } from "@/utils/useNetworkMonitor";
 import { setAudioModeAsync } from 'expo-audio';
@@ -9,6 +10,8 @@ import { useAutoBrightness } from '@/hooks/useAutoBrightness';
 import { ActiveWorkoutFloatingBar } from "@/components/ActiveWorkoutFloatingBar";
 import { networkToastConfig } from "@/components/networkToast/networkToastConfig"
 import { useFonts, Righteous_400Regular } from '@expo-google-fonts/righteous';
+import { Colors } from "@/styles/theme";
+
 
 
 export default function Layout() {
@@ -31,7 +34,12 @@ export default function Layout() {
         <>
             <StatusBar
                 style="dark"
+                {...(Platform.OS === 'android' && {
+                    navigationBarStyle: "dark",
+                    navigationBarBackgroundColor: Colors.black
+                })}
             />
+            
             <Slot />
             <ActiveWorkoutFloatingBar />
             <Toast config={networkToastConfig} />

@@ -5,6 +5,7 @@ import { Colors } from "./theme";
 export const statStyles = StyleSheet.create({
     //single
     container: {
+        backgroundColor:Colors.background,
         flex: 1,
         justifyContent: 'flex-start',
     },
@@ -26,7 +27,7 @@ export const statStyles = StyleSheet.create({
     },
     emptyText: {
         marginTop: 50,
-        color: 'gray',
+        color: Colors.gray,
     },
     picWrapper: {
         marginTop: 40,
@@ -37,7 +38,7 @@ export const statStyles = StyleSheet.create({
         height:150,
         borderRadius: 75,
         borderWidth: 4,
-        borderColor: 'black',
+        borderColor: Colors.black,
         resizeMode: 'cover',
     },
     infoNameFavIconWrapper: {
@@ -67,7 +68,7 @@ export const statStyles = StyleSheet.create({
         color: Colors.white,
     },
     line: {
-        borderBottomColor: 'gray',
+        borderBottomColor: Colors.gray,
         borderBottomWidth: 1,
         marginHorizontal: 20,
         marginTop: 20,

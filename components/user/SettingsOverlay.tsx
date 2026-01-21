@@ -20,6 +20,8 @@ import {
     setVibrationEnabled,
     setAutoBrightnessEnabled 
 } from "@/utils/store/settingsStore";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 interface SettingsOverlayProps {
     visible: boolean;
@@ -111,7 +113,7 @@ export const SettingsOverlay: React.FC<SettingsOverlayProps> = ({
             animationType="fade"
             onRequestClose={onClose}
         >
-            <View style={{flex:1,flexDirection:'row'}}>
+            <SafeAreaView style={{flex:1,flexDirection:'row'}}>
                 <Pressable style={{flex: 1,backgroundColor: 'rgba(0, 0, 0, 0.37)',
                     }} onPress={onClose} />
                 
@@ -150,7 +152,7 @@ export const SettingsOverlay: React.FC<SettingsOverlayProps> = ({
                                 value={settings.soundEnabled}
                                 onValueChange={handleToggleSound}
                                 trackColor={{ false: Colors.gray, true: Colors.primary }}
-                                thumbColor={settings.soundEnabled ? '#fff' : '#f4f3f4'}
+                                thumbColor={settings.soundEnabled ? Colors.white : Colors.gray}
                             />
                         </View>
 
@@ -167,7 +169,7 @@ export const SettingsOverlay: React.FC<SettingsOverlayProps> = ({
                                 value={settings.vibrationEnabled}
                                 onValueChange={handleToggleVibration}
                                 trackColor={{ false: Colors.gray, true: Colors.primary }}
-                                thumbColor={settings.vibrationEnabled ? '#fff' : '#f4f3f4'}
+                                thumbColor={settings.vibrationEnabled ? Colors.white : Colors.gray}
                             />
                         </View>
 
@@ -184,7 +186,7 @@ export const SettingsOverlay: React.FC<SettingsOverlayProps> = ({
                                 value={settings.autoBrightnessEnabled}
                                 onValueChange={handleToggleAutoBrightness}
                                 trackColor={{ false: Colors.gray, true: Colors.primary }}
-                                thumbColor={settings.autoBrightnessEnabled ? '#fff' : '#f4f3f4'}
+                                thumbColor={settings.autoBrightnessEnabled ? Colors.white : Colors.gray}
                             />
                         </View>
 
@@ -206,7 +208,7 @@ export const SettingsOverlay: React.FC<SettingsOverlayProps> = ({
                         />
                     </View>
                 </Animated.View>
-            </View>
+            </SafeAreaView>
         </Modal>
     );
 };

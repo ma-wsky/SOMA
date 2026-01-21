@@ -6,18 +6,11 @@ const { width } = Dimensions.get('window');
 
 export const userStyles = StyleSheet.create({
     editUserContainer: {
-        marginTop: 30,
         flex: 1,
         backgroundColor: Colors.background,
     },
     userContainer: {
         flex: 1,
-        backgroundColor: Colors.background,
-        marginBottom:50,
-        paddingTop: 40,
-    },
-
-    scrollView: {
         backgroundColor: Colors.background,
     },
 
@@ -63,12 +56,13 @@ export const userStyles = StyleSheet.create({
         width: 250,
         height: 45,
         borderWidth: 2,
-        borderColor: 'gray',
+        borderColor: Colors.gray,
         borderRadius: 10,
         justifyContent: "center",
         paddingHorizontal: 10,
     },
     field: {
+        color:Colors.black,
         fontSize: 18,
         marginLeft: 20,
     },
@@ -78,7 +72,7 @@ export const userStyles = StyleSheet.create({
     },
 
     line: {
-        borderBottomColor: 'gray',
+        borderBottomColor: Colors.gray,
         borderBottomWidth: 1,
         marginHorizontal: 20,
     },
@@ -95,8 +89,8 @@ export const userStyles = StyleSheet.create({
         height:150,
         borderRadius: 75,
         borderWidth: 4,
-        borderColor: 'black',
-        //resizeMode: 'cover',
+        borderColor: Colors.black,
+        resizeMode: 'cover',
     },
     //SettingsOverlay
     settingsRow: {
@@ -115,7 +109,7 @@ export const userStyles = StyleSheet.create({
         width: width * 0.75,
         maxWidth: 320,
         backgroundColor: Colors.background,
-        shadowColor: '#000',
+        shadowColor: Colors.black,
         shadowOffset: { width: -2, height: 0 },
         shadowOpacity: 0.25,
         shadowRadius: 10,
@@ -123,16 +117,17 @@ export const userStyles = StyleSheet.create({
     },
     //edit user
     picText: {
-        color: "black",
+        color: Colors.black,
+        borderRadius:5,
         fontWeight: "bold",
+        paddingHorizontal:5,
         fontSize: 16,
+        backgroundColor:Colors.whiteTransparent,
+        alignSelf:'auto'
     },
     textOverlay: {
+        top:65,
         position: 'absolute',
-        top: 0,
-        left: 32,
-        right: 0,
-        bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
     },

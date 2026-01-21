@@ -4,14 +4,15 @@ import { Colors } from "./theme";
 
 export const exerciseStyles = StyleSheet.create({
     container: {
+        backgroundColor:Colors.background,
         flex: 1,
         justifyContent: 'flex-start',
     },
     searchBar:{
         padding:10,
-        color: 'white',
+        color: Colors.white,
         fontSize:20,
-        backgroundColor:'black',
+        backgroundColor:Colors.black,
         marginTop:20,
         marginHorizontal: 20,
         marginBottom: 10,
@@ -54,14 +55,14 @@ export const exerciseStyles = StyleSheet.create({
     },
     dividerText: {
         fontWeight: "600",
-        color: "#666"
+        color: Colors.darkGray
     },
     line: {
         flex: 1,
-        borderBottomColor: 'gray',
+        borderBottomColor: Colors.gray,
         borderBottomWidth: 2,
         height: 1,
-        backgroundColor: "#ccc",
+        backgroundColor: Colors.background,
         marginTop: 4
     },
     listContent: {
@@ -74,7 +75,7 @@ export const exerciseStyles = StyleSheet.create({
         alignItems: 'center',
     },
     noExFoundText: {
-        color: "#666",
+        color: Colors.darkGray,
         fontSize: 16,
     },
 
@@ -87,20 +88,22 @@ export const exerciseStyles = StyleSheet.create({
         height:150,
         borderRadius: 75,
         borderWidth: 4,
-        borderColor: 'black',
+        borderColor: Colors.black,
         resizeMode: 'cover',
     },
     picText: {
-        color: "black",
+        color: Colors.black,
+        borderRadius:5,
         fontWeight: "bold",
+        paddingHorizontal:5,
         fontSize: 16,
+        backgroundColor:Colors.whiteTransparent,
+        alignSelf:'auto'
     },
     textOverlay: {
+        top:65,
+        left:30,
         position: 'absolute',
-        top: 0,
-        left: 32,
-        right: 0,
-        bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -210,7 +213,7 @@ export const exerciseStyles = StyleSheet.create({
     instructionText: {
         fontSize: 16,
         lineHeight: 24,
-        color: "#444",
+        color: Colors.darkGray,
         marginLeft: 15,
     },
 })

@@ -10,6 +10,8 @@ import { exportWorkoutsToPDF } from "@/utils/helper/exportHelper";
 import { ExerciseSet, Workout } from "@/types/workoutTypes";
 import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import { formatTimeDynamic } from "@/utils/helper/formatTimeHelper";
+import { ExerciseService } from "@/services/exerciseService";
+import { Colors } from "@/styles/theme";
 import { ExerciseCard } from "@/components/ExerciseCard";
 
 export default function WorkoutHistoryScreen() {
@@ -101,7 +103,7 @@ export default function WorkoutHistoryScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={{ flex: 1, backgroundColor: Colors.background }}>
       <TopBar
         leftButtonText="Zurück"
         titleText="Verlauf"
@@ -124,7 +126,7 @@ export default function WorkoutHistoryScreen() {
           {/* Date Header */}
           <View
             style={{
-              backgroundColor: "#222",
+              backgroundColor: Colors.black,
               padding: 16,
               borderRadius: 12,
               marginBottom: 20,
@@ -132,7 +134,7 @@ export default function WorkoutHistoryScreen() {
           >
             <Text
               style={{
-                color: "#aaa",
+                color: Colors.gray,
                 fontSize: 12,
                 marginBottom: 4,
                 fontWeight: "600",
@@ -142,7 +144,7 @@ export default function WorkoutHistoryScreen() {
             </Text>
             <Text
               style={{
-                color: "#fff",
+                color: Colors.white,
                 fontSize: 18,
                 fontWeight: "700",
                 marginBottom: 12,
@@ -156,13 +158,13 @@ export default function WorkoutHistoryScreen() {
                 gap: 16,
                 paddingTop: 12,
                 borderTopWidth: 1,
-                borderTopColor: "#333",
+                borderTopColor: Colors.darkGray,
               }}
             >
               <View>
                 <Text
                   style={{
-                    color: "#aaa",
+                    color: Colors.gray,
                     fontSize: 11,
                     marginBottom: 2,
                   }}
@@ -171,7 +173,7 @@ export default function WorkoutHistoryScreen() {
                 </Text>
                 <Text
                   style={{
-                    color: "#AB8FFF",
+                    color: Colors.primary,
                     fontSize: 16,
                     fontWeight: "700",
                   }}
@@ -182,7 +184,7 @@ export default function WorkoutHistoryScreen() {
               <View>
                 <Text
                   style={{
-                    color: "#aaa",
+                    color: Colors.gray,
                     fontSize: 11,
                     marginBottom: 2,
                   }}
@@ -191,7 +193,7 @@ export default function WorkoutHistoryScreen() {
                 </Text>
                 <Text
                   style={{
-                    color: "#AB8FFF",
+                    color: Colors.primary,
                     fontSize: 16,
                     fontWeight: "700",
                   }}
@@ -210,12 +212,12 @@ export default function WorkoutHistoryScreen() {
 
             return (
               <View key={workout.id} style={{
-                  backgroundColor: '#f0f0f0',
+                  backgroundColor: Colors.background,
                   borderRadius: 12,
                   padding: 10,
                   marginBottom: 20,
                   borderWidth: 1,
-                  borderColor: '#ddd'
+                  borderColor: Colors.gray
               }}>
                 <View
                   style={{
@@ -229,7 +231,7 @@ export default function WorkoutHistoryScreen() {
                   <View style={{ flex: 1, marginRight: 12 }}>
                     <Text
                       style={{
-                        color: "#000",
+                        color: Colors.black,
                         fontSize: 24,
                         fontWeight: "bold",
                         marginBottom: 2,
@@ -241,7 +243,7 @@ export default function WorkoutHistoryScreen() {
                     </Text>
                     <Text
                       style={{
-                        color: "#666",
+                        color: Colors.darkGray,
                         fontSize: 12,
                       }}
                     >
@@ -254,7 +256,7 @@ export default function WorkoutHistoryScreen() {
                   {workout.duration && (
                     <View
                       style={{
-                        backgroundColor: "#AB8FFF",
+                        backgroundColor: Colors.primary,
                         paddingVertical: 6,
                         paddingHorizontal: 12,
                         borderRadius: 20,
@@ -263,7 +265,7 @@ export default function WorkoutHistoryScreen() {
                     >
                       <Text
                         style={{
-                          color: "#fff",
+                          color: Colors.white,
                           fontSize: 12,
                           fontWeight: "700",
                         }}
@@ -300,10 +302,10 @@ export default function WorkoutHistoryScreen() {
             gap: 12,
           }}
         >
-          <Ionicons name="calendar" size={48} color="#666" />
+          <Ionicons name="calendar" size={48} color={Colors.darkGray} />
           <Text
             style={{
-              color: "#aaa",
+              color: Colors.gray,
               fontSize: 16,
               textAlign: "center",
             }}

@@ -8,6 +8,8 @@ import { auth, db } from '@/firebaseConfig';
 import { User } from 'firebase/auth';
 import { doc, getDoc ,getDocs, collection,query,where} from 'firebase/firestore';
 import { Colors } from "@/styles/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 export default function Home(){
 
@@ -71,8 +73,8 @@ export default function Home(){
     };
 
     return (
-        <View style={{backgroundColor: '#ffffff', flex:1, flexDirection: "column",justifyContent: 'flex-start',}}>
-            <View style={{alignItems: "center", marginTop: 160,}}>
+        <SafeAreaView style={{backgroundColor: Colors.background, flex:1, flexDirection: "column",justifyContent: 'flex-start',}}>
+            <View style={{alignItems: "center", marginTop: 100,}}>
                 {!isAnonymous && userData?.name ? (
                     <Text style={{fontSize: 24, fontWeight: "bold",alignSelf: "center"}}>
                         Hallo, {userData.name}!
@@ -94,10 +96,14 @@ export default function Home(){
                     }}
                     markedDates={daysWorkedOut}
                     theme={{
-                        todayTextColor:Colors.primary,
-                        dotColor:Colors.primary,
-                        indicatorColor:Colors.primary,
-                        arrowColor:Colors.primary,
+                        backgroundColor: Colors.background,
+                        calendarBackground: Colors.background,
+                        textSectionTitleColor: Colors.black,
+                        dayTextColor: Colors.black,
+                        todayTextColor: Colors.primary,
+                        dotColor: Colors.primary,
+                        indicatorColor: Colors.primary,
+                        arrowColor: Colors.primary,
                         monthTextColor: Colors.primary,
                     }}
                 />
@@ -109,7 +115,7 @@ export default function Home(){
                     onPress={() => {router.push("/screens/exercise/ExerciseScreen")}}
                     style={({ pressed }) => [
                         styles.bigButton,
-                        {backgroundColor: pressed ? "#333" : "#000"},
+                        {backgroundColor: pressed ? Colors.darkGray : Colors.black},
                     ]}
                 >
                     <View style={styles.bigButtonTextWrapper}>
@@ -117,14 +123,14 @@ export default function Home(){
                         <Ionicons
                             name={"barbell-outline"}
                             size={28}
-                            color="#fff"
+                            color={Colors.white}
                         />
                     </View>
 
                 </Pressable>
             </View>
 
-        </View>
+        </SafeAreaView>
 
     );
 }

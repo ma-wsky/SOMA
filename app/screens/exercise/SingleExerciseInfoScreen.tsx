@@ -9,6 +9,9 @@ import { Exercise } from "@/types/Exercise"
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { exerciseStyles } from "@/styles/exerciseStyles"
 import { ExerciseService } from "@/services/exerciseService"
+import { Colors } from "@/styles/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 
 export default function SingleExerciseInfoScreen() {
@@ -85,19 +88,20 @@ export default function SingleExerciseInfoScreen() {
         }
     }
 
-    if (loading) return <LoadingOverlay visible={true} />;
+
     if (!exercise) {
         return (
-            <View style={exerciseStyles.container}>
+            <SafeAreaView style={exerciseStyles.container}>
                 <TopBar leftButtonText="Zurück" titleText="Übung Info" onLeftPress={() => router.back()} />
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <Text>Übung nicht gefunden.</Text>
+                    <LoadingOverlay visible={true} />
                 </View>
-            </View>
+            </SafeAreaView>
         );
     }
     return (
-        <View style={exerciseStyles.container}>
+        <SafeAreaView style={exerciseStyles.container}>
 
 
             {/* Top Bar */}
@@ -128,7 +132,7 @@ export default function SingleExerciseInfoScreen() {
                     <Ionicons
                         name={exercise.isFavorite ? "heart" : "heart-outline"}
                         size={32}
-                        color="#555"
+                        color={Colors.icon}
                     />
                 </Pressable>
 
@@ -153,6 +157,6 @@ export default function SingleExerciseInfoScreen() {
                     </ScrollView>
                 </View>
             </View>
-        </View>
+        </SafeAreaView>
     );
 }

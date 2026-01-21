@@ -11,6 +11,7 @@ import { AuthButton } from "@/components/auth/authButton"
 import { DividingLine } from "@/components/auth/dividingLine";
 import { AuthInput } from "@/components/auth/authInput"
 import { getAuthErrorMessage } from "@/utils/auth/authErrors"
+import { Colors } from "@/styles/theme";
 
 
 export default function RegisterScreen() {
@@ -77,8 +78,8 @@ export default function RegisterScreen() {
             style={{ flex: 1 }}
             behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
         >
+            <ScrollView style={{backgroundColor: Colors.background}}>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 10 }} keyboardShouldPersistTaps="handled">
                     <View style={authStyles.container}>
 
                         {/* Title */}
@@ -139,8 +140,8 @@ export default function RegisterScreen() {
                         <LoadingOverlay visible={loading || isGuestLoading} />
 
                     </View>
-                </ScrollView>
             </TouchableWithoutFeedback>
+            </ScrollView>
         </KeyboardAvoidingView>
     );
 }

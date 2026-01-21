@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "fitnessapp",
+    "name": "SOMA",
     "slug": "fitnessapp",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,17 +8,20 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIndentifier": "com.soma.app"
     },
     "android": {
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.soma.app"
     },
     "web": {
       "output": "static"
     },
     "plugins": [
       "expo-router",
-      "expo-audio"
+      "expo-audio",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true

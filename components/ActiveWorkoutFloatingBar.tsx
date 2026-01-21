@@ -119,13 +119,13 @@ export const ActiveWorkoutFloatingBar = () => {
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        bottom: 90, 
+        bottom: 110, 
         left: 20,
         right: 20,
         backgroundColor: Colors.primary,
         borderRadius: 12,
         padding: 12,
-        shadowColor: "#000",
+        shadowColor: Colors.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
@@ -141,20 +141,20 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     label: {
-        color: 'white',
+        color: Colors.white,
         fontWeight: 'bold',
         fontSize: 14,
     },
     restLabel: {
-        color: '#fff', 
+        color: Colors.white, 
     },
     timer: {
-        color: 'rgba(255,255,255,0.8)',
+        color: Colors.background,
         fontSize: 12,
         marginTop: 2,
     },
     restTimerText: {
-        color: 'rgba(255,255,255,0.95)',
+        color: Colors.background,
         fontWeight: 'bold',
     },
     button: {
@@ -167,11 +167,11 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.3)',
     },
     buttonText: {
-        color: 'white',
+        color: Colors.white,
         fontSize: 12,
         fontWeight: '600',
     },
     restButtonText: {
-        color: 'white',
+        color: Colors.white,
     }
 });

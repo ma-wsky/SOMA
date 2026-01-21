@@ -6,6 +6,8 @@ import ExerciseList from "@/components/ExerciseList";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { useLoadExercises } from "@/hooks/useLoadExercises";
 import { Colors } from "@/styles/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 
 export default function AddExerciseToWorkoutScreen() {
@@ -49,7 +51,7 @@ export default function AddExerciseToWorkoutScreen() {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
 
             {/* Top Bar */}
             <TopBar 
@@ -91,7 +93,7 @@ export default function AddExerciseToWorkoutScreen() {
             {/* Loading Overlay */}
             <LoadingOverlay visible={loading} />
 
-        </View>
+        </SafeAreaView>
     );
 };
 

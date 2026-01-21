@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { Pressable, Text, View } from 'react-native';
+import { Text, View,ScrollView,Pressable } from 'react-native';
 import { authStyles } from "@/styles/authStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { useGuestLogin } from "@/hooks/useGuestLogin";
@@ -14,6 +14,7 @@ export default function LoginScreen(){
     const { handleGuestLogin, isGuestLoading } = useGuestLogin();
 
     return(
+        <ScrollView style={{backgroundColor:Colors.background}}>
         <View style={authStyles.container}>
 
             {/* Title */}
@@ -68,5 +69,6 @@ export default function LoginScreen(){
             </Pressable>
 
         </View>
+        </ScrollView>
     );
 }
