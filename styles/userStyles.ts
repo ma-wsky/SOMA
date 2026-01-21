@@ -117,4 +117,22 @@ export const userStyles = StyleSheet.create({
         shadowRadius: 10,
         elevation: 10,
     },
+    //edit user
+    picText: {
+        color: "black",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    textOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 32,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    picWrapper: {
+        alignItems: "center",
+    },
 })
