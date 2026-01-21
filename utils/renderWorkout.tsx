@@ -429,7 +429,8 @@ export const renderSingleCard = (
 
       <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
 
-      <Pressable onPress={() => props.onOpenBreakTime(exerciseId, sets[0].breaktime || 30)}>
+      <Pressable onPress={() => props.onOpenBreakTime(exerciseId, sets[0].breaktime || 30)}
+                 disabled={!isEditMode}>
         <View style={{ flexDirection: "row", alignItems: "center", padding: 8 }}>
           <Ionicons name="alarm-outline" size={20} color={Colors.primary} />
           <Text style={{ color: Colors.primary, marginLeft: 4, fontSize: 12 }}>
