@@ -6,7 +6,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useState, useEffect } from 'react';
 import { auth, db } from '@/firebaseConfig';
 import { User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc ,getDocs, collection,query,where} from 'firebase/firestore';
+import { Colors } from "@/styles/theme";
 
 export default function Home(){
 
@@ -14,6 +15,7 @@ export default function Home(){
     const [user, setUser] = useState<User | null>(null);
     const [userData, setUserData] = useState<any>(null);
     const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
+    const [daysWorkedOut, setDaysWorkedOut] = useState<{[key:string]: any}>({});
 
     useEffect(() => {
         const loadUserData = async () => {
@@ -34,6 +36,8 @@ export default function Home(){
                     console.error("Fehler beim Laden der User-Daten:", e);
                 }
             }
+
+            await loadDaysWorkedOut(currentUser.uid);
         };
         
         loadUserData();
@@ -52,6 +56,33 @@ export default function Home(){
         return "User";
     };
 
+
+    const loadDaysWorkedOut = async (userId: string) => {
+        try{
+            const workoutsRef = collection(db, "users", userId, "workouts");
+            const qSnapshot = await getDocs(workoutsRef);
+
+            const days: {[key:string]: any} ={};
+            qSnapshot.forEach((doc) => {
+                const workoutData = doc.data();
+                
+                if(workoutData.date && workoutData.type !== "template") {
+                    const dateOnly = workoutData.date.split('T')[0];
+                    
+                    days[dateOnly] ={
+                        marked: true,
+                        dotColor: Colors.primary,
+                    };
+                }
+                
+            });
+            
+            setDaysWorkedOut(days);
+        } catch(e){
+            console.error("Fehler beim Laden der Workout-Daten:",e);
+        }
+    };
+
     return (
         <View style={{backgroundColor: '#ffffff', flex:1, flexDirection: "column",justifyContent: 'flex-start',}}>
             <View style={{alignItems: "center", marginTop: 160,}}>
@@ -66,11 +97,19 @@ export default function Home(){
                             params: { date: day.dateString }
                         });
                     }}
+                    markedDates={daysWorkedOut}
+                    theme={{
+                        todayTextColor:Colors.primary,
+                        dotColor:Colors.primary,
+                        indicatorColor:Colors.primary,
+                        arrowColor:Colors.primary,
+                        monthTextColor: Colors.primary,
+                    }}
                 />
             </View>
 
 
-            <View style={{marginHorizontal: 20, marginTop: 80,}}>
+            <View style={{marginHorizontal: 20, marginTop: 60,}}>
                 <Pressable
                     onPress={() => {router.push("/screens/exercise/ExerciseScreen")}}
                     style={({ pressed }) => [
