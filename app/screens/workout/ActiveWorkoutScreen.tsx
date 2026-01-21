@@ -234,10 +234,14 @@ export default function ActiveWorkoutScreen() {
     onCloseOverlay: closeOverlay,
     onRestTimerClose: stopRestTimer,
     onWorkoutNameChange: (name: string) => setWorkout((prev) => prev ? { ...prev, name } : null),
+    // Neue Setter für Overlay-Daten
+    onSetTempSetData: setTempSetData,
+    onSetTempBreakTime: setTempBreakTime,
+    isFromActiveWorkout: true,
   }), [workout, isEditMode, activeOverlay, restTimeRemaining, tempBreakTime, tempSetData, 
     openBreakTimeOverlay, openEditSetOverlay, openAddSetOverlay, 
     handleSetCheckWithTimer, handleRemoveSet, handleAddExercise, handleSaveModalChanges, 
-    closeOverlay, stopRestTimer, setOriginalWorkout, setWorkout]);
+    closeOverlay, stopRestTimer, setOriginalWorkout, setWorkout, setTempSetData, setTempBreakTime]);
 
 
   if (!workout) {

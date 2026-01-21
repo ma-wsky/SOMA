@@ -227,7 +227,7 @@ export default function WorkoutHistoryScreen() {
                     marginLeft: 5
                   }}
                 >
-                  <View>
+                  <View style={{ flex: 1, marginRight: 12 }}>
                     <Text
                       style={{
                         color: "#000",
@@ -235,6 +235,8 @@ export default function WorkoutHistoryScreen() {
                         fontWeight: "bold",
                         marginBottom: 2,
                       }}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
                     >
                       {workout.name || "Training"}
                     </Text>
@@ -257,6 +259,7 @@ export default function WorkoutHistoryScreen() {
                         paddingVertical: 6,
                         paddingHorizontal: 12,
                         borderRadius: 20,
+                        flexShrink: 0,
                       }}
                     >
                       <Text

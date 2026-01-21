@@ -114,6 +114,7 @@ export const useWorkoutLoader = ({
               const loadedW = {
                 id: userSnap.id,
                 ...workoutData,
+                date: new Date().toISOString(), // Aktuelles Datum beim Start, nicht Template-Datum
                 exerciseSets: cleanSets,
                 startTime: preservedStartTime || Date.now(),
               };

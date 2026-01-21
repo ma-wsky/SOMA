@@ -75,7 +75,7 @@ export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
                 breaktime: set.breaktime ?? 30,
                 weight: set.weight,
                 reps: set.reps,
-                isDone: set.isDone || false,
+                isDone: false,
               });
             });
 

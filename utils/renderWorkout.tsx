@@ -36,6 +36,10 @@ interface ActiveWorkoutRenderProps {
   onCloseOverlay: () => void;
   onRestTimerClose: () => void;
   onWorkoutNameChange: (name: string) => void;
+  // Neue Setter für Overlay-Daten
+  onSetTempSetData: (data: { weight: number; reps: number; isDone: boolean }) => void;
+  onSetTempBreakTime: (data: { mins: number; secs: number }) => void;
+  isFromActiveWorkout?: boolean;
 }
 
 export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.ReactNode => {
@@ -130,11 +134,12 @@ const renderActiveExerciseCard = (
 
     <View style={styles.setRowHeader}>
       <Text style={styles.setTextHeader}>Satz</Text>
-      <Text style={styles.setTextHeader}>Gewicht (kg)</Text>
+      <Text style={styles.setTextHeader}>Gewicht</Text>
       <Text style={styles.setTextHeader}>Wdh.</Text>
-      <Text style={styles.setTextHeader}>Erledigt</Text>
 
-      {isEditing && <View style={{ width: 50 }} />}
+      {isEditing ? <View style={{ width: 50 }} />:
+            <Text style={styles.setTextHeader}>Erledigt</Text>
+        }
     </View>
 
     {sets.map((set) => {
@@ -148,7 +153,7 @@ const renderActiveExerciseCard = (
           {!isEditing ? (
             <Pressable
               onPress={() => props.onSetCheck(globalIndex, set.breaktime || 30)}
-              style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+              style={{ flex: 1 }}
             >
               <Ionicons
                 name={set.isDone ? "checkbox" : "checkbox-outline"}
@@ -157,7 +162,7 @@ const renderActiveExerciseCard = (
               />
             </Pressable>
           ) : (
-            <Text style={styles.setText}>-</Text>
+            <Text ></Text>
           )}
 
           {isEditing && (
@@ -186,21 +191,23 @@ const renderActiveExerciseCard = (
 );
 
 export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.ReactNode => {
-  if (props.activeOverlay === "none") return null;
+  if (props.activeOverlay === "none" || props.activeOverlay === "restTimer") return null;
   const isBreaktime = props.activeOverlay === "breaktime";
   const isEdit = props.activeOverlay === "editSet";
   const isAdd = props.activeOverlay === "addSet";
+  const isFromActiveWorkout = props.isFromActiveWorkout !== false; // Default true für ActiveWorkout
 
   return (
     <Modal visible={true} transparent animationType="fade" onRequestClose={props.onCloseOverlay}>
       <View style={newStyles.overlay}>
         <View style={newStyles.content}>
+          {/* TopBar Style Header */}
           <View style={newStyles.header}>
-            <Pressable onPress={props.onCloseOverlay}>
-              <Text style={{ color: "#ff4444" }}>Abbrechen</Text>
+            <Pressable onPress={props.onCloseOverlay} style={{ padding: 8 }}>
+              <Text style={{ color: Colors.black, fontSize: 16 }}>Zurück</Text>
             </Pressable>
             <Text style={newStyles.headerTitle}>
-              {isBreaktime ? "Pausenzeit" : isEdit ? "Satz bearbeiten" : "Satz hinzufügen"}
+              {isBreaktime ? "Pausenzeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
             </Text>
             <Pressable style={newStyles.saveButton} onPress={props.onSaveModalChanges}>
               <Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text>
@@ -208,36 +215,70 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
           </View>
 
           {isBreaktime ? (
-            <View style={newStyles.timeInputContainer}>
-              <TextInput
-                style={newStyles.timeInput}
-                keyboardType="numeric"
-                value={props.tempBreakTime.mins.toString()}
-                onChangeText={() => {}}
-              />
-              <Text style={newStyles.label}>Min</Text>
-              <TextInput
-                style={newStyles.timeInput}
-                keyboardType="numeric"
-                value={props.tempBreakTime.secs.toString()}
-                onChangeText={() => {}}
-              />
-              <Text style={newStyles.label}>Sek</Text>
+            /* Pausenzeit Overlay */
+            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+              <View style={newStyles.timeInputContainer}>
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Minuten</Text>
+                  <TextInput
+                    style={newStyles.timeInput}
+                    keyboardType="numeric"
+                    value={props.tempBreakTime.mins.toString()}
+                    onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, mins: Number(v) || 0 })}
+                  />
+                </View>
+                <Text style={{ fontSize: 24, marginHorizontal: 10, color: Colors.black }}>:</Text>
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Sekunden</Text>
+                  <TextInput
+                    style={newStyles.timeInput}
+                    keyboardType="numeric"
+                    value={props.tempBreakTime.secs.toString()}
+                    onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, secs: Number(v) || 0 })}
+                  />
+                </View>
+              </View>
             </View>
           ) : (
-            <View>
-              <NumberStepper
-                label="Gewicht (kg)"
-                value={props.tempSetData.weight}
-                onChange={() => {}}
-                step={0.5}
-              />
-              <NumberStepper
-                label="Wiederholungen"
-                value={props.tempSetData.reps}
-                onChange={() => {}}
-                step={1}
-              />
+            /* AddSet / EditSet Overlay */
+            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+              {/* Gewicht */}
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Gewicht (kg)</Text>
+                <NumberStepper
+                  label=""
+                  value={props.tempSetData.weight}
+                  onChange={(v) => props.onSetTempSetData({ ...props.tempSetData, weight: v })}
+                  step={0.5}
+                />
+              </View>
+              
+              {/* Wiederholungen */}
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Wiederholungen</Text>
+                <NumberStepper
+                  label=""
+                  value={props.tempSetData.reps}
+                  onChange={(v) => props.onSetTempSetData({ ...props.tempSetData, reps: v })}
+                  step={1}
+                />
+              </View>
+
+              {/* Erledigt Checkbox - nur wenn von aktivem Workout */}
+              {isFromActiveWorkout && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                  <Text style={{ color: Colors.black, fontSize: 16, marginRight: 16 }}>Erledigt</Text>
+                  <Pressable
+                    onPress={() => props.onSetTempSetData({ ...props.tempSetData, isDone: !props.tempSetData.isDone })}
+                  >
+                    <Ionicons
+                      name={props.tempSetData.isDone ? "checkbox" : "checkbox-outline"}
+                      size={28}
+                      color={props.tempSetData.isDone ? Colors.primary : Colors.black}
+                    />
+                  </Pressable>
+                </View>
+              )}
             </View>
           )}
         </View>
@@ -291,13 +332,15 @@ interface SingleWorkoutRenderProps {
   isEditMode: boolean;
   activeOverlay: OverlayTypes;
   tempBreakTime: { mins: number; secs: number };
-  tempSetData: { weight: number; reps: number };
+  tempSetData: { weight: number; reps: number; isDone?: boolean };
   onOpenBreakTime: (exerciseId: string, currentSeconds: number) => void;
   onOpenEditSet: (index: number, set: ExerciseSet) => void;
   onOpenAddSet: (exerciseId: string, exerciseName: string) => void;
   onRemoveSet: (index: number) => void;
   onSaveModalChanges: () => void;
   onCloseOverlay: () => void;
+  onSetTempSetData: (data: { weight: number; reps: number; isDone?: boolean }) => void;
+  onSetTempBreakTime: (data: { mins: number; secs: number }) => void;
 }
 
 export const renderSingleCard = (
@@ -326,7 +369,7 @@ export const renderSingleCard = (
 
     <View style={styles.setRowHeader}>
       <Text style={styles.setTextHeader}>Satz</Text>
-      <Text style={styles.setTextHeader}>Gewicht (kg)</Text>
+      <Text style={styles.setTextHeader}>Gewicht</Text>
       <Text style={styles.setTextHeader}>Wdh.</Text>
       {isEditMode && <View style={{ width: 50 }} />}
     </View>
@@ -375,12 +418,13 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
     <Modal visible={true} transparent animationType="fade" onRequestClose={props.onCloseOverlay}>
       <View style={newStyles.overlay}>
         <View style={newStyles.content}>
+          {/* TopBar Style Header */}
           <View style={newStyles.header}>
-            <Pressable onPress={props.onCloseOverlay}>
-              <Text style={{ color: "#ff4444" }}>Abbrechen</Text>
+            <Pressable onPress={props.onCloseOverlay} style={{ padding: 8 }}>
+              <Text style={{ color: Colors.black, fontSize: 16 }}>Zurück</Text>
             </Pressable>
             <Text style={newStyles.headerTitle}>
-              {isBreaktime ? "Pausenzeit" : isEdit ? "Satz bearbeiten" : "Satz hinzufügen"}
+              {isBreaktime ? "Pausenzeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
             </Text>
             <Pressable style={newStyles.saveButton} onPress={props.onSaveModalChanges}>
               <Text style={newStyles.saveText}>{isAdd ? "Hinzufügen" : "Speichern"}</Text>
@@ -388,36 +432,54 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
           </View>
 
           {isBreaktime ? (
-            <View style={newStyles.timeInputContainer}>
-              <TextInput
-                style={newStyles.timeInput}
-                keyboardType="numeric"
-                value={props.tempBreakTime.mins.toString()}
-                onChangeText={() => {}}
-              />
-              <Text style={newStyles.label}>Min</Text>
-              <TextInput
-                style={newStyles.timeInput}
-                keyboardType="numeric"
-                value={props.tempBreakTime.secs.toString()}
-                onChangeText={() => {}}
-              />
-              <Text style={newStyles.label}>Sek</Text>
+            /* Pausenzeit Overlay */
+            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+              <View style={newStyles.timeInputContainer}>
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Minuten</Text>
+                  <TextInput
+                    style={newStyles.timeInput}
+                    keyboardType="numeric"
+                    value={props.tempBreakTime.mins.toString()}
+                    onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, mins: Number(v) || 0 })}
+                  />
+                </View>
+                <Text style={{ fontSize: 24, marginHorizontal: 10, color: Colors.black }}>:</Text>
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Sekunden</Text>
+                  <TextInput
+                    style={newStyles.timeInput}
+                    keyboardType="numeric"
+                    value={props.tempBreakTime.secs.toString()}
+                    onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, secs: Number(v) || 0 })}
+                  />
+                </View>
+              </View>
             </View>
           ) : (
-            <View>
-              <NumberStepper
-                label="Gewicht (kg)"
-                value={props.tempSetData.weight}
-                onChange={() => {}}
-                step={0.5}
-              />
-              <NumberStepper
-                label="Wiederholungen"
-                value={props.tempSetData.reps}
-                onChange={() => {}}
-                step={1}
-              />
+            /* AddSet / EditSet Overlay - ohne Erledigt Checkbox für SingleWorkout */
+            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+              {/* Gewicht */}
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Gewicht (kg)</Text>
+                <NumberStepper
+                  label=""
+                  value={props.tempSetData.weight}
+                  onChange={(v) => props.onSetTempSetData({ ...props.tempSetData, weight: v })}
+                  step={0.5}
+                />
+              </View>
+              
+              {/* Wiederholungen */}
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Wiederholungen</Text>
+                <NumberStepper
+                  label=""
+                  value={props.tempSetData.reps}
+                  onChange={(v) => props.onSetTempSetData({ ...props.tempSetData, reps: v })}
+                  step={1}
+                />
+              </View>
             </View>
           )}
         </View>
@@ -449,7 +511,7 @@ export const renderHistoryCard = (
 
     <View style={styles.setRowHeader}>
       <Text style={styles.setTextHeader}>Satz</Text>
-      <Text style={styles.setTextHeader}>Gewicht (kg)</Text>
+      <Text style={styles.setTextHeader}>Gewicht</Text>
       <Text style={styles.setTextHeader}>Wdh.</Text>
       <Text style={styles.setTextHeader}>Status</Text>
     </View>

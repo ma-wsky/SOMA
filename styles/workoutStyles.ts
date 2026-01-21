@@ -30,7 +30,8 @@ export const workoutStyles = StyleSheet.create({
 
     setRowHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    gap:15,
+    justifyContent: 'flex-start',
     paddingVertical: 6,
     marginHorizontal: 10,
 
@@ -43,7 +44,8 @@ export const workoutStyles = StyleSheet.create({
 
     setRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    gap:15,
+    justifyContent: 'flex-start',
     paddingVertical: 6,
     marginHorizontal: 12,
     marginVertical: 4,
@@ -54,7 +56,8 @@ export const workoutStyles = StyleSheet.create({
     },
     setEditRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    gap:15,
+    justifyContent: 'flex-start',
     paddingVertical: 6,
     marginHorizontal: 12,
     marginVertical: 4,

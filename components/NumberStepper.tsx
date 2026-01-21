@@ -1,5 +1,6 @@
 import { View, Text, Pressable, TextInput, Modal, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { Colors } from "@/styles/theme";
 
 
 export const secondsToMinSec = (totalSeconds: number) => ({
@@ -23,25 +24,25 @@ export const NumberStepper = ({
 }) => {
   return (
     <View style={{ marginBottom: 16 }}>
-      <Text style={{ color: "#aaa", marginBottom: 8, fontSize: 14 }}>{label}</Text>
-      <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#333", borderRadius: 8 }}>
+      {label ? <Text style={{ color: Colors.gray, marginBottom: 8, fontSize: 14 }}>{label}</Text> : null}
+      <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: Colors.black, borderRadius: 8 }}>
         <Pressable 
           onPress={() => onChange(Math.max(0, value - step))} 
-          style={{ padding: 15, borderRightWidth: 1, borderRightColor: "#444" }}>
-          <Ionicons name="remove" size={24} color="white" />
+          style={{ padding: 15, borderRightWidth: 1, borderRightColor: Colors.darkBackground }}>
+          <Ionicons name="remove" size={24} color={Colors.white} />
         </Pressable>
         
         <TextInput
           value={value.toString()}
           onChangeText={(text) => onChange(Number(text) || 0)}
           keyboardType="numeric"
-          style={{ flex: 1, color: "white", textAlign: "center", fontSize: 18, fontWeight: "bold" }}
+          style={{ flex: 1, color: Colors.white, textAlign: "center", fontSize: 18, fontWeight: "bold" }}
         />
 
         <Pressable 
           onPress={() => onChange(value + step)} 
-          style={{ padding: 15, borderLeftWidth: 1, borderLeftColor: "#444" }}>
-          <Ionicons name="add" size={24} color="white" />
+          style={{ padding: 15, borderLeftWidth: 1, borderLeftColor: Colors.darkBackground }}>
+          <Ionicons name="add" size={24} color={Colors.white} />
         </Pressable>
       </View>
     </View>
@@ -51,36 +52,39 @@ export const NumberStepper = ({
 export const newStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.8)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     padding: 20,
   },
   content: {
-    backgroundColor: "#1e1e1e",
+    backgroundColor: Colors.background,
     borderRadius: 12,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#333",
+    borderColor: Colors.darkBackground,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.darkBackground,
   },
   headerTitle: {
-    color: "white",
+    color: Colors.black,
     fontSize: 18,
     fontWeight: "bold",
   },
   saveButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: Colors.primary,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 6,
   },
   saveText: {
-    color: "white",
+    color: Colors.white,
     fontWeight: "600",
   },
   timeInputContainer: {
@@ -91,21 +95,21 @@ export const newStyles = StyleSheet.create({
     marginBottom: 20,
   },
   timeInput: {
-    backgroundColor: "#333",
-    color: "white",
+    backgroundColor: Colors.black,
+    color: Colors.white,
     fontSize: 24,
     width: 80,
     textAlign: "center",
     padding: 10,
     borderRadius: 8,
   },
-  label: { color: "#aaa", fontSize: 16 },
+  label: { color: Colors.gray, fontSize: 16 },
   checkboxRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 10,
     padding: 10,
-    backgroundColor: "#333",
+    backgroundColor: Colors.black,
     borderRadius: 8,
   },
 });

@@ -51,9 +51,8 @@ export default function SingleWorkoutInfoScreen() {
     targetExerciseName,
     tempSetData,
     tempBreakTime,
-    //setActiveOverlay,
-    //setTempSetData,
-    //setTempBreakTime,
+    setTempSetData,
+    setTempBreakTime,
     openBreakTimeOverlay,
     openEditSetOverlay,
     openAddSetOverlay,
@@ -190,6 +189,10 @@ export default function SingleWorkoutInfoScreen() {
     onRemoveSet: handleRemoveSet,
     onSaveModalChanges: handleSaveModalChanges,
     onCloseOverlay: closeOverlay,
+    // Wrapper für Setter - isDone optional übergeben
+    onSetTempSetData: (data: { weight: number; reps: number; isDone?: boolean }) => 
+      setTempSetData({ weight: data.weight, reps: data.reps, isDone: data.isDone ?? false }),
+    onSetTempBreakTime: setTempBreakTime,
   };
 
   return (
