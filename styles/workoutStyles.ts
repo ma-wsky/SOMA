@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Colors, DarkColors } from "./theme";
+import { Colors } from "./theme";
 import { topBarStyles } from './topBarStyles';
 
 export const workoutStyles = StyleSheet.create({
@@ -233,7 +233,9 @@ export const workoutStyles = StyleSheet.create({
     sheetContainerContent: {
         flex: 1,
         paddingBottom: 20,
-        backgroundColor: Colors.darkBackground,
+        backgroundColor: Colors.gray,
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
         flexDirection: "column",
         height: "100%",
         gap: 10,
