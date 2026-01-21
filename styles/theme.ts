@@ -10,6 +10,7 @@ export const Colors = {
     black: "#000",
     white: "#ffffff",
     gray: "#aaa",
+    darkGray:"#555"
 };
 
 export const DarkColors = {
