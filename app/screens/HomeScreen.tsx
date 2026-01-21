@@ -43,19 +43,6 @@ export default function Home(){
         loadUserData();
     }, []);
 
-    const getUserDisplayName = () => {
-        if (!user) {
-            return "User";
-        }
-        if (isAnonymous) {
-            return "Gast";
-        }
-        if (userData?.name) {
-            return userData.name;
-        }
-        return "User";
-    };
-
 
     const loadDaysWorkedOut = async (userId: string) => {
         try{
@@ -86,7 +73,15 @@ export default function Home(){
     return (
         <View style={{backgroundColor: '#ffffff', flex:1, flexDirection: "column",justifyContent: 'flex-start',}}>
             <View style={{alignItems: "center", marginTop: 160,}}>
-                <Text>Hallo, {getUserDisplayName()}!</Text>
+                {!isAnonymous && userData?.name ? (
+                    <Text style={{fontSize: 24, fontWeight: "bold",alignSelf: "center"}}>
+                        Hallo, {userData.name}!
+                    </Text>
+                ) : (
+                    <Text style={{fontSize: 24, fontWeight: "bold",alignSelf: "center"}}>
+                        Hallo!
+                    </Text>
+                )}
             </View>
 
             <View style={{marginHorizontal: 40,}}>
