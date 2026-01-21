@@ -14,6 +14,7 @@ export const userStyles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.background,
         marginBottom:50,
+        paddingTop: 40,
     },
 
     scrollView: {
@@ -83,7 +84,10 @@ export const userStyles = StyleSheet.create({
     },
 
     profilePictureWrapper: {
-        marginTop: 40,
+        marginTop: 60,
+        alignItems: "center",
+    },
+    profilePictureWrapperEdit: {
         alignItems: "center",
     },
     profilePicture: {
