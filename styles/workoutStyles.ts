@@ -46,11 +46,10 @@ export const workoutStyles = StyleSheet.create({
     gap:15,
     justifyContent: 'flex-start',
     paddingVertical: 6,
-    marginHorizontal: 12,
     marginVertical: 4,
     borderColor: Colors.black,
     borderWidth: 1,
-    padding: 6,
+    padding: 8,
 
     },
     setEditRow: {
@@ -58,11 +57,10 @@ export const workoutStyles = StyleSheet.create({
     gap:15,
     justifyContent: 'flex-start',
     paddingVertical: 6,
-    marginHorizontal: 12,
     marginVertical: 4,
     borderColor: Colors.black,
     borderWidth: 1,
-    padding: 6,
+    padding:8,
 
 
     },

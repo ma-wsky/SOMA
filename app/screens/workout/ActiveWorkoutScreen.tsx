@@ -27,6 +27,8 @@ import {
 } from "@/utils/renderWorkout";
 import { setActiveWorkout } from "@/utils/store/activeWorkoutStore";
 import { formatTime, formatTimeShort } from "@/utils/helper/formatTimeHelper";
+import { Background } from "@react-navigation/elements";
+import { Colors } from "@/styles/theme";
 
 export default function ActiveWorkoutScreen() {
   const { id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime } = useLocalSearchParams();
@@ -145,7 +147,7 @@ export default function ActiveWorkoutScreen() {
 
   const [isMinimized, setIsMinimized] = useState(false);
   // Memoize snapPoints to prevent re-renders
-  const snapPoints = useMemo(() => ["99%"], []);
+  const snapPoints = useMemo(() => ["95%"], []);
   
 
   const handleSheetChanges = useCallback(
@@ -267,6 +269,7 @@ export default function ActiveWorkoutScreen() {
         
           <BottomSheetView style={styles.sheetContainerContent}>
           <TopBar
+            backgroundColor={Colors.gray}
             leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
             titleText={isEditMode ? "Training bearbeiten" : timerString}
             rightButtonText={isEditMode ? "Speichern" : "Fertig"}

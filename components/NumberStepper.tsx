@@ -28,7 +28,7 @@ export const NumberStepper = ({
       <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: Colors.black, borderRadius: 8 }}>
         <Pressable 
           onPress={() => onChange(Math.max(0, value - step))} 
-          style={{ padding: 15, borderRightWidth: 1, borderRightColor: Colors.darkBackground }}>
+          style={{ padding: 15, borderRightWidth: 1, borderRightColor: Colors.darkGray }}>
           <Ionicons name="remove" size={24} color={Colors.white} />
         </Pressable>
         
@@ -41,7 +41,7 @@ export const NumberStepper = ({
 
         <Pressable 
           onPress={() => onChange(value + step)} 
-          style={{ padding: 15, borderLeftWidth: 1, borderLeftColor: Colors.darkBackground }}>
+          style={{ padding: 15, borderLeftWidth: 1, borderLeftColor: Colors.darkGray }}>
           <Ionicons name="add" size={24} color={Colors.white} />
         </Pressable>
       </View>
@@ -55,13 +55,12 @@ export const newStyles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     alignContent:'space-between',
     justifyContent: 'center',
-    padding: 5,
   },
   content: {
     backgroundColor: Colors.background,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.darkBackground,
+    borderColor: Colors.darkGray,
   },
   header: {
     flexDirection: "row",
@@ -70,7 +69,7 @@ export const newStyles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.darkBackground,
+    borderBottomColor: Colors.darkGray,
   },
   headerTitle: {
     color: Colors.black,

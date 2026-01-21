@@ -6,7 +6,6 @@ const { width } = Dimensions.get('window');
 
 export const userStyles = StyleSheet.create({
     editUserContainer: {
-        marginTop: 30,
         flex: 1,
         backgroundColor: Colors.background,
     },

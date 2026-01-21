@@ -12,6 +12,9 @@ import { validateEmail } from "@/utils/user/validateEmail";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { uploadImage } from "@/utils/uploadImage";
 import { scheduleWeeklyWorkoutReminder, cancelAllNotifications } from "@/utils/helper/notificationHelper";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { TopBar } from "@/components/TopBar";
+
 
 const EditRow = ({ label, value, onChangeText, placeholder, keyboardType = "default", isPressable = false, onPress = () => {} }: any) => (
     <View style={userStyles.rowWrapper}>
@@ -223,14 +226,18 @@ export default function EditUserScreen() {
             style={{ flex: 1, backgroundColor: Colors.background }}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
+            <SafeAreaView>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 10 }} keyboardShouldPersistTaps="handled">
+                <ScrollView contentContainerStyle={{ flexGrow: 1}} keyboardShouldPersistTaps="handled">
 
                     <View style={userStyles.editUserContainer}>
 
-                        <View style={userStyles.buttonWrapper}>
-                            <UserButton title="Speichern" onPress={saveChanges}/>
-                        </View>
+
+                        <TopBar
+                            rightButtonText="Speichern"
+                            onRightPress={saveChanges}
+                        />
+                        
 
                         {/* Profile Picture */}
                         <View style={userStyles.picWrapper}>
@@ -353,6 +360,7 @@ export default function EditUserScreen() {
 
                 </ScrollView>
             </TouchableWithoutFeedback>
+            </SafeAreaView>
         </KeyboardAvoidingView>
     );
 }

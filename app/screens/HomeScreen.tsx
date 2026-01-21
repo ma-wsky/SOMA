@@ -96,11 +96,14 @@ export default function Home(){
                     }}
                     markedDates={daysWorkedOut}
                     theme={{
-                        backgroundColor:Colors.background,
-                        todayTextColor:Colors.primary,
-                        dotColor:Colors.primary,
-                        indicatorColor:Colors.primary,
-                        arrowColor:Colors.primary,
+                        backgroundColor: Colors.background,
+                        calendarBackground: Colors.background,
+                        textSectionTitleColor: Colors.black,
+                        dayTextColor: Colors.black,
+                        todayTextColor: Colors.primary,
+                        dotColor: Colors.primary,
+                        indicatorColor: Colors.primary,
+                        arrowColor: Colors.primary,
                         monthTextColor: Colors.primary,
                     }}
                 />
