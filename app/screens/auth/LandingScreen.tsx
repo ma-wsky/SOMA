@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { Text, View,ScrollView } from 'react-native';
+import { Text, View,ScrollView,Pressable } from 'react-native';
 import { authStyles } from "@/styles/authStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { useGuestLogin } from "@/hooks/useGuestLogin";
@@ -59,7 +59,15 @@ export default function LoginScreen(){
 
             {/* Loading Overlay */}
             <LoadingOverlay visible={isGuestLoading} />
-            
+
+            <Pressable style={{alignItems:'center', marginTop:50}} onPress={()=> router.push("/screens/user/ImpressumScreen")}>
+                {({ pressed }) => (
+                    <Text style={{color: pressed ? Colors.darkGray : Colors.gray, textDecorationLine:'underline' }} >
+                        Impressum
+                    </Text>
+                )}
+            </Pressable>
+
         </View>
         </ScrollView>
     );

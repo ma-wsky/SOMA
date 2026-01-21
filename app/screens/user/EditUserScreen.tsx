@@ -92,6 +92,7 @@ export default function EditUserScreen() {
 
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [dateObject, setDateObject] = useState(new Date());
+    const [hasImage, setHasImage] = useState<boolean>(false);
 
     useEffect(() => {
         const loadUserData = async () => {
@@ -143,6 +144,11 @@ export default function EditUserScreen() {
         loadUserData();
     }, []);
 
+    const handleTakePhoto = async () => {
+        const uri = await pickImage();
+        if (uri) setHasImage(true);
+    }
+
     const saveChanges = async () => {
         if (!validateEmail(formData.email)) {
             Alert.alert("Eingabe prüfen", "Bitte gib eine gültige E-Mail-Adresse ein.");
@@ -154,7 +160,7 @@ export default function EditUserScreen() {
             const uid = auth.currentUser!.uid;
             let finalPhotoUrl = formData.profilePicture;
 
-            if (image) {
+            if (hasImage && image) {
                 const path = `users/${uid}/profile_${Date.now()}.jpg`;
                 const downloadURL = await uploadImage(image, path);
                 if (downloadURL) {
@@ -166,8 +172,8 @@ export default function EditUserScreen() {
             await cancelAllNotifications();
             if (formData.reminderDays.length > 0) {
                 await scheduleWeeklyWorkoutReminder(
-                    "Zeit fürs Training!",
-                    "Dein Workout wartet auf dich.",
+                    "Zeit abzuliefern!",
+                    "Dein Training wartet auf dich.",
                     formData.reminderTime.getHours(),
                     formData.reminderTime.getMinutes(),
                     formData.reminderDays
@@ -227,18 +233,30 @@ export default function EditUserScreen() {
                         </View>
 
                         {/* Profile Picture */}
-                        <Pressable onPress={() => pickImage()} style={userStyles.profilePictureWrapper}>
-                            <Image
-                                source={
-                                    image
-                                        ? { uri: image }
-                                        : formData.profilePicture
-                                            ? { uri: formData.profilePicture }
-                                            : require('@/assets/default-profile-picture/default-profile-picture.jpg')
-                                }
-                                style={userStyles.profilePicture}
-                            />
-                        </Pressable>
+                        <View style={userStyles.picWrapper}>
+                            <Pressable
+                                onPress={() => handleTakePhoto}
+                                style={userStyles.profilePictureWrapperEdit}
+                            >
+                                <Image
+                                    source={
+                                        image
+                                            ? { uri: image }
+                                            : formData.profilePicture
+                                                ? { uri: formData.profilePicture }
+                                                : require('@/assets/default-profile-picture/default-profile-picture.jpg')
+                                    }
+                                    style={userStyles.profilePicture}
+                                />
+
+                                {!hasImage && (
+                                    <View style={userStyles.textOverlay}>
+                                        <Text style={userStyles.picText}>klicken zum bearbeiten</Text>
+                                    </View>
+                                )}
+                            </Pressable>
+                        </View>
+
 
                         {/* Layout of Infos */}
                         <View style={userStyles.layout}>

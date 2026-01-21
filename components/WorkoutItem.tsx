@@ -59,11 +59,12 @@ export default function WorkoutItem({workout, onPress, onDelete}: Props) {
 
     return (
         <View>
-            <View style={{position: 'absolute', borderRadius:10, right: 20, top: 5, bottom: 5, width: 100, backgroundColor: '#ff4444', justifyContent: 'center', alignItems: 'center'}}>
-                <Pressable onPress={handleDelete}>
-                    <Ionicons name="trash" size={28} color="white"  />
-                </Pressable>
-            </View>
+            <Pressable
+                onPress={handleDelete}
+                style={{position: 'absolute', borderRadius:10, right: 20, top: 5, bottom: 5, width: 100, backgroundColor: '#ff4444', justifyContent: "center", alignItems: "center"}}
+            >
+                <Ionicons name="trash" size={28} color="white"  />
+            </Pressable>
 
             <Animated.View 
                 style={[{ transform: [{ translateX: pan.x }] }]} 

@@ -33,7 +33,6 @@ export default function LoginScreen(){
             Alert.alert("Geschafft!", "Login erfolgreich.");
             router.replace("/(tabs)/HomeScreenProxy");
         }catch (error: any){
-            console.error("Login error:", error.code);
             const message = getAuthErrorMessage(error.code);
             Alert.alert("Fehler", message);
 

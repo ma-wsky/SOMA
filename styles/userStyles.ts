@@ -14,6 +14,7 @@ export const userStyles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.background,
         marginBottom:50,
+        paddingTop: 40,
     },
 
     scrollView: {
@@ -83,7 +84,10 @@ export const userStyles = StyleSheet.create({
     },
 
     profilePictureWrapper: {
-        marginTop: 40,
+        marginTop: 60,
+        alignItems: "center",
+    },
+    profilePictureWrapperEdit: {
         alignItems: "center",
     },
     profilePicture: {
@@ -116,5 +120,23 @@ export const userStyles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 10,
         elevation: 10,
+    },
+    //edit user
+    picText: {
+        color: "black",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    textOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 32,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    picWrapper: {
+        alignItems: "center",
     },
 })

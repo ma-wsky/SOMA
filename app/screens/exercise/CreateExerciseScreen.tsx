@@ -127,7 +127,7 @@ export default function CreateExerciseScreen() {
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <ScrollView
-                    contentContainerStyle={{ flexGrow: 1, padding: 10 }}
+                    contentContainerStyle={{ flexGrow: 1 }}
                     keyboardShouldPersistTaps="handled"
                 >
                     {/* Screen */}
@@ -135,7 +135,7 @@ export default function CreateExerciseScreen() {
 
                         {/* Top Bar */}
                         <TopBar leftButtonText={"Zurück"}
-                                titleText={"Übung erstellen"}
+                                titleText={"Erstellen"}
                                 rightButtonText={"Speichern"}
                                 onLeftPress={() => router.back()}
                                 onRightPress={saveChanges}

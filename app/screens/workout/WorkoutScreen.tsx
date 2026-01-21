@@ -7,7 +7,7 @@ import { workoutStyles as styles } from "@/styles/workoutStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLoadWorkouts } from "@/hooks/useLoadWorkouts";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import { doc, deleteDoc, collection } from "firebase/firestore";
+import { doc, deleteDoc } from "firebase/firestore";
 import { auth, db } from "@/firebaseConfig";
 import { showAlert } from "@/utils/helper/alertHelper";
 
@@ -58,7 +58,7 @@ export default function WorkoutScreen() {
   return (
     <View style={styles.container}>
       
-      <View style={{ marginHorizontal: 20 }}>
+      <View style={{ marginHorizontal: 20, marginTop: 20, }}>
         <Pressable
           onPress={() => {
             router.push("/screens/workout/ActiveWorkoutScreen");
@@ -95,7 +95,7 @@ export default function WorkoutScreen() {
         onDelete={handleDeleteWorkout}
       />
 
-      <View style={{ marginHorizontal: 20, marginBottom: 20 }}>
+      <View style={{ marginVertical: 20, marginHorizontal: 20 }}>
         <Pressable
           onPress={() => {
             router.push({
