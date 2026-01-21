@@ -101,7 +101,7 @@ export default function SingleExerciseStatisticScreen() {
             {/* Top Bar */}
             <TopBar leftButtonText={"Zurück"}
                     titleText={"Statistik"}
-                    rightButtonText={"Download"}
+                    rightButtonText={"Export"}
                     onLeftPress={() => router.replace("/(tabs)/StatisticScreenProxy")}
                     onRightPress={handleDownload}
             ></TopBar>

@@ -12,7 +12,7 @@ export const exportWorkoutsToPDF = async (workouts: Workout[], date: string) => 
 
 
     const htmlContent = `
-    <html>
+    <html lang="">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
         <style>
@@ -102,7 +102,7 @@ const groupSetsByExercise = (sets: ExerciseSet[]) => {
  * @param history - Array von Trainingseinträgen mit date, weight, optional reps
  */
 export const exportExerciseStatisticsToPDF = async (
-    exercise: Exercise, 
+    exercise: Exercise,
     history: { date: Date; weight: number; reps?: number; timestamp: number }[]
 ) => {
     if (!exercise) {
@@ -125,13 +125,14 @@ export const exportExerciseStatisticsToPDF = async (
 
     // Berechne Statistiken
     const maxWeight = history.length > 0 ? Math.max(...history.map(h => h.weight)) : 0;
-    const totalSets = history.length;
-    const avgWeight = history.length > 0 
+    const totalVolume = history.reduce((sum, h) => sum + (h.weight * (h.reps || 0)), 0);
+    const totalReps = history.reduce((sum, h) => sum + (h.reps || 0), 0);
+    history.length > 0
         ? (history.reduce((sum, h) => sum + h.weight, 0) / history.length).toFixed(1)
         : '0';
-
+    
     const htmlContent = `
-    <html>
+    <html lang="">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
         <style>
@@ -167,12 +168,12 @@ export const exportExerciseStatisticsToPDF = async (
             <div class="stat-label">Max. Gewicht</div>
           </div>
           <div class="stat-item">
-            <div class="stat-value">${avgWeight} kg</div>
-            <div class="stat-label">Ø Gewicht</div>
+            <div class="stat-value">${totalVolume.toLocaleString("de-DE")} kg</div>
+            <div class="stat-label">Gesamtvolumen</div>
           </div>
           <div class="stat-item">
-            <div class="stat-value">${totalSets}</div>
-            <div class="stat-label">Gesamte Sätze</div>
+            <div class="stat-value">${totalReps}</div>
+            <div class="stat-label">Gesamte Wiederholungen</div>
           </div>
         </div>
 
