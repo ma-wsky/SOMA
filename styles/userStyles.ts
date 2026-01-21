@@ -96,7 +96,7 @@ export const userStyles = StyleSheet.create({
         borderRadius: 75,
         borderWidth: 4,
         borderColor: 'black',
-        resizeMode: 'cover',
+        //resizeMode: 'cover',
     },
     //SettingsOverlay
     settingsRow: {
