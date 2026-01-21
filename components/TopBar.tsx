@@ -5,6 +5,7 @@ import { topBarStyles as styles } from "@/styles/topBarStyles";
 
 
 interface TopBarProps {
+    backgroundColor?: string,
     leftButtonText?: string,
     titleText?: string,
     rightButtonText?: string,
@@ -12,10 +13,13 @@ interface TopBarProps {
     onRightPress?: () => void,
 }
 
-export function TopBar({ leftButtonText, titleText, rightButtonText, onLeftPress, onRightPress }: TopBarProps){
+export function TopBar({ backgroundColor, leftButtonText, titleText, rightButtonText, onLeftPress, onRightPress }: TopBarProps){
 
     return(
-        <View style={styles.container}>
+        <View style={[
+            styles.container,
+            { backgroundColor: backgroundColor || Colors.background }
+        ]}>
 
             {leftButtonText ? (
                 <Pressable

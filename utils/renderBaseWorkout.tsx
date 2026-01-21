@@ -183,7 +183,7 @@ export const renderBaseSetRow = (props: BaseSetRowProps): React.ReactNode => {
         )}
 
         {isEditing && onEdit && onRemove && (
-        <View style={{ flexDirection: "row", gap: 15, flexGrow: 0 }}>
+        <View style={{ flexDirection: "row", gap: 15 }}>
             <Pressable onPress={() => onEdit(globalIndex, set)}>
                 <Ionicons name="pencil" size={22} color={Colors.black} />
             </Pressable>

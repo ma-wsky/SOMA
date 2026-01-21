@@ -1,6 +1,8 @@
 import React from "react";
 import { View, ActivityIndicator, StyleSheet, Modal } from "react-native";
-import { Colors } from "../styles/theme";
+import { Colors } from "@/styles/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 type LoadingOverlayProps = {
     visible: boolean;
@@ -14,11 +16,11 @@ export default function LoadingOverlay({ visible }: LoadingOverlayProps) {
             visible={visible}
             statusBarTranslucent
         >
-            <View style={styles.overlay}>
+            <SafeAreaView style={styles.overlay}>
                 <View style={styles.spinnerWrapper}>
                     <ActivityIndicator size="large" color={Colors.primary} />
                 </View>
-            </View>
+            </SafeAreaView>
         </Modal>
     );
 }
@@ -31,11 +33,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     spinnerWrapper: {
-        backgroundColor: "white",
+        backgroundColor: Colors.white,
         padding: 20,
         borderRadius: 12,
         elevation: 5,
-        shadowColor: "#000",
+        shadowColor: Colors.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,

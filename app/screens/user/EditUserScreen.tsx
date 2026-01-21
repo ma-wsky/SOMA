@@ -12,6 +12,9 @@ import { validateEmail } from "@/utils/user/validateEmail";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { uploadImage } from "@/utils/uploadImage";
 import { scheduleWeeklyWorkoutReminder, cancelAllNotifications } from "@/utils/helper/notificationHelper";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { TopBar } from "@/components/TopBar";
+
 
 const EditRow = ({ label, value, onChangeText, placeholder, keyboardType = "default", isPressable = false, onPress = () => {} }: any) => (
     <View style={userStyles.rowWrapper}>
@@ -59,12 +62,12 @@ const WeekdayPicker = ({ selectedDays, onToggleDay }: { selectedDays: number[], 
                             width: 35,
                             height: 35,
                             borderRadius: 17.5,
-                            backgroundColor: isSelected ? Colors.primary : '#e0e0e0',
+                            backgroundColor: isSelected ? Colors.primary : Colors.gray,
                             justifyContent: 'center',
                             alignItems: 'center',
                         }}
                     >
-                        <Text style={{ color: isSelected ? 'white' : 'black', fontWeight: 'bold' }}>{day.label}</Text>
+                        <Text style={{ color: isSelected ? Colors.white : Colors.black, fontWeight: 'bold' }}>{day.label}</Text>
                     </Pressable>
                 );
             })}
@@ -220,17 +223,21 @@ export default function EditUserScreen() {
 
     return (
         <KeyboardAvoidingView
-            style={{ flex: 1 }}
+            style={{ flex: 1, backgroundColor: Colors.background }}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
+            <SafeAreaView>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 10 }} keyboardShouldPersistTaps="handled">
+                <ScrollView contentContainerStyle={{ flexGrow: 1}} keyboardShouldPersistTaps="handled">
 
                     <View style={userStyles.editUserContainer}>
 
-                        <View style={userStyles.buttonWrapper}>
-                            <UserButton title="Speichern" onPress={saveChanges}/>
-                        </View>
+
+                        <TopBar
+                            rightButtonText="Speichern"
+                            onRightPress={saveChanges}
+                        />
+                        
 
                         {/* Profile Picture */}
                         <View style={userStyles.picWrapper}>
@@ -251,7 +258,7 @@ export default function EditUserScreen() {
 
                                 {!hasImage && (
                                     <View style={userStyles.textOverlay}>
-                                        <Text style={userStyles.picText}>klicken zum bearbeiten</Text>
+                                        <Text style={userStyles.picText}>Bearbeiten</Text>
                                     </View>
                                 )}
                             </Pressable>
@@ -353,6 +360,7 @@ export default function EditUserScreen() {
 
                 </ScrollView>
             </TouchableWithoutFeedback>
+            </SafeAreaView>
         </KeyboardAvoidingView>
     );
 }

@@ -13,6 +13,8 @@ import { transformHistoryToChartData } from "@/utils/transformHistoryToChartData
 import { ExerciseService } from "@/services/exerciseService"
 import { exportExerciseStatisticsToPDF } from "@/utils/helper/exportHelper"
 import { Colors } from "@/styles/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 
 interface MyChartData {
@@ -46,7 +48,7 @@ export default function SingleExerciseStatisticScreen() {
     useEffect(() => {
         const loadData = async () => {
             const user = auth.currentUser;
-            if (!id || !user) return;
+            if (!id || !user) return ;
 
             setLoading(true);
 
@@ -89,14 +91,21 @@ export default function SingleExerciseStatisticScreen() {
     }
 
     async function handleDownload() {
-        if (!exercise) return;
+        if (!exercise) return ;
         await exportExerciseStatisticsToPDF(exercise, historyRef.current);
     }
 
-    if (!exercise) return;
+    if (!exercise) {
+        return (
+          <View style={statStyles.container}>
+            <TopBar leftButtonText="Zurück" onLeftPress={() => router.back()} />
+            <LoadingOverlay visible={true} />
+          </View>
+        );
+      }
 
     return (
-        <View style={statStyles.container}>
+        <SafeAreaView style={[statStyles.container]}>
 
             {/* Top Bar */}
             <TopBar leftButtonText={"Zurück"}
@@ -129,7 +138,7 @@ export default function SingleExerciseStatisticScreen() {
                     <Ionicons
                         name={exercise.isFavorite ? "heart" : "heart-outline"}
                         size={32}
-                        color="#555"
+                        color={Colors.icon}
                     />
                 </Pressable>
 
@@ -154,9 +163,9 @@ export default function SingleExerciseStatisticScreen() {
                             width={Dimensions.get("window").width - 60} // Breite des Bildschirms minus Padding
                             height={250}
                             chartConfig={{
-                                backgroundColor: "#ffffff",
-                                backgroundGradientFrom: "#ffffff",
-                                backgroundGradientTo: "#ffffff",
+                                backgroundColor: Colors.background,
+                                backgroundGradientFrom: Colors.background,
+                                backgroundGradientTo: Colors.background,
                                 decimalPlaces: 1,
 
                                 color: (opacity = 1) => `rgba(171, 143, 255, ${opacity})`,
@@ -186,6 +195,6 @@ export default function SingleExerciseStatisticScreen() {
             {/* Loading Overlay */}
             <LoadingOverlay visible={loading} />
 
-        </View>
+        </SafeAreaView>
     );
 }

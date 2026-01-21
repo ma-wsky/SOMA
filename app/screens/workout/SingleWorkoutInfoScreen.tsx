@@ -11,7 +11,10 @@ import { useOverlayHandlers } from "@/hooks/useOverlayHandlers";
 import { useSingleWorkoutData } from "@/hooks/useSingleWorkoutData";
 import { useSingleWorkoutLoader } from "@/hooks/useWorkoutLoader";
 import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
-import { renderSingleOverlays } from "@/utils/renderWorkout";
+import {
+  renderSingleOverlays,
+} from "@/utils/renderWorkout";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ExerciseCard } from "@/components/ExerciseCard";
 
 
@@ -167,10 +170,10 @@ export default function SingleWorkoutInfoScreen() {
 
   if (!workout) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <TopBar leftButtonText="Zurück" onLeftPress={() => router.back()} />
         <LoadingOverlay visible={true} />
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -193,7 +196,7 @@ export default function SingleWorkoutInfoScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <TopBar
         leftButtonText={isEditMode ? "Abbrechen" : "Zurück"}
         titleText={workout.name || "Training Info"}
@@ -260,6 +263,6 @@ export default function SingleWorkoutInfoScreen() {
 
       {renderSingleOverlays(renderProps)}
       <LoadingOverlay visible={loading} />
-    </View>
+    </SafeAreaView>
   );
 }

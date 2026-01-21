@@ -2,17 +2,23 @@ import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { TopBar } from "@/components/TopBar";
 import { Colors } from "@/styles/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 export default function ImpressumScreen() {
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <TopBar 
                 leftButtonText="Zurück"
                 titleText="Impressum"
                 onLeftPress={() => router.back()}
             />
             
-            <ScrollView style={styles.content}>
+            <ScrollView 
+                style={styles.content}
+                showsVerticalScrollIndicator={false}
+                contentInsetAdjustmentBehavior="automatic"
+            >
                 <Text style={styles.heading}>Angaben gemäß § 5 DDG (TMG)</Text>
                 <Text style={styles.text}>
                     SOMA App{"\n"}
@@ -62,7 +68,7 @@ export default function ImpressumScreen() {
                     <Text style={styles.versionText}>Version 1.0.0</Text>
                 </View>
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -89,19 +95,19 @@ const styles = StyleSheet.create({
     },
     footer: {
         marginTop: 40,
-        marginBottom: 30,
         alignItems: 'center',
         paddingTop: 20,
+        paddingBottom:20,
         borderTopWidth: 1,
-        borderTopColor: '#ddd',
+        borderTopColor: Colors.gray,
     },
     footerText: {
         fontSize: 12,
-        color: '#888',
+        color: Colors.darkGray,
     },
     versionText: {
         fontSize: 11,
-        color: '#aaa',
+        color: Colors.darkGray,
         marginTop: 5,
     },
 });

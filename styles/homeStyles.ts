@@ -14,7 +14,7 @@ export const homeStyles = StyleSheet.create({
         gap: 160,
     },
     buttonText: {
-        color: "white",
+        color: Colors.white,
         fontWeight: "bold",
         fontSize: 20,
     },

@@ -3,7 +3,7 @@ import { exerciseStyles } from "@/styles/exerciseStyles"
 import { Exercise } from "@/types/Exercise"
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { Colors } from "../styles/theme"
+import { Colors } from "@/styles/theme"
 
 
 interface Props {
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     addButton: {
       padding: 8,
       borderRadius: 8,
-      backgroundColor: '#111',
+      backgroundColor: Colors.black,
       alignItems: 'center',
       justifyContent: 'center'
     },

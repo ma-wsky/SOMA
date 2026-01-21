@@ -15,9 +15,7 @@ import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import { formatTimeShort } from "@/utils/helper/formatTimeHelper";
 import { TopBar } from "@/components/TopBar";
 import { ExerciseCard } from "@/components/ExerciseCard"
-
-//TODO Nutzt wirklich RenderBase??
-//TODO RenderOverlay raus holen
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface ActiveWorkoutRenderProps {
   workout: Workout;
@@ -138,7 +136,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
 
   return (
     <Modal visible={true} transparent animationType="fade" onRequestClose={props.onCloseOverlay}>
-      <View style={newStyles.overlay}>
+      <SafeAreaView style={newStyles.overlay}>
         <View style={newStyles.content}>
           {/* TopBar Style Header */}
           <TopBar
@@ -152,7 +150,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
 
           {isBreaktime ? (
             /* Pausenzeit Overlay */
-            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+            <View style={{ paddingHorizontal: 20 }}>
               <View style={newStyles.timeInputContainer}>
                 <View style={{ alignItems: 'center' }}>
                   <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Minuten</Text>
@@ -202,14 +200,14 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
 
               {/* Erledigt Checkbox - nur wenn von aktivem Workout */}
               {isFromActiveWorkout && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                <View style={{ flexDirection: 'row', justifyContent:'center' ,alignItems: 'center', paddingBottom:10}}>
                   <Text style={{ color: Colors.black, fontSize: 16, marginRight: 16 }}>Erledigt</Text>
                   <Pressable
                     onPress={() => props.onSetTempSetData({ ...props.tempSetData, isDone: !props.tempSetData.isDone })}
                   >
                     <Ionicons
                       name={props.tempSetData.isDone ? "checkbox" : "checkbox-outline"}
-                      size={28}
+                      size={40}
                       color={props.tempSetData.isDone ? Colors.primary : Colors.black}
                     />
                   </Pressable>
@@ -218,7 +216,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
             </View>
           )}
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 };
@@ -289,7 +287,7 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
 
   return (
     <Modal visible={true} transparent animationType="fade" onRequestClose={props.onCloseOverlay}>
-      <View style={newStyles.overlay}>
+      <SafeAreaView style={newStyles.overlay}>
         <View style={newStyles.content}>
           {/* TopBar Style Header */}
           <TopBar
@@ -302,7 +300,7 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
 
           {isBreaktime ? (
             /* Pausenzeit Overlay */
-            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+            <View style={{ paddingHorizontal: 20 }}>
               <View style={newStyles.timeInputContainer}>
                 <View style={{ alignItems: 'center' }}>
                   <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Minuten</Text>
@@ -327,7 +325,7 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
             </View>
           ) : (
             /* AddSet / EditSet Overlay - ohne Erledigt Checkbox für SingleWorkout */
-            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+            <View style={{  }}>
               {/* Gewicht */}
               <View style={{ marginBottom: 24 }}>
                 <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Gewicht (kg)</Text>
@@ -352,7 +350,7 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
             </View>
           )}
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 };

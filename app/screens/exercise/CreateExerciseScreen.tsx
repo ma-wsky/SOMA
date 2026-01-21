@@ -8,7 +8,8 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import { exerciseStyles } from "@/styles/exerciseStyles";
 import { useImagePicker } from "@/hooks/useImagePicker"
 import { uploadImage } from "@/utils/uploadImage"
-
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Colors } from "@/styles/theme";
 
 export default function CreateExerciseScreen() {
 
@@ -121,13 +122,14 @@ export default function CreateExerciseScreen() {
     };
 
     return (
+        
         <KeyboardAvoidingView
-            style={{ flex: 1 }}
+            style={{ flex: 1,backgroundColor:Colors.background }}
             behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
-        >
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        ><SafeAreaView style={{backgroundColor:Colors.background}}>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={{backgroundColor:Colors.background}}>
                 <ScrollView
-                    contentContainerStyle={{ flexGrow: 1 }}
+                    contentContainerStyle={{ flexGrow: 1, backgroundColor:Colors.background }}
                     keyboardShouldPersistTaps="handled"
                 >
                     {/* Screen */}
@@ -155,7 +157,7 @@ export default function CreateExerciseScreen() {
 
                                 {!hasImage && (
                                     <View style={exerciseStyles.textOverlay}>
-                                        <Text style={exerciseStyles.picText}>klicke zum hinzufügen</Text>
+                                        <Text style={exerciseStyles.picText}>Hinzufügen</Text>
                                     </View>
                                 )}
                             </Pressable>
@@ -226,6 +228,8 @@ export default function CreateExerciseScreen() {
                     </View>
                 </ScrollView>
             </TouchableWithoutFeedback>
+        </SafeAreaView>
         </KeyboardAvoidingView>
+        
     );
 }

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { FlatList, View, Text } from "react-native";
 import WorkoutItem from "@/components/WorkoutItem";
 import { Workout, ListItem } from "@/types/workoutTypes";
+import { Colors } from "@/styles/theme";
 
 interface Props {
   workouts: Workout[];
@@ -42,7 +43,7 @@ export default function WorkoutList({workouts, filter = "", onItemPress, onDelet
       }}
       ListEmptyComponent={() => (
         <View style={{ marginTop: 20 }}>
-          <Text style={{ textAlign: "center", color: "#666" }}>
+          <Text style={{ textAlign: "center", color: Colors.darkGray }}>
             Keine Workouts gefunden.
           </Text>
         </View>

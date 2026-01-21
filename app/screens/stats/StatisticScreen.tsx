@@ -4,6 +4,9 @@ import { useState } from 'react';
 import LoadingOverlay from "@/components/LoadingOverlay";
 import ExerciseList from "@/components/ExerciseList"
 import { useLoadExercises } from "@/hooks/useLoadExercises"
+import { Colors } from "@/styles/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 
 export default function StatisticScreen() {
@@ -12,14 +15,14 @@ export default function StatisticScreen() {
     const [filter, setFilter] = useState("");
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={[styles.container]}>
 
             {/* Search Bar */}
             <TextInput placeholder={"Übung suchen..."}
-                       placeholderTextColor='white'
-                       value={filter}
-                       onChangeText={setFilter}
-                       style={styles.search}/>
+                        placeholderTextColor={Colors.white}
+                        value={filter}
+                        onChangeText={setFilter}
+                        style={styles.search}/>
 
 
             {/* Exercise List with favorites and regular */}
@@ -37,21 +40,21 @@ export default function StatisticScreen() {
             {/* Loading Overlay */}
             <LoadingOverlay visible={loading} />
 
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
+        backgroundColor:Colors.background,
         flex: 1,
         justifyContent: 'flex-start',
-        marginTop: 20,
     },
     search:{
         padding:10,
-        color: 'white',
+        color: Colors.white,
         fontSize:20,
-        backgroundColor:'black',
+        backgroundColor:Colors.black,
         margin:20,
         borderRadius: 50,
     },
@@ -60,14 +63,14 @@ const styles = StyleSheet.create({
     },
     dividerText: {
         fontWeight: "600",
-        color: "#666"
+        color: Colors.darkGray
     },
     line: {
         flex: 1,
         borderBottomColor: 'gray',
         borderBottomWidth: 2,
         height: 1,
-        backgroundColor: "#ccc",
+        backgroundColor: Colors.gray,
         marginTop: 4
     },
     listContent: {
