@@ -7,6 +7,7 @@ import { requestNotificationPermissions } from "@/utils/helper/notificationHelpe
 import { StatusBar } from 'expo-status-bar';
 import { useAutoBrightness } from '@/hooks/useAutoBrightness';
 import { ActiveWorkoutFloatingBar } from "@/components/ActiveWorkoutFloatingBar";
+import { networkToastConfig } from "@/components/networkToast/networkToastConfig"
 
 import { useFonts, Righteous_400Regular } from '@expo-google-fonts/righteous';
 
@@ -36,7 +37,7 @@ export default function Layout() {
             />
             <Slot />
             <ActiveWorkoutFloatingBar />
-            <Toast/>
+            <Toast config={networkToastConfig} />
         </>
     );
 }

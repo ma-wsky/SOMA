@@ -34,7 +34,7 @@ const showOfflineToast = () => {
     Toast.show({
         type: 'error',
         text1: 'Offline',
-        text2: 'Du hast die Internetverbindung verloren.',
+        text2: 'Internetverbindung verloren.',
         autoHide: false,
     });
 }
@@ -42,9 +42,9 @@ const showOfflineToast = () => {
 const showOnlineToast = () => {
     Toast.show({
         type: 'success',
-        text1: 'Wieder online',
-        text2: 'Deine Verbindung wurde wiederhergestellt.',
-        visibilityTime: 2000,
+        text1: 'Online',
+        text2: 'Verbindung wiederhergestellt.',
+        visibilityTime: 3000,
         autoHide: true,
     });
 }
