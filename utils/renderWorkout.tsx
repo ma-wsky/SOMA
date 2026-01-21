@@ -269,7 +269,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
           {/* TopBar Style Header */}
           <TopBar
                   leftButtonText={ "Zurück"}
-                  titleText={isBreaktime ? "Pausen zeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
+                  titleText={isBreaktime ? "Pausenzeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
                   rightButtonText={isAdd ? "Hinzufügen" : "Speichern"}
                   onLeftPress={props.onCloseOverlay}
                   onRightPress={props.onSaveModalChanges}
@@ -289,7 +289,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
                     onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, mins: Number(v) || 0 })}
                   />
                 </View>
-                <Text style={{ fontSize: 24, marginHorizontal: 10, color: Colors.black }}>:</Text>
+                <Text style={{ fontSize: 24, marginHorizontal: 10, color: Colors.black, marginTop: 20, }}>:</Text>
                 <View style={{ alignItems: 'center' }}>
                   <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Sekunden</Text>
                   <TextInput
@@ -493,7 +493,7 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
           {/* TopBar Style Header */}
           <TopBar
                   leftButtonText={ "Zurück"}
-                  titleText={isBreaktime ? "Pausen zeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
+                  titleText={isBreaktime ? "Pausenzeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
                   rightButtonText={isAdd ? "Hinzufügen" : "Speichern"}
                   onLeftPress={props.onCloseOverlay}
                   onRightPress={props.onSaveModalChanges}
@@ -512,7 +512,7 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
                     onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, mins: Number(v) || 0 })}
                   />
                 </View>
-                <Text style={{ fontSize: 24, marginHorizontal: 10, color: Colors.black }}>:</Text>
+                <Text style={{ fontSize: 24, marginHorizontal: 10, color: Colors.black, marginTop: 20, }}>:</Text>
                 <View style={{ alignItems: 'center' }}>
                   <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Sekunden</Text>
                   <TextInput
