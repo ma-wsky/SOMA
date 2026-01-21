@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
-import {Colors} from "../styles/theme";
+import {Colors} from "@/styles/theme";
 import { topBarStyles as styles } from "@/styles/topBarStyles";
 
 

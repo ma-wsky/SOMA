@@ -507,7 +507,7 @@ export const renderHistoryCard = (
       <Text style={styles.setTextHeader}>Satz</Text>
       <Text style={styles.setTextHeader}>Gewicht</Text>
       <Text style={styles.setTextHeader}>Wdh.</Text>
-      <Text style={styles.setTextHeader}>Status</Text>
+      <Text style={styles.setTextHeader}>Erledigt</Text>
     </View>
 
     {sets.map((set, index) => {
