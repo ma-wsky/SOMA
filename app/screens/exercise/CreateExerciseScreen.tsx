@@ -136,7 +136,8 @@ export default function CreateExerciseScreen() {
                     <View style={exerciseStyles.container}>
 
                         {/* Top Bar */}
-                        <TopBar leftButtonText={"Zurück"}
+                        <TopBar isSheet={false}
+                                leftButtonText={"Zurück"}
                                 titleText={"Erstellen"}
                                 rightButtonText={"Speichern"}
                                 onLeftPress={() => router.back()}

@@ -9,6 +9,7 @@ export default function ImpressumScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <TopBar 
+                isSheet={false}
                 leftButtonText="Zurück"
                 titleText="Impressum"
                 onLeftPress={() => router.back()}

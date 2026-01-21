@@ -171,7 +171,7 @@ export default function SingleWorkoutInfoScreen() {
   if (!workout) {
     return (
       <SafeAreaView style={styles.container}>
-        <TopBar leftButtonText="Zurück" onLeftPress={() => router.back()} />
+        <TopBar isSheet={false} leftButtonText="Zurück" onLeftPress={() => router.back()} />
         <LoadingOverlay visible={true} />
       </SafeAreaView>
     );
@@ -198,6 +198,7 @@ export default function SingleWorkoutInfoScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <TopBar
+        isSheet={false}
         leftButtonText={isEditMode ? "Abbrechen" : "Zurück"}
         titleText={workout.name || "Training Info"}
         rightButtonText={isEditMode ? "Speichern" : "Bearbeiten"}

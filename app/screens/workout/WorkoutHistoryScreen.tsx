@@ -105,6 +105,7 @@ export default function WorkoutHistoryScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
       <TopBar
+        isSheet={false}
         leftButtonText="Zurück"
         titleText="Verlauf"
         rightButtonText="Export"

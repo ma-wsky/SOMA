@@ -234,6 +234,7 @@ export default function EditUserScreen() {
 
 
                         <TopBar
+                            isSheet={false}
                             rightButtonText="Speichern"
                             onRightPress={saveChanges}
                         />

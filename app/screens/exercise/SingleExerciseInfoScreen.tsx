@@ -92,7 +92,7 @@ export default function SingleExerciseInfoScreen() {
     if (!exercise) {
         return (
             <SafeAreaView style={exerciseStyles.container}>
-                <TopBar leftButtonText="Zurück" titleText="Übung Info" onLeftPress={() => router.back()} />
+                <TopBar isSheet={false} leftButtonText="Zurück" titleText="Übung Info" onLeftPress={() => router.back()} />
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <Text>Übung nicht gefunden.</Text>
                     <LoadingOverlay visible={true} />
@@ -105,7 +105,8 @@ export default function SingleExerciseInfoScreen() {
 
 
             {/* Top Bar */}
-            <TopBar leftButtonText={"Zurück"}
+            <TopBar isSheet={false}
+                    leftButtonText={"Zurück"}
                     titleText={"Übung Info"}
                     onLeftPress={() => router.back()}
             ></TopBar>
