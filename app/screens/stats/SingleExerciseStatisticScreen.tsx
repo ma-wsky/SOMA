@@ -110,7 +110,7 @@ export default function SingleExerciseStatisticScreen() {
             {/* Top Bar */}
             <TopBar leftButtonText={"Zurück"}
                     titleText={"Statistik"}
-                    rightButtonText={"Download"}
+                    rightButtonText={"Export"}
                     onLeftPress={() => router.replace("/(tabs)/StatisticScreenProxy")}
                     onRightPress={handleDownload}
             ></TopBar>
@@ -167,10 +167,20 @@ export default function SingleExerciseStatisticScreen() {
                                 backgroundGradientFrom: Colors.background,
                                 backgroundGradientTo: Colors.background,
                                 decimalPlaces: 1,
-                                color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
+
+                                color: (opacity = 1) => `rgba(171, 143, 255, ${opacity})`,
+                                fillShadowGradientFrom: Colors.primary,
+                                fillShadowGradientTo: "#ffffff",
+                                fillShadowGradientOpacity: 0.5,
+
                                 labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
                                 style: { borderRadius: 16, },
-                                propsForDots: { r: "5", strokeWidth: "2", stroke: "#007AFF" },
+                                propsForDots: {
+                                    r: "5",
+                                    strokeWidth: "2",
+                                    stroke: Colors.primary,
+                                    fill: Colors.white,
+                                },
                             }}
                             bezier
                             style={statStyles.chart}

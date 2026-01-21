@@ -60,11 +60,34 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
     }
 
     showChoice(
-      "Workout speichern",
-      "Soll dieses Workout als Vorlage gespeichert werden?",
+      "Fertigstellen",
+      "Möchtest du das Training fertigstellen?",
       [
-        { text: "Nur Protokoll", onPress: () => saveWorkoutToDatabase("history"), style: "default" },
-        { text: "Als Vorlage", onPress: () => saveWorkoutToDatabase("template"), style: "default" },
+        {
+            text: "Abbrechen",
+            onPress: () => {},
+            style: "cancel"
+        },
+        {
+            text: "Ja",
+            style: "default",
+            onPress: () => {
+                showChoice(
+                    "Vorlage",
+                    "Möchtest du zusätzlich eine neue Vorlage erstellen?",
+                    [
+                        {
+                            text: "Nein",
+                            onPress: () => saveWorkoutToDatabase("history")
+                        },
+                        {
+                            text: "Ja",
+                            onPress: () => saveWorkoutToDatabase("template")
+                        }
+                    ]
+                )
+            }
+        },
       ]
     );
   }, [workout]);
