@@ -172,8 +172,8 @@ export default function EditUserScreen() {
             await cancelAllNotifications();
             if (formData.reminderDays.length > 0) {
                 await scheduleWeeklyWorkoutReminder(
-                    "Zeit fürs Training!",
-                    "Dein Workout wartet auf dich.",
+                    "Zeit abzuliefern!",
+                    "Dein Training wartet auf dich.",
                     formData.reminderTime.getHours(),
                     formData.reminderTime.getMinutes(),
                     formData.reminderDays
