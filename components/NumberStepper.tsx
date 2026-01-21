@@ -1,4 +1,4 @@
-import { View, Text, Pressable, TextInput, Modal, StyleSheet } from "react-native";
+import { View, Text, Pressable, TextInput, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/styles/theme";
 
@@ -36,6 +36,7 @@ export const NumberStepper = ({
           value={value.toString()}
           onChangeText={(text) => onChange(Number(text) || 0)}
           keyboardType="numeric"
+          selectTextOnFocus={true}
           style={{ flex: 1, color: Colors.white, textAlign: "center", fontSize: 18, fontWeight: "bold" }}
         />
 
