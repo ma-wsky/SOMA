@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, Dispatch, SetStateAction } from "react";
-import type { Workout, Exercise, ExerciseSet } from "@/types/workoutTypes";
+import type { Workout } from "@/types/workoutTypes";
+import { Exercise } from "@/types/Exercise"
 
 export interface BaseWorkoutState {
     workout: Workout | null;

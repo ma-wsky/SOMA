@@ -57,16 +57,14 @@ export default function RegisterScreen() {
                 weight: null,
                 updatedAt: serverTimestamp(),
                 createdAt: serverTimestamp(),
-                reminderTime: { hour: 20, minute: 0 },
+                reminderTime: "",
                 reminderDays: [],
             }, { merge: true });
 
-            console.log("User registered and document created.");
             Alert.alert("Geschafft!", "Registrierung erfolgreich.");
             router.replace("/(tabs)/HomeScreenProxy");
 
         } catch (error: any) {
-            console.error("Register error:", error.code);
             const message = getAuthErrorMessage(error.code);
             Alert.alert("Fehler", message);
         }finally {

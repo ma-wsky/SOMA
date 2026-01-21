@@ -35,7 +35,7 @@ export const ExerciseService = {
         return exercise;
     },
 
-    fetchHistory: async (exerciseId: string) => {
+    fetchHistory: async (exerciseId: string, userId: string) => {
         if (!exerciseId) return [];
 
         try {
@@ -46,30 +46,34 @@ export const ExerciseService = {
 
             const qSnapshot = await getDocs(q);
 
-            const data = await Promise.all(qSnapshot.docs.map(async (doc) => {
-                const setData = doc.data();
-                const parentDocRef = doc.ref.parent.parent;
+            const data = await Promise.all(
+                qSnapshot.docs
+                    // nur quickfix. besser: uid mitspeichern im workout
+                    .filter(doc => doc.ref.path.includes(`users/${userId}/`))
+                    .map(async (doc) => {
+                        const setData = doc.data();
+                        const parentDocRef = doc.ref.parent.parent;
 
-                let dateValue = new Date(); // Fallback
+                        let dateValue = new Date(); // Fallback
 
-                if (parentDocRef){
-                    const parentSnap = await getDoc(parentDocRef);
-                    if (parentSnap.exists()) {
-                        const parentData = parentSnap.data();
-                        if (parentData.date){
-                            dateValue = new Date(parentData.date);
+                        if (parentDocRef){
+                            const parentSnap = await getDoc(parentDocRef);
+                            if (parentSnap.exists()) {
+                                const parentData = parentSnap.data();
+                                if (parentData.date){
+                                    dateValue = new Date(parentData.date);
+                                }
+
+                            }
                         }
 
-                    }
-                }
-
-                return {
-                    weight: setData.weight,
-                    timestamp: dateValue.getTime(),
-                    date: dateValue,
-                };
-
-            }));
+                        return {
+                            weight: setData.weight,
+                            timestamp: dateValue.getTime(),
+                            date: dateValue,
+                        };
+                    })
+            );
 
             return data.sort((a, b) => a.timestamp - b.timestamp);
         } catch (error) {

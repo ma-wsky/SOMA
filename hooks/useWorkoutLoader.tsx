@@ -18,11 +18,13 @@
  * - useSingleWorkoutLoader -> uSeSingleWorkoutLoader
  */
 
-import { useEffect, useState, Dispatch, SetStateAction } from "react";
+import { useEffect, Dispatch, SetStateAction } from "react";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db, auth } from "@/firebaseConfig";
 import { showAlert } from "@/utils/helper/alertHelper";
-import type { Workout, Exercise, ExerciseSet } from "@/types/workoutTypes";
+import type { Workout, ExerciseSet } from "@/types/workoutTypes";
+import { Exercise } from  "@/types/Exercise"
+import { ExerciseService } from "@/services/exerciseService";
 
 interface LoadWorkoutParams {
   id?: string | string[];
@@ -165,119 +167,87 @@ export const useWorkoutLoader = ({
 
 
 export const useSingleWorkoutLoader = ({
-  id,
-  workoutEditId,
-  setWorkout,
-  setOriginalWorkout,
-  setExercises,
-  setLoading,
-  setEditIdRef,
-  isCreateMode,
-}: LoadWorkoutParams & { isCreateMode?: boolean }) => {
-  useEffect(() => {
-    const fetchWorkout = async () => {
-      setLoading(true);
-      try {
-        // Load exercises first
-        const exercisesMap = new Map<string, Exercise>();
-        const exercisesSnapshot = await getDocs(collection(db, "exercises"));
-        exercisesSnapshot.forEach((doc) => {
-          exercisesMap.set(doc.id, { id: doc.id, ...doc.data() } as Exercise);
-        });
+                                           id,
+                                           workoutEditId,
+                                           setWorkout,
+                                           setOriginalWorkout,
+                                           setExercises,
+                                           setLoading,
+                                           setEditIdRef,
+                                       }: LoadWorkoutParams & { isCreateMode?: boolean }) => {
+    useEffect(() => {
+        const fetchWorkout = async () => {
+            setLoading(true);
+            try {
+                const user = auth.currentUser;
+                if (!user) return;
 
-        if (setExercises) {
-          setExercises(exercisesMap);
-        }
+                // 1. IDs bestimmen
+                const normalizedEditId = Array.isArray(workoutEditId) ? workoutEditId[0] : workoutEditId;
+                const editId = normalizedEditId || (id ? `workout_${id}` : `new_${Date.now()}`);
+                if (setEditIdRef) setEditIdRef(editId);
 
-        // Set edit ref
-        const normalizedEditId = Array.isArray(workoutEditId) ? workoutEditId[0] : workoutEditId;
-        const editId = normalizedEditId || (id ? `workout_${id}` : `new_${Date.now()}`);
-        if (setEditIdRef) {
-          setEditIdRef(editId);
-        }
+                let currentWorkout: Workout;
 
-        // New workout, initialize only if no draft exists
-        if (!id) {
-          const emptyWorkout: Workout = {
-            date: new Date().toISOString(),
-            exerciseSets: [],
-            name: "",
-          };
+                // 2. Basis-Workout laden
+                if (id) {
+                    const userRef = doc(db, "users", user.uid, "workouts", id as string);
+                    const userSnap = await getDoc(userRef);
 
-          if (setOriginalWorkout) {
-            setOriginalWorkout(emptyWorkout);
-          }
+                    if (userSnap.exists()) {
+                        const setsSnapshot = await getDocs(collection(userRef, "exerciseSets"));
+                        const sets: ExerciseSet[] = setsSnapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        } as ExerciseSet));
 
-          const draft = editId ? require("@/utils/store/workoutEditingStore").getEditingWorkout(editId) : null;
-          if (draft) {
-            // Prevent infinite loop by checking if draft is different from current state
-            setWorkout((currentWorkout) => {
-              if (JSON.stringify(currentWorkout) !== JSON.stringify(draft)) {
-                return draft;
-              }
-              return currentWorkout;
-            });
-          } else {
-            // Only set initial empty workout if no draft exists
-            setWorkout(emptyWorkout);
-          }
-          return;
-        }
+                        currentWorkout = {
+                            id: userSnap.id,
+                            name: userSnap.data().name || "",
+                            date: userSnap.data().date,
+                            exerciseSets: sets,
+                        };
+                    } else {
+                        currentWorkout = { date: new Date().toISOString(), exerciseSets: [], name: "" };
+                    }
+                } else {
+                    currentWorkout = { date: new Date().toISOString(), exerciseSets: [], name: "" };
+                }
 
-        // Existing Workout
-        const user = auth.currentUser;
-        if (!user) {
-          return;
-        }
+                // 3. Draft-Check (Überschreibt Basis-Daten)
+                const draft = editId ? require("@/utils/store/workoutEditingStore").getEditingWorkout(editId) : null;
+                if (draft) {
+                    currentWorkout = draft;
+                }
 
-        const userRef = doc(db, "users", user.uid, "workouts", id as string);
-        const userSnap = await getDoc(userRef);
+                // 4. GEZIELTES FETCHEN DER EXERCISES (Ersetzt den globalen Fetch)
+                if (setExercises && currentWorkout.exerciseSets.length > 0 && auth.currentUser) {
+                    const uniqueIds = [...new Set(currentWorkout.exerciseSets.map(s => s.exerciseId))];
 
-        if (userSnap.exists()) {
-          // Load exercise sets from subcollection
-          const setsSnapshot = await getDocs(collection(userRef, "exerciseSets"));
-          const sets: ExerciseSet[] = [];
-          setsSnapshot.forEach((doc) => {
-            const data = doc.data();
-            const exercise = exercisesMap.get(data.exerciseId);
-            sets.push({
-              id: doc.id,
-              exerciseId: data.exerciseId,
-              exerciseName: data.exerciseName || exercise?.name,
-              name: data.name || undefined,
-              breaktime: data.breaktime ?? 30,
-              weight: data.weight,
-              reps: data.reps,
-              isDone: data.isDone || false,
-            });
-          });
+                    const uid = auth.currentUser.uid;
+                    const exerciseResults = await Promise.all(
+                        uniqueIds.map(exId => ExerciseService.fetchExercise(exId, uid))
+                    );
 
-          const loadedWorkout = {
-            id: userSnap.id,
-            name: userSnap.data().name || "",
-            date: userSnap.data().date,
-            exerciseSets: sets,
-          };
+                    const newMap = new Map<string, Exercise>();
+                    exerciseResults.forEach(ex => {
+                        if (ex) newMap.set(ex.id, ex);
+                    });
 
-          setWorkout(loadedWorkout);
-          if (setOriginalWorkout) {
-            setOriginalWorkout(loadedWorkout);
-          }
+                    setExercises(newMap);
+                }
 
-          // Check if there is a draft overlaying the existing workout
-          const draft = editId ? require("@/utils/store/workoutEditingStore").getEditingWorkout(editId) : null;
-          if (draft) {
-             setWorkout(draft);
-          }
-        }
-      } catch (e) {
-        console.error("Fehler beim Laden des Workouts:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
+                // 5. Finales Setzen der States
+                setWorkout(currentWorkout);
+                if (setOriginalWorkout) setOriginalWorkout(currentWorkout);
 
-    fetchWorkout();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, workoutEditId]); // Nur id und workoutEditId als Dependencies - Setter sind stabil
+            } catch (e) {
+                console.error("Fehler beim Laden des Workouts:", e);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchWorkout();
+    }, [id, workoutEditId]);
 };

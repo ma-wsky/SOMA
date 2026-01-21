@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { auth, db } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
-import { Workout, Exercise, ExerciseSet } from "@/types/workoutTypes";
+import { Workout, ExerciseSet } from "@/types/workoutTypes";
+import { Exercise } from "@/types/Exercise"
 
 // TODO in file
 

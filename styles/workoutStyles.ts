@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Colors, DarkColors } from "./theme";
+import { Colors } from "./theme";
 import { topBarStyles } from './topBarStyles';
 
 export const workoutStyles = StyleSheet.create({
@@ -101,7 +101,7 @@ export const workoutStyles = StyleSheet.create({
 
     },
     addExerciseButtonText:{
-        color: Colors.black,
+        color: Colors.white,
         fontWeight: "bold",
     },
     //Old Styles
@@ -139,7 +139,8 @@ export const workoutStyles = StyleSheet.create({
         color: 'white',
         fontSize:20,
         backgroundColor:'black',
-        margin:20,
+        marginHorizontal:20,
+        marginBottom: 20,
         borderRadius: 50,
 
     },
@@ -233,12 +234,24 @@ export const workoutStyles = StyleSheet.create({
     sheetContainerContent: {
         flex: 1,
         paddingBottom: 20,
-        backgroundColor: Colors.darkBackground,
+        backgroundColor: Colors.gray,
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
         flexDirection: "column",
         height: "100%",
         gap: 10,
     },
 
 
-    
+    //picture
+    picContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingRight: 20,
+    },
+    itemPicture: {
+        width: 60,
+        height: 60,
+        borderRadius: 8,
+    },
 })
