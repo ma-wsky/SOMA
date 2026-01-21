@@ -23,10 +23,16 @@ export default function WorkoutItem({workout, onPress, onDelete}: Props) {
         PanResponder.create({
             onStartShouldSetPanResponder: () => true,
             onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 20,
-            onPanResponderMove: Animated.event([null, { dx: pan.x }], { useNativeDriver: false }),
+            onPanResponderMove: (_, gestureState) => {
+                //Begrenz Bewegung
+                const clampedX = Math.max(-150, Math.min(0, gestureState.dx));
+                pan.setValue({ x: clampedX, y: 0 });
+            },
             onPanResponderRelease: (_, gestureState) => {
-                if (gestureState.dx < -100) {
-                    //Swipe
+                const clampedX = Math.max(-150, Math.min(0, gestureState.dx));
+                
+                if (clampedX < -100) {
+                    //Swipe left - show delete
                     Animated.spring(pan, {
                         toValue: { x: -100, y: 0 },
                         useNativeDriver: false,
