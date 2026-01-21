@@ -101,7 +101,7 @@ export const workoutStyles = StyleSheet.create({
 
     },
     addExerciseButtonText:{
-        color: Colors.black,
+        color: Colors.white,
         fontWeight: "bold",
     },
     //Old Styles
