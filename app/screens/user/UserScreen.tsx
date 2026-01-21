@@ -1,12 +1,12 @@
 import { useRouter } from "expo-router";
-import { View, Text, ScrollView, Alert, Image, Pressable, StyleSheet } from "react-native";
+import { View, Text, ScrollView, Alert, Pressable, StyleSheet } from "react-native";
+import { Image } from "expo-image"
 import { useState, useEffect } from 'react';
 import { auth, db } from "@/firebaseConfig";
 import { signOut, deleteUser } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { userStyles } from "@/styles/userStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import { UserButton } from "@/components/user/userButton";
 import { SettingsOverlay } from "@/components/user/SettingsOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/styles/theme";
@@ -107,7 +107,6 @@ export default function UserScreen() {
     }
 
     return (
-
         <ScrollView style={userStyles.scrollView}>
             <View style={userStyles.userContainer}>
 
@@ -183,9 +182,6 @@ export default function UserScreen() {
                             })()} 
                         />
                 </View>
-
-
-        
 
                 {/* Loading Overlay */}
                 <LoadingOverlay visible={loading} />
