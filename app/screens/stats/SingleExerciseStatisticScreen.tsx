@@ -54,7 +54,7 @@ export default function SingleExerciseStatisticScreen() {
                 setExercise(exercise);
 
                 if (exercise){
-                    const history = await ExerciseService.fetchHistory(id);
+                    const history = await ExerciseService.fetchHistory(id, user.uid);
                     if(history && history.length > 0) {
                         historyRef.current = history;
                         const formattedData = transformHistoryToChartData(history);
@@ -99,7 +99,7 @@ export default function SingleExerciseStatisticScreen() {
 
             {/* Top Bar */}
             <TopBar leftButtonText={"Zurück"}
-                    titleText={"Übung Statistik"}
+                    titleText={"Statistik"}
                     rightButtonText={"Download"}
                     onLeftPress={() => router.replace("/(tabs)/StatisticScreenProxy")}
                     onRightPress={handleDownload}
