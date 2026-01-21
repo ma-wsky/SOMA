@@ -6,20 +6,18 @@ import { auth, db } from "@/firebaseConfig";
 import { TopBar } from "@/components/TopBar";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { renderHistoryCard } from "@/utils/renderWorkout";
 import { exportWorkoutsToPDF } from "@/utils/helper/exportHelper";
 import { ExerciseSet, Workout } from "@/types/workoutTypes";
-import { Exercise } from "@/types/Exercise"
 import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import { formatTimeDynamic } from "@/utils/helper/formatTimeHelper";
 import { ExerciseService } from "@/services/exerciseService";
 import { Colors } from "@/styles/theme";
+import { ExerciseCard } from "@/components/ExerciseCard";
 
 export default function WorkoutHistoryScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
   const [loading, setLoading] = useState(true);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [exercises, setExercises] = useState<Exercise[]>([]);
 
   useEffect(() => {
     const loadWorkoutHistory = async () => {
@@ -72,23 +70,6 @@ export default function WorkoutHistoryScreen() {
         loadedWorkouts.sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );
-
-        //
-        const allExerciseIds = loadedWorkouts.flatMap(workout =>
-            workout.exerciseSets.map(set => set.exerciseId)
-        );
-
-        const uniqueExerciseIds = [...new Set(allExerciseIds)];
-
-        if (uniqueExerciseIds.length > 0 && auth.currentUser){
-            const uid = auth.currentUser.uid;
-            const exercisePromises = uniqueExerciseIds.map(id =>
-                ExerciseService.fetchExercise(id, uid)
-            );
-            const fetchedExercises = await Promise.all(exercisePromises);
-
-            setExercises(fetchedExercises.filter(ex => ex != null) as Exercise[]);
-        }
 
         setWorkouts(loadedWorkouts);
       } catch (e) {
@@ -295,11 +276,18 @@ export default function WorkoutHistoryScreen() {
                   )}
                 </View>
 
-                {exerciseIds.map((exerciseId) => {
-                  const sets = groupedExercises[exerciseId];
-                  const exerciseDetails = exercises.find(e => e.id === exerciseId);
-                  if (exerciseDetails) return renderHistoryCard(exerciseId, sets, exerciseDetails);
-                })}
+                  {exerciseIds.map((exerciseId) => {
+                      const sets = groupedExercises[exerciseId];
+                      return (
+                          <ExerciseCard
+                              key={exerciseId}
+                              exerciseId={exerciseId}
+                              sets={sets}
+                              mode="history" // Wichtig: Damit werden nur Häkchen statt Checkboxen gezeigt
+                              props={{}}      // Da im History Mode keine Callbacks (wie onOpenEditSet) nötig sind
+                          />
+                      );
+                  })}
 
               </View>
             );

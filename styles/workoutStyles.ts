@@ -236,7 +236,6 @@ export const workoutStyles = StyleSheet.create({
         gap: 10,
     },
 
-
     //picture
     picContainer: {
         flexDirection: 'row',

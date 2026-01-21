@@ -235,7 +235,7 @@ export default function EditUserScreen() {
                         {/* Profile Picture */}
                         <View style={userStyles.picWrapper}>
                             <Pressable
-                                onPress={() => handleTakePhoto}
+                                onPress={handleTakePhoto}
                                 style={userStyles.profilePictureWrapperEdit}
                             >
                                 <Image

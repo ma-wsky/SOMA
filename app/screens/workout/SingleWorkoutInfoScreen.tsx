@@ -6,17 +6,16 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import { workoutStyles as styles } from "@/styles/workoutStyles";
 import { Colors } from "@/styles/theme";
 import { minSecToSeconds } from "@/components/NumberStepper";
-
-import { ExerciseSet } from "@/types/workoutTypes";
+import type { ExerciseSet } from "@/types/workoutTypes";
 import { useOverlayHandlers } from "@/hooks/useOverlayHandlers";
 import { useSingleWorkoutData } from "@/hooks/useSingleWorkoutData";
 import { useSingleWorkoutLoader } from "@/hooks/useWorkoutLoader";
 import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import {
-  renderSingleCard,
   renderSingleOverlays,
 } from "@/utils/renderWorkout";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ExerciseCard } from "@/components/ExerciseCard";
 
 
 export default function SingleWorkoutInfoScreen() {
@@ -244,10 +243,16 @@ export default function SingleWorkoutInfoScreen() {
           </View>
         )}
 
-        {Object.entries(groupSetsByExercise(workout.exerciseSets)).map(([exerciseId, sets]) => {
-            const exerciseDetails = exercisesMap.get(exerciseId);
-            if (exerciseDetails) return renderSingleCard(exerciseId, sets, isEditMode, renderProps, exerciseDetails);
-        })}
+          {Object.entries(groupSetsByExercise(workout.exerciseSets)).map(([exerciseId, sets]) => (
+              <ExerciseCard
+                  key={exerciseId}
+                  exerciseId={exerciseId}
+                  sets={sets}
+                  mode="single"      // 'single' passt zum SingleWorkoutInfoScreen
+                  isEditing={isEditMode}
+                  props={renderProps}
+              />
+          ))}
 
         {isEditMode && (
           <Pressable onPress={handleAddExercise} style={[styles.addExerciseButton, { marginTop: 20 }]}>
