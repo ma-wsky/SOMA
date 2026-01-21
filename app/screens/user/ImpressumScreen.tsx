@@ -13,7 +13,7 @@ export default function ImpressumScreen() {
             />
             
             <ScrollView style={styles.content}>
-                <Text style={styles.heading}>Angaben gemäß § 5 TMG</Text>
+                <Text style={styles.heading}>Angaben gemäß § 5 DDG (TMG)</Text>
                 <Text style={styles.text}>
                     SOMA App{"\n"}
                     Unsere Adresse/Anschrift - evtl Hochschule
@@ -29,11 +29,15 @@ export default function ImpressumScreen() {
                     Wir mit Namen evtl adres/kontakt
                 </Text>
 
-                <Text style={styles.heading}>Haftungsausschluss</Text>
+                <Text style={styles.heading}>Medien der App</Text>
                 <Text style={styles.text}>
-                    Die Inhalte dieser App wurden mit größter Sorgfalt erstellt. 
-                    Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte 
-                    können wir jedoch keine Gewähr übernehmen.
+                    Sound-Assets von Pixabay.com, Usern : {"\n"}
+                    - Universfield{"\n"}
+                    - Superpuyofans1234{"\n"}{"\n"}
+                    Bild-Assets von Storyset.com, Kategorien:{"\n"}
+                    - People Illustration{"\n"}
+                    - Medical Illustraion{"\n"}
+                    - Media Illustraion
                 </Text>
 
                 <Text style={styles.heading}>Datenschutz</Text>
