@@ -169,7 +169,7 @@ export const SettingsOverlay: React.FC<SettingsOverlayProps> = ({
                                 value={settings.vibrationEnabled}
                                 onValueChange={handleToggleVibration}
                                 trackColor={{ false: Colors.gray, true: Colors.primary }}
-                                thumbColor={settings.vibrationEnabled ? Colors.white : '#f4f3f4'}
+                                thumbColor={settings.vibrationEnabled ? Colors.white : Colors.gray}
                             />
                         </View>
 
@@ -186,7 +186,7 @@ export const SettingsOverlay: React.FC<SettingsOverlayProps> = ({
                                 value={settings.autoBrightnessEnabled}
                                 onValueChange={handleToggleAutoBrightness}
                                 trackColor={{ false: Colors.gray, true: Colors.primary }}
-                                thumbColor={settings.autoBrightnessEnabled ? Colors.white : '#f4f3f4'}
+                                thumbColor={settings.autoBrightnessEnabled ? Colors.white : Colors.gray}
                             />
                         </View>
 

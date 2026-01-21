@@ -92,7 +92,7 @@ export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.Rea
           value={props.workout.name || ""}
           onChangeText={props.onWorkoutNameChange}
           style={{
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.background,
             color: Colors.black,
             padding: 10,
             borderRadius: 8,

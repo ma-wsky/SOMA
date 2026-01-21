@@ -119,7 +119,7 @@ export const ActiveWorkoutFloatingBar = () => {
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        bottom: 90, 
+        bottom: 110, 
         left: 20,
         right: 20,
         backgroundColor: Colors.primary,
@@ -149,12 +149,12 @@ const styles = StyleSheet.create({
         color: Colors.white, 
     },
     timer: {
-        color: 'rgba(255,255,255,0.8)',
+        color: Colors.background,
         fontSize: 12,
         marginTop: 2,
     },
     restTimerText: {
-        color: 'rgba(255,255,255,0.95)',
+        color: Colors.background,
         fontWeight: 'bold',
     },
     button: {

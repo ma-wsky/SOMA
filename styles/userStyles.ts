@@ -62,6 +62,7 @@ export const userStyles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     field: {
+        color:Colors.black,
         fontSize: 18,
         marginLeft: 20,
     },
