@@ -57,7 +57,7 @@ export default function RegisterScreen() {
                 weight: null,
                 updatedAt: serverTimestamp(),
                 createdAt: serverTimestamp(),
-                reminderTime: { hour: 20, minute: 0 },
+                reminderTime: "",
                 reminderDays: [],
             }, { merge: true });
 
