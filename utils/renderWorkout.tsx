@@ -4,6 +4,11 @@ import {
   TextInput,
   Pressable,
   Modal,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Platform,
+  Keyboard,
+  SafeAreaView,
 } from "react-native";
 import { ScrollView } from 'react-native-gesture-handler';
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -15,7 +20,9 @@ import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import { formatTimeShort } from "@/utils/helper/formatTimeHelper";
 import { TopBar } from "@/components/TopBar";
 import { ExerciseCard } from "@/components/ExerciseCard"
-import { SafeAreaView } from "react-native-safe-area-context";
+
+//TODO Nutzt wirklich RenderBase??
+//TODO RenderOverlay raus holen
 
 interface ActiveWorkoutRenderProps {
   workout: Workout;
@@ -135,89 +142,99 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
   const isFromActiveWorkout = props.isFromActiveWorkout !== false; // Default true für ActiveWorkout
 
   return (
+
     <Modal visible={true} transparent animationType="fade" onRequestClose={props.onCloseOverlay}>
-      <SafeAreaView style={newStyles.overlay}>
-        <View style={newStyles.content}>
-          {/* TopBar Style Header */}
-          <TopBar
-                  isSheet={false}
-                  leftButtonText={ "Zurück"}
-                  titleText={isBreaktime ? "Pausenzeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
-                  rightButtonText={isAdd ? "Hinzufügen" : "Speichern"}
-                  onLeftPress={props.onCloseOverlay}
-                  onRightPress={props.onSaveModalChanges}
-                />
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
+        >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <SafeAreaView style={newStyles.overlay}>
+                    <View style={newStyles.content}>
+                        {/* TopBar Style Header */}
+                        <TopBar
+                            isSheet={false}
+                            leftButtonText={ "Zurück"}
+                            titleText={isBreaktime ? "Pausenzeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
+                            rightButtonText={isAdd ? "Hinzufügen" : "Speichern"}
+                            onLeftPress={props.onCloseOverlay}
+                            onRightPress={props.onSaveModalChanges}
+                        />
 
 
-          {isBreaktime ? (
-            /* Pausenzeit Overlay */
-            <View style={{ paddingHorizontal: 20 }}>
-              <View style={newStyles.timeInputContainer}>
-                <View style={{ alignItems: 'center' }}>
-                  <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Minuten</Text>
-                  <TextInput
-                    style={newStyles.timeInput}
-                    keyboardType="numeric"
-                    value={props.tempBreakTime.mins.toString()}
-                    onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, mins: Number(v) || 0 })}
-                  />
-                </View>
-                <Text style={{ fontSize: 24, marginHorizontal: 10, color: Colors.black, marginTop: 20, }}>:</Text>
-                <View style={{ alignItems: 'center' }}>
-                  <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Sekunden</Text>
-                  <TextInput
-                    style={newStyles.timeInput}
-                    keyboardType="numeric"
-                    value={props.tempBreakTime.secs.toString()}
-                    onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, secs: Number(v) || 0 })}
-                  />
-                </View>
-              </View>
-            </View>
-          ) : (
-            /* AddSet / EditSet Overlay */
-            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-              {/* Gewicht */}
-              <View style={{ marginBottom: 24 }}>
-                <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Gewicht (kg)</Text>
-                <NumberStepper
-                  label=""
-                  value={props.tempSetData.weight}
-                  onChange={(v) => props.onSetTempSetData({ ...props.tempSetData, weight: v })}
-                  step={0.5}
-                />
-              </View>
+                        {isBreaktime ? (
+                            /* Pausenzeit Overlay */
+                            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+                                <View style={newStyles.timeInputContainer}>
+                                    <View style={{ alignItems: 'center' }}>
+                                        <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Minuten</Text>
+                                        <TextInput
+                                            style={newStyles.timeInput}
+                                            keyboardType="numeric"
+                                            value={props.tempBreakTime.mins.toString()}
+                                            selectTextOnFocus={true}
+                                            onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, mins: Number(v) || 0 })}
+                                        />
+                                    </View>
+                                    <Text style={{ fontSize: 24, marginHorizontal: 10, color: Colors.black, marginTop: 20, }}>:</Text>
+                                    <View style={{ alignItems: 'center' }}>
+                                        <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Sekunden</Text>
+                                        <TextInput
+                                            style={newStyles.timeInput}
+                                            keyboardType="numeric"
+                                            selectTextOnFocus={true}
+                                            value={props.tempBreakTime.secs.toString()}
+                                            onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, secs: Number(v) || 0 })}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                        ) : (
+                            /* AddSet / EditSet Overlay */
+                            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+                                {/* Gewicht */}
+                                <View style={{ marginBottom: 24 }}>
+                                    <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Gewicht (kg)</Text>
+                                    <NumberStepper
+                                        label=""
+                                        value={props.tempSetData.weight}
+                                        onChange={(v) => props.onSetTempSetData({ ...props.tempSetData, weight: v })}
+                                        step={0.5}
+                                    />
+                                </View>
 
-              {/* Wiederholungen */}
-              <View style={{ marginBottom: 24 }}>
-                <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Wiederholungen</Text>
-                <NumberStepper
-                  label=""
-                  value={props.tempSetData.reps}
-                  onChange={(v) => props.onSetTempSetData({ ...props.tempSetData, reps: v })}
-                  step={1}
-                />
-              </View>
+                                {/* Wiederholungen */}
+                                <View style={{ marginBottom: 24 }}>
+                                    <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Wiederholungen</Text>
+                                    <NumberStepper
+                                        label=""
+                                        value={props.tempSetData.reps}
+                                        onChange={(v) => props.onSetTempSetData({ ...props.tempSetData, reps: v })}
+                                        step={1}
+                                    />
+                                </View>
 
-              {/* Erledigt Checkbox - nur wenn von aktivem Workout */}
-              {isFromActiveWorkout && (
-                <View style={{ flexDirection: 'row', justifyContent:'center' ,alignItems: 'center', paddingBottom:10}}>
-                  <Text style={{ color: Colors.black, fontSize: 16, marginRight: 16 }}>Erledigt</Text>
-                  <Pressable
-                    onPress={() => props.onSetTempSetData({ ...props.tempSetData, isDone: !props.tempSetData.isDone })}
-                  >
-                    <Ionicons
-                      name={props.tempSetData.isDone ? "checkbox" : "checkbox-outline"}
-                      size={40}
-                      color={props.tempSetData.isDone ? Colors.primary : Colors.black}
-                    />
-                  </Pressable>
-                </View>
-              )}
-            </View>
-          )}
-        </View>
-      </SafeAreaView>
+                                {/* Erledigt Checkbox - nur wenn von aktivem Workout */}
+                                {isFromActiveWorkout && (
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                                        <Text style={{ color: Colors.black, fontSize: 16, marginRight: 16 }}>Erledigt</Text>
+                                        <Pressable
+                                            onPress={() => props.onSetTempSetData({ ...props.tempSetData, isDone: !props.tempSetData.isDone })}
+                                        >
+                                            <Ionicons
+                                                name={props.tempSetData.isDone ? "checkbox" : "checkbox-outline"}
+                                                size={28}
+                                                color={props.tempSetData.isDone ? Colors.primary : Colors.black}
+                                            />
+                                        </Pressable>
+                                    </View>
+                                )}
+                            </View>
+                        )}
+                    </View>
+                </SafeAreaView>
+            </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -288,71 +305,80 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
 
   return (
     <Modal visible={true} transparent animationType="fade" onRequestClose={props.onCloseOverlay}>
-      <SafeAreaView style={newStyles.overlay}>
-        <View style={newStyles.content}>
-          {/* TopBar Style Header */}
-          <TopBar
-                  isSheet={false}
-                  leftButtonText={ "Zurück"}
-                  titleText={isBreaktime ? "Pausenzeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
-                  rightButtonText={isAdd ? "Hinzufügen" : "Speichern"}
-                  onLeftPress={props.onCloseOverlay}
-                  onRightPress={props.onSaveModalChanges}
-                />
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
+        >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <SafeAreaView style={newStyles.overlay}>
+                    <View style={newStyles.content}>
+                        {/* TopBar Style Header */}
+                        <TopBar
+                            isSheet={false}
+                            leftButtonText={ "Zurück"}
+                            titleText={isBreaktime ? "Pausenzeit" : isEdit ? "Set bearbeiten" : "Set hinzufügen"}
+                            rightButtonText={isAdd ? "Hinzufügen" : "Speichern"}
+                            onLeftPress={props.onCloseOverlay}
+                            onRightPress={props.onSaveModalChanges}
+                        />
 
-          {isBreaktime ? (
-            /* Pausenzeit Overlay */
-            <View style={{ paddingHorizontal: 20 }}>
-              <View style={newStyles.timeInputContainer}>
-                <View style={{ alignItems: 'center' }}>
-                  <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Minuten</Text>
-                  <TextInput
-                    style={newStyles.timeInput}
-                    keyboardType="numeric"
-                    value={props.tempBreakTime.mins.toString()}
-                    onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, mins: Number(v) || 0 })}
-                  />
-                </View>
-                <Text style={{ fontSize: 24, marginHorizontal: 10, color: Colors.black, marginTop: 20, }}>:</Text>
-                <View style={{ alignItems: 'center' }}>
-                  <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Sekunden</Text>
-                  <TextInput
-                    style={newStyles.timeInput}
-                    keyboardType="numeric"
-                    value={props.tempBreakTime.secs.toString()}
-                    onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, secs: Number(v) || 0 })}
-                  />
-                </View>
-              </View>
-            </View>
-          ) : (
-            /* AddSet / EditSet Overlay - ohne Erledigt Checkbox für SingleWorkout */
-            <View style={{  }}>
-              {/* Gewicht */}
-              <View style={{ marginBottom: 24 }}>
-                <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Gewicht (kg)</Text>
-                <NumberStepper
-                  label=""
-                  value={props.tempSetData.weight}
-                  onChange={(v) => props.onSetTempSetData({ ...props.tempSetData, weight: v })}
-                  step={0.5}
-                />
-              </View>
+                        {isBreaktime ? (
+                            /* Pausenzeit Overlay */
+                            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+                                <View style={newStyles.timeInputContainer}>
+                                    <View style={{ alignItems: 'center' }}>
+                                        <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Minuten</Text>
+                                        <TextInput
+                                            style={newStyles.timeInput}
+                                            keyboardType="numeric"
+                                            value={props.tempBreakTime.mins.toString()}
+                                            selectTextOnFocus={true}
+                                            onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, mins: Number(v) || 0 })}
+                                        />
+                                    </View>
+                                    <Text style={{ fontSize: 24, marginHorizontal: 10, color: Colors.black, marginTop: 20, }}>:</Text>
+                                    <View style={{ alignItems: 'center' }}>
+                                        <Text style={{ color: Colors.black, marginBottom: 8, fontSize: 14 }}>Sekunden</Text>
+                                        <TextInput
+                                            style={newStyles.timeInput}
+                                            keyboardType="numeric"
+                                            value={props.tempBreakTime.secs.toString()}
+                                            selectTextOnFocus={true}
+                                            onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, secs: Number(v) || 0 })}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                        ) : (
+                            /* AddSet / EditSet Overlay - ohne Erledigt Checkbox für SingleWorkout */
+                            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+                                {/* Gewicht */}
+                                <View style={{ marginBottom: 24 }}>
+                                    <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Gewicht (kg)</Text>
+                                    <NumberStepper
+                                        label=""
+                                        value={props.tempSetData.weight}
+                                        onChange={(v) => props.onSetTempSetData({ ...props.tempSetData, weight: v })}
+                                        step={0.5}
+                                    />
+                                </View>
 
-              {/* Wiederholungen */}
-              <View style={{ marginBottom: 24 }}>
-                <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Wiederholungen</Text>
-                <NumberStepper
-                  label=""
-                  value={props.tempSetData.reps}
-                  onChange={(v) => props.onSetTempSetData({ ...props.tempSetData, reps: v })}
-                  step={1}
-                />
-              </View>
-            </View>
-          )}
-        </View>
-      </SafeAreaView>
+                                {/* Wiederholungen */}
+                                <View style={{ marginBottom: 24 }}>
+                                    <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Wiederholungen</Text>
+                                    <NumberStepper
+                                        label=""
+                                        value={props.tempSetData.reps}
+                                        onChange={(v) => props.onSetTempSetData({ ...props.tempSetData, reps: v })}
+                                        step={1}
+                                    />
+                                </View>
+                            </View>
+                        )}
+                    </View>
+                </SafeAreaView>
+            </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
     </Modal>
   );
 };

@@ -1,4 +1,4 @@
-import React, {useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     View,
     Text,
@@ -9,10 +9,9 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ExerciseSet } from "@/types/workoutTypes";
 import { workoutStyles as styles } from "@/styles/workoutStyles";
 import { Colors } from "@/styles/theme";
-import { Exercise } from  "@/types/Exercise"
+import { Exercise } from "@/types/Exercise";
 import { ExerciseService } from "@/services/exerciseService";
 import { auth } from "@/firebaseConfig";
-
 
 type CardMode = 'active' | 'single' | 'history';
 
@@ -41,16 +40,26 @@ export const ExerciseCard = ({ exerciseId, sets, mode, isEditing, props }: Unive
         return () => { isMounted = false; };
     }, [exerciseId]);
 
-    // Fallback während des Ladens
     const currentExercise = exercise || {
         id: exerciseId,
         name: sets[0]?.exerciseName || "Laden...",
         isOwn: false,
     };
 
+    const hasAction = (mode === 'history' || mode === 'active' || isEditing);
+
+    const colStyles = {
+        satz: { flex: 1, minWidth: 30, textAlign: 'center' as const },
+        gewicht: { flex: 2, minWidth: 25, textAlign: 'center' as const },
+        reps: { flex: 1.5, minWidth: 25, textAlign: 'center' as const },
+        action: { flex: isEditing ? 2.5 : 1.5, minWidth: hasAction ? 60 : 0, alignItems: 'center' as const, justifyContent: 'center' as const }
+    };
+
+    const headerTextStyle = [styles.setTextHeader, { fontSize: 13 }];
+
     return (
         <View style={styles.exerciseCard}>
-            {/* HEADER BEREICH */}
+            {/* header */}
             <View style={styles.exerciseCardHeader}>
                 <View style={styles.picContainer}>
                     <Image
@@ -61,7 +70,6 @@ export const ExerciseCard = ({ exerciseId, sets, mode, isEditing, props }: Unive
                 </View>
                 <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
 
-                {/* Pausenanzeige (klickbar außer im History Mode) */}
                 <Pressable
                     onPress={() => mode !== 'history' && props.onOpenBreakTime?.(exerciseId, sets[0].breaktime || 30)}
                     disabled={mode === 'history' || (mode === 'single' && !isEditing)}
@@ -75,52 +83,69 @@ export const ExerciseCard = ({ exerciseId, sets, mode, isEditing, props }: Unive
                 </Pressable>
             </View>
 
-            {/* TABELLEN HEADER */}
-            <View style={styles.setRowHeader}>
-                <Text style={styles.setTextHeader}>Satz</Text>
-                <Text style={styles.setTextHeader}>Gewicht</Text>
-                <Text style={styles.setTextHeader}>Wdh.</Text>
-                {(mode === 'history' || (mode === 'active' && !isEditing)) && <Text style={styles.setTextHeader}>Erledigt</Text>}
-                {isEditing && <View style={{ width: 50 }} />}
+            {/* tabellen header */}
+            <View style={[styles.setRowHeader, { flexDirection: 'row', paddingHorizontal: 10 }]}>
+                <Text numberOfLines={1} style={[headerTextStyle, colStyles.satz]}>Satz</Text>
+                <Text numberOfLines={1} style={[headerTextStyle, colStyles.gewicht]}>Gew.</Text>
+                <Text numberOfLines={1} style={[headerTextStyle, colStyles.reps]}>Wdh.</Text>
+                {hasAction && (
+                    <Text numberOfLines={1} style={[headerTextStyle, colStyles.action]}>
+                        {isEditing ? "Aktion" : "Status"}
+                    </Text>
+                )}
             </View>
 
-            {/* SÄTZE LISTE */}
+            {/* sets */}
             {sets.map((set, index) => {
                 const globalIndex = props.workout?.exerciseSets.indexOf(set);
                 return (
-                    <View key={index} style={isEditing ? styles.setEditRow : styles.setRow}>
-                        <Text style={styles.setText}>{index + 1}</Text>
-                        <Text style={styles.setText}>{set.weight}</Text>
-                        <Text style={styles.setText}>{set.reps}</Text>
+                    <View
+                        key={index}
+                        style={[
+                            isEditing ? styles.setEditRow : styles.setRow,
+                            { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }
+                        ]}
+                    >
+                        <Text style={[styles.setText, colStyles.satz]}>{index + 1}</Text>
+                        <Text style={[styles.setText, colStyles.gewicht]}>{set.weight}</Text>
+                        <Text style={[styles.setText, colStyles.reps]}>{set.reps}</Text>
 
-                        {/* Modus-abhängige Spalte am Ende */}
-                        {mode === 'active' && !isEditing && (
-                            <Pressable onPress={() => props.onSetCheck(globalIndex, set.breaktime || 30)} style={{ flex: 1 }}>
-                                <Ionicons name={set.isDone ? "checkbox" : "checkbox-outline"} size={28} color={set.isDone ? Colors.primary : Colors.black} />
-                            </Pressable>
-                        )}
+                        {hasAction && (
+                            <View style={colStyles.action}>
+                                {mode === 'active' && !isEditing && (
+                                    <Pressable onPress={() => props.onSetCheck(globalIndex, set.breaktime || 30)}>
+                                        <Ionicons
+                                            name={set.isDone ? "checkbox" : "checkbox-outline"}
+                                            size={28}
+                                            color={set.isDone ? Colors.primary : Colors.black}
+                                        />
+                                    </Pressable>
+                                )}
 
-                        {mode === 'history' && (
-                            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                                <Ionicons name={set.isDone ? "checkmark-circle" : "ellipse-outline"} size={24} color={set.isDone ? Colors.primary : "#999"} />
-                            </View>
-                        )}
+                                {mode === 'history' && (
+                                    <Ionicons
+                                        name={set.isDone ? "checkmark-circle" : "ellipse-outline"}
+                                        size={24}
+                                        color={set.isDone ? Colors.primary : "#999"}
+                                    />
+                                )}
 
-                        {isEditing && (
-                            <View style={{ flexDirection: "row", gap: 15 }}>
-                                <Pressable onPress={() => props.onOpenEditSet(globalIndex, set)}>
-                                    <Ionicons name="pencil" size={22} color={Colors.black} />
-                                </Pressable>
-                                <Pressable onPress={() => props.onRemoveSet(globalIndex)}>
-                                    <Ionicons name="trash" size={22} color={Colors.black} />
-                                </Pressable>
+                                {isEditing && (
+                                    <View style={{ flexDirection: "row", gap: 15, justifyContent: 'center', width: '100%' }}>
+                                        <Pressable onPress={() => props.onOpenEditSet(globalIndex, set)}>
+                                            <Ionicons name="pencil" size={22} color={Colors.black} />
+                                        </Pressable>
+                                        <Pressable onPress={() => props.onRemoveSet(globalIndex)}>
+                                            <Ionicons name="trash" size={22} color={Colors.black} />
+                                        </Pressable>
+                                    </View>
+                                )}
                             </View>
                         )}
                     </View>
                 );
             })}
 
-            {/* SATZ HINZUFÜGEN BUTTON */}
             {isEditing && (
                 <Pressable onPress={() => props.onOpenAddSet(exerciseId, sets[0].exerciseName)} style={styles.addSetButton}>
                     <Text style={styles.addSetButtonText}>Satz hinzufügen +</Text>
