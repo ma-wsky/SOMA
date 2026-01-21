@@ -5,6 +5,7 @@ import { Colors } from "./theme";
 export const authStyles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor:Colors.background,
         justifyContent: "flex-start",
         marginHorizontal: 40,
         paddingTop: 200,
@@ -37,7 +38,7 @@ export const authStyles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         borderWidth: 1,
-        borderColor: "#ccc",
+        borderColor: Colors.gray,
         borderRadius: 10,
         paddingHorizontal: 10,
         marginVertical: 5,
@@ -58,7 +59,7 @@ export const authStyles = StyleSheet.create({
     },
     dividerLine: {
         flex: 1,
-        borderBottomColor: 'gray',
+        borderBottomColor: Colors.gray,
         borderBottomWidth: 1,
         marginVertical: "5%",
         marginHorizontal:5
@@ -78,7 +79,7 @@ export const authStyles = StyleSheet.create({
         borderColor: Colors.primary,
     },
     buttonText: {
-        color: "white",
+        color: Colors.white,
         fontWeight: "bold",
         fontSize: 16,
     },

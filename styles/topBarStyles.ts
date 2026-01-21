@@ -3,6 +3,7 @@ import { Colors } from "./theme";
 
 export const topBarStyles = StyleSheet.create({
     container: {
+        backgroundColor:Colors.background,
         flexDirection:"row",
         justifyContent: "space-around",
         alignItems: "center",

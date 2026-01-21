@@ -10,6 +10,7 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import { doc, deleteDoc } from "firebase/firestore";
 import { auth, db } from "@/firebaseConfig";
 import { showAlert } from "@/utils/helper/alertHelper";
+import { Colors } from "@/styles/theme";
 
 export default function WorkoutScreen() {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function WorkoutScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: Colors.background }]}>
       
       <View style={{ marginHorizontal: 20, marginTop: 20, }}>
         <Pressable
@@ -65,7 +66,7 @@ export default function WorkoutScreen() {
           }}
           style={({ pressed }) => [
             styles.bigButton,
-            { backgroundColor: pressed ? "#333" : "#000" },
+            { backgroundColor: pressed ? Colors.darkGray : Colors.black },
           ]}
         >
           <View style={styles.bigButtonTextWrapper}>
@@ -77,7 +78,7 @@ export default function WorkoutScreen() {
 
       <TextInput
         placeholder={"Training suchen..."}
-        placeholderTextColor="white"
+        placeholderTextColor={Colors.white}
         value={filter}
         onChangeText={setFilter}
         style={styles.searchbar}
@@ -105,7 +106,7 @@ export default function WorkoutScreen() {
           }}
           style={({ pressed }) => [
             styles.bigButton,
-            { backgroundColor: pressed ? "#333" : "#000" },
+            { backgroundColor: pressed ? Colors.darkGray : Colors.black },
           ]}
         >
           <View style={styles.bigButtonTextWrapper}>

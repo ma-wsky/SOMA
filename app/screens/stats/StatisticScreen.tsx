@@ -4,6 +4,7 @@ import { useState } from 'react';
 import LoadingOverlay from "@/components/LoadingOverlay";
 import ExerciseList from "@/components/ExerciseList"
 import { useLoadExercises } from "@/hooks/useLoadExercises"
+import { Colors } from "@/styles/theme";
 
 
 export default function StatisticScreen() {
@@ -12,11 +13,11 @@ export default function StatisticScreen() {
     const [filter, setFilter] = useState("");
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: Colors.background }]}>
 
             {/* Search Bar */}
             <TextInput placeholder={"Übung suchen..."}
-                       placeholderTextColor='white'
+                       placeholderTextColor={Colors.white}
                        value={filter}
                        onChangeText={setFilter}
                        style={styles.search}/>
@@ -49,9 +50,9 @@ const styles = StyleSheet.create({
     },
     search:{
         padding:10,
-        color: 'white',
+        color: Colors.white,
         fontSize:20,
-        backgroundColor:'black',
+        backgroundColor:Colors.black,
         margin:20,
         borderRadius: 50,
     },
@@ -60,14 +61,14 @@ const styles = StyleSheet.create({
     },
     dividerText: {
         fontWeight: "600",
-        color: "#666"
+        color: Colors.darkGray
     },
     line: {
         flex: 1,
         borderBottomColor: 'gray',
         borderBottomWidth: 2,
         height: 1,
-        backgroundColor: "#ccc",
+        backgroundColor: Colors.gray,
         marginTop: 4
     },
     listContent: {

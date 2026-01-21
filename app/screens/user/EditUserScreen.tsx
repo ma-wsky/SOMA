@@ -59,12 +59,12 @@ const WeekdayPicker = ({ selectedDays, onToggleDay }: { selectedDays: number[], 
                             width: 35,
                             height: 35,
                             borderRadius: 17.5,
-                            backgroundColor: isSelected ? Colors.primary : '#e0e0e0',
+                            backgroundColor: isSelected ? Colors.primary : Colors.gray,
                             justifyContent: 'center',
                             alignItems: 'center',
                         }}
                     >
-                        <Text style={{ color: isSelected ? 'white' : 'black', fontWeight: 'bold' }}>{day.label}</Text>
+                        <Text style={{ color: isSelected ? Colors.white : Colors.black, fontWeight: 'bold' }}>{day.label}</Text>
                     </Pressable>
                 );
             })}
@@ -220,7 +220,7 @@ export default function EditUserScreen() {
 
     return (
         <KeyboardAvoidingView
-            style={{ flex: 1 }}
+            style={{ flex: 1, backgroundColor: Colors.background }}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

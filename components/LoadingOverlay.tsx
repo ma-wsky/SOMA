@@ -31,11 +31,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     spinnerWrapper: {
-        backgroundColor: "white",
+        backgroundColor: Colors.white,
         padding: 20,
         borderRadius: 12,
         elevation: 5,
-        shadowColor: "#000",
+        shadowColor: Colors.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,

@@ -63,7 +63,7 @@ export const userStyles = StyleSheet.create({
         width: 250,
         height: 45,
         borderWidth: 2,
-        borderColor: 'gray',
+        borderColor: Colors.gray,
         borderRadius: 10,
         justifyContent: "center",
         paddingHorizontal: 10,
@@ -78,7 +78,7 @@ export const userStyles = StyleSheet.create({
     },
 
     line: {
-        borderBottomColor: 'gray',
+        borderBottomColor: Colors.gray,
         borderBottomWidth: 1,
         marginHorizontal: 20,
     },
@@ -95,7 +95,7 @@ export const userStyles = StyleSheet.create({
         height:150,
         borderRadius: 75,
         borderWidth: 4,
-        borderColor: 'black',
+        borderColor: Colors.black,
         resizeMode: 'cover',
     },
     //SettingsOverlay
@@ -115,7 +115,7 @@ export const userStyles = StyleSheet.create({
         width: width * 0.75,
         maxWidth: 320,
         backgroundColor: Colors.background,
-        shadowColor: '#000',
+        shadowColor: Colors.black,
         shadowOffset: { width: -2, height: 0 },
         shadowOpacity: 0.25,
         shadowRadius: 10,
@@ -123,7 +123,7 @@ export const userStyles = StyleSheet.create({
     },
     //edit user
     picText: {
-        color: "black",
+        color: Colors.black,
         fontWeight: "bold",
         fontSize: 16,
     },

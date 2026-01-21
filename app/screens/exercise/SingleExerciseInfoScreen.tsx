@@ -9,6 +9,7 @@ import { Exercise } from "@/types/Exercise"
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { exerciseStyles } from "@/styles/exerciseStyles"
 import { ExerciseService } from "@/services/exerciseService"
+import { Colors } from "@/styles/theme";
 
 
 export default function SingleExerciseInfoScreen() {
@@ -128,7 +129,7 @@ export default function SingleExerciseInfoScreen() {
                     <Ionicons
                         name={exercise.isFavorite ? "heart" : "heart-outline"}
                         size={32}
-                        color="#555"
+                        color={Colors.icon}
                     />
                 </Pressable>
 

@@ -63,7 +63,7 @@ export default function WorkoutItem({workout, onPress, onDelete}: Props) {
                 onPress={handleDelete}
                 style={{position: 'absolute', borderRadius:10, right: 20, top: 5, bottom: 5, width: 100, backgroundColor: '#ff4444', justifyContent: "center", alignItems: "center"}}
             >
-                <Ionicons name="trash" size={28} color="white"  />
+                <Ionicons name="trash" size={28} color={Colors.white}  />
             </Pressable>
 
             <Animated.View 
@@ -72,13 +72,13 @@ export default function WorkoutItem({workout, onPress, onDelete}: Props) {
             >
             <View style={{...styles.itemContainer, overflow: 'hidden', position: 'relative'}}>
 
-                <View style={{backgroundColor:"black"}}>
+                <View style={{backgroundColor:Colors.black}}>
 
                 <Pressable
                     onPress={() => {router.push({pathname: "/screens/workout/SingleWorkoutInfoScreen", params: {id: workout.id}})}}
                 >
                 <Text style={styles.itemTitle}>{workout.name}</Text>
-                <Text style={{color: "#aaa", fontSize: 12, marginTop: 4}}>
+                <Text style={{color: Colors.gray, fontSize: 12, marginTop: 4}}>
                     {workout.exerciseSets.length} Sets
                 </Text>
                 </Pressable>

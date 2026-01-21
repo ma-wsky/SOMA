@@ -12,6 +12,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { transformHistoryToChartData } from "@/utils/transformHistoryToChartData"
 import { ExerciseService } from "@/services/exerciseService"
 import { exportExerciseStatisticsToPDF } from "@/utils/helper/exportHelper"
+import { Colors } from "@/styles/theme";
 
 
 interface MyChartData {
@@ -95,7 +96,7 @@ export default function SingleExerciseStatisticScreen() {
     if (!exercise) return;
 
     return (
-        <View style={statStyles.container}>
+        <View style={[statStyles.container, { backgroundColor: Colors.background }]}>
 
             {/* Top Bar */}
             <TopBar leftButtonText={"Zurück"}
@@ -128,7 +129,7 @@ export default function SingleExerciseStatisticScreen() {
                     <Ionicons
                         name={exercise.isFavorite ? "heart" : "heart-outline"}
                         size={32}
-                        color="#555"
+                        color={Colors.icon}
                     />
                 </Pressable>
 
@@ -153,9 +154,9 @@ export default function SingleExerciseStatisticScreen() {
                             width={Dimensions.get("window").width - 60} // Breite des Bildschirms minus Padding
                             height={250}
                             chartConfig={{
-                                backgroundColor: "#ffffff",
-                                backgroundGradientFrom: "#ffffff",
-                                backgroundGradientTo: "#ffffff",
+                                backgroundColor: Colors.background,
+                                backgroundGradientFrom: Colors.background,
+                                backgroundGradientTo: Colors.background,
                                 decimalPlaces: 1,
                                 color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
                                 labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,

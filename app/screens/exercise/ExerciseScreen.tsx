@@ -6,6 +6,7 @@ import ExerciseList from "@/components/ExerciseList";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { useLoadExercises } from "@/hooks/useLoadExercises";
 import { exerciseStyles } from "@/styles/exerciseStyles";
+import { Colors } from "@/styles/theme";
 
 const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "Bauch"];
 
@@ -16,7 +17,7 @@ export default function ExerciseScreen() {
     const { exercises, loading } = useLoadExercises();
 
     return (
-        <View style={exerciseStyles.container}>
+        <View style={[exerciseStyles.container, {backgroundColor: Colors.background}]}>
 
             {/* Top Bar */}
             <TopBar leftButtonText={"Zurück"}

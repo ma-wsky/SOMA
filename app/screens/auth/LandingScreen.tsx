@@ -14,7 +14,7 @@ export default function LoginScreen(){
     const { handleGuestLogin, isGuestLoading } = useGuestLogin();
 
     return(
-        <ScrollView style={{backgroundColor:Colors.white}}>
+        <ScrollView style={{backgroundColor:Colors.background}}>
         <View style={authStyles.container}>
 
             {/* Title */}

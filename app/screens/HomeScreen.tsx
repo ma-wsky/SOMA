@@ -71,7 +71,7 @@ export default function Home(){
     };
 
     return (
-        <View style={{backgroundColor: '#ffffff', flex:1, flexDirection: "column",justifyContent: 'flex-start',}}>
+        <View style={{backgroundColor: Colors.background, flex:1, flexDirection: "column",justifyContent: 'flex-start',}}>
             <View style={{alignItems: "center", marginTop: 160,}}>
                 {!isAnonymous && userData?.name ? (
                     <Text style={{fontSize: 24, fontWeight: "bold",alignSelf: "center"}}>
@@ -109,7 +109,7 @@ export default function Home(){
                     onPress={() => {router.push("/screens/exercise/ExerciseScreen")}}
                     style={({ pressed }) => [
                         styles.bigButton,
-                        {backgroundColor: pressed ? "#333" : "#000"},
+                        {backgroundColor: pressed ? Colors.darkGray : Colors.black},
                     ]}
                 >
                     <View style={styles.bigButtonTextWrapper}>
@@ -117,7 +117,7 @@ export default function Home(){
                         <Ionicons
                             name={"barbell-outline"}
                             size={28}
-                            color="#fff"
+                            color={Colors.white}
                         />
                     </View>
 
