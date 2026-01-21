@@ -1,17 +1,16 @@
-import { Text, View, ScrollView, Pressable, Share } from "react-native";
+import { Text, View, ScrollView } from "react-native";
 import { useState, useEffect } from "react";
 import { useLocalSearchParams, router } from "expo-router";
 import { collection, getDocs } from "firebase/firestore";
 import { auth, db } from "@/firebaseConfig";
 import { TopBar } from "@/components/TopBar";
-import { workoutStyles } from "@/styles/workoutStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { renderHistoryCard } from "@/utils/renderWorkout";
 import { exportWorkoutsToPDF } from "@/utils/helper/exportHelper";
 import { ExerciseSet, Workout } from "@/types/workoutTypes";
 import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import { formatTimeDynamic } from "@/utils/helper/formatTimeHelper";
+import { ExerciseCard } from "@/components/ExerciseCard";
 
 export default function WorkoutHistoryScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
@@ -275,10 +274,18 @@ export default function WorkoutHistoryScreen() {
                   )}
                 </View>
 
-                {exerciseIds.map((exerciseId) => {
-                  const sets = groupedExercises[exerciseId];
-                  return renderHistoryCard(exerciseId, sets);
-                })}
+                  {exerciseIds.map((exerciseId) => {
+                      const sets = groupedExercises[exerciseId];
+                      return (
+                          <ExerciseCard
+                              key={exerciseId}
+                              exerciseId={exerciseId}
+                              sets={sets}
+                              mode="history" // Wichtig: Damit werden nur Häkchen statt Checkboxen gezeigt
+                              props={{}}      // Da im History Mode keine Callbacks (wie onOpenEditSet) nötig sind
+                          />
+                      );
+                  })}
 
               </View>
             );

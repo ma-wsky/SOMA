@@ -1,4 +1,3 @@
-import React from "react";
 import {
   View,
   Text,
@@ -10,11 +9,12 @@ import { ScrollView } from 'react-native-gesture-handler';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ExerciseSet, Workout, OverlayTypes } from "@/types/workoutTypes";
 import { workoutStyles as styles } from "@/styles/workoutStyles";
-import { NumberStepper, newStyles, minSecToSeconds } from "@/components/NumberStepper";
+import { NumberStepper, newStyles } from "@/components/NumberStepper";
 import { Colors } from "@/styles/theme";
 import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import { formatTimeShort } from "@/utils/helper/formatTimeHelper";
 import { TopBar } from "@/components/TopBar";
+import { ExerciseCard } from "@/components/ExerciseCard"
 
 //TODO Nutzt wirklich RenderBase??
 //TODO RenderOverlay raus holen
@@ -48,7 +48,7 @@ export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.Rea
 
   return (
     <ScrollView >
-      <Text 
+      <Text
         style={{ color: Colors.black, marginBottom: 10, fontSize: 24, textAlign: 'center' }}
         numberOfLines={2}
         ellipsizeMode="tail"
@@ -56,9 +56,16 @@ export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.Rea
         {props.workout.name}
       </Text>
 
-      {Object.entries(groupedSets).map(([exerciseId, sets]) =>
-        renderActiveExerciseCard(exerciseId, sets, false, props)
-      )}
+        {Object.entries(groupedSets).map(([exerciseId, sets]) => (
+            <ExerciseCard
+                key={exerciseId}
+                exerciseId={exerciseId}
+                sets={sets}
+                mode="active"
+                isEditing={props.isEditMode}
+                props={props}
+            />
+        ))}
 
       <View style={{ alignItems: "center" }}>
         <Pressable
@@ -71,6 +78,8 @@ export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.Rea
     </ScrollView>
   );
 };
+
+
 
 export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.ReactNode => {
   const groupedSets = groupSetsByExercise(props.workout.exerciseSets);
@@ -94,9 +103,16 @@ export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.Rea
           }}
         />
       </View>
-      {Object.entries(groupedSets).map(([exerciseId, sets]) =>
-        renderActiveExerciseCard(exerciseId, sets, true, props)
-      )}
+        {Object.entries(groupedSets).map(([exerciseId, sets]) => (
+            <ExerciseCard
+                key={exerciseId}
+                exerciseId={exerciseId}
+                sets={sets}
+                mode="active"
+                isEditing={true} // Hier true für Stift- und Mülleimer-Icon
+                props={props}
+            />
+        ))}
 
       <View style={{alignItems:'center'}}>
         <Pressable
@@ -111,85 +127,7 @@ export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.Rea
   );
 };
 
-const renderActiveExerciseCard = (
-  exerciseId: string,
-  sets: ExerciseSet[],
-  isEditing: boolean,
-  props: ActiveWorkoutRenderProps
-): React.ReactNode => (
-  <View key={exerciseId} style={styles.exerciseCard}>
-    <View style={styles.exerciseCardHeader}>
-      <Text style={{ fontSize: 22, fontWeight: "bold", color: "white", marginRight: 8 }}>Pic</Text>
 
-      <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
-
-      <Pressable onPress={() => props.onOpenBreakTime(exerciseId, sets[0].breaktime || 30)}>
-        <View style={{ flexDirection: "row", alignItems: "center", padding: 8 }}>
-          <Ionicons name="alarm-outline" size={20} color={Colors.primary} />
-          <Text style={{ color: Colors.primary, marginLeft: 4, fontSize: 12 }}>
-            {sets[0].breaktime || 30}s
-          </Text>
-        </View>
-      </Pressable>
-    </View>
-
-    <View style={styles.setRowHeader}>
-      <Text style={styles.setTextHeader}>Satz</Text>
-      <Text style={styles.setTextHeader}>Gewicht</Text>
-      <Text style={styles.setTextHeader}>Wdh.</Text>
-
-      {isEditing ? <View style={{ width: 50 }} />:
-            <Text style={styles.setTextHeader}>Erledigt</Text>
-        }
-    </View>
-
-    {sets.map((set) => {
-      const globalIndex = props.workout.exerciseSets.indexOf(set);
-      return (
-        <View key={globalIndex} style={isEditing ? styles.setEditRow : styles.setRow}>
-          <Text style={styles.setText}>{sets.indexOf(set) + 1}</Text>
-          <Text style={styles.setText}>{set.weight}</Text>
-          <Text style={styles.setText}>{set.reps}</Text>
-
-          {!isEditing ? (
-            <Pressable
-              onPress={() => props.onSetCheck(globalIndex, set.breaktime || 30)}
-              style={{ flex: 1 }}
-            >
-              <Ionicons
-                name={set.isDone ? "checkbox" : "checkbox-outline"}
-                size={28}
-                color={set.isDone ? Colors.primary : Colors.black}
-              />
-            </Pressable>
-          ) : (
-            <Text ></Text>
-          )}
-
-          {isEditing && (
-            <View style={{ flexDirection: "row", gap: 15, flexGrow: 0 }}>
-              <Pressable onPress={() => props.onOpenEditSet(globalIndex, set)}>
-                <Ionicons name="pencil" size={22} color={Colors.black} />
-              </Pressable>
-              <Pressable onPress={() => props.onRemoveSet(globalIndex)}>
-                <Ionicons name="trash" size={22} color={Colors.black} />
-              </Pressable>
-            </View>
-          )}
-        </View>
-      );
-    })}
-
-    {isEditing && (
-      <Pressable
-        onPress={() => props.onOpenAddSet(exerciseId, sets[0].exerciseName)}
-        style={styles.addSetButton}
-      >
-        <Text style={styles.addSetButtonText}>Satz hinzufügen +</Text>
-      </Pressable>
-    )}
-  </View>
-);
 
 export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.ReactNode => {
   if (props.activeOverlay === "none" || props.activeOverlay === "restTimer") return null;
@@ -210,7 +148,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
                   onLeftPress={props.onCloseOverlay}
                   onRightPress={props.onSaveModalChanges}
                 />
-          
+
 
           {isBreaktime ? (
             /* Pausenzeit Overlay */
@@ -250,7 +188,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
                   step={0.5}
                 />
               </View>
-              
+
               {/* Wiederholungen */}
               <View style={{ marginBottom: 24 }}>
                 <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Wiederholungen</Text>
@@ -341,71 +279,7 @@ interface SingleWorkoutRenderProps {
   onSetTempBreakTime: (data: { mins: number; secs: number }) => void;
 }
 
-export const renderSingleCard = (
-  exerciseId: string,
-  sets: ExerciseSet[],
-  isEditMode: boolean,
-  props: SingleWorkoutRenderProps
-): React.ReactNode => (
-  <View key={exerciseId} style={styles.exerciseCard}>
-    <View style={styles.exerciseCardHeader}>
-      <Text style={{ fontSize: 22, fontWeight: "bold", color: "white", marginRight: 8 }}>
-        Pic
-      </Text>
 
-      <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
-
-      <Pressable onPress={() => props.onOpenBreakTime(exerciseId, sets[0].breaktime || 30)}
-                 disabled={!isEditMode}>
-        <View style={{ flexDirection: "row", alignItems: "center", padding: 8 }}>
-          <Ionicons name="alarm-outline" size={20} color={Colors.primary} />
-          <Text style={{ color: Colors.primary, marginLeft: 4, fontSize: 12 }}>
-            {sets[0].breaktime || 30}s
-          </Text>
-        </View>
-      </Pressable>
-    </View>
-
-    <View style={styles.setRowHeader}>
-      <Text style={styles.setTextHeader}>Satz</Text>
-      <Text style={styles.setTextHeader}>Gewicht</Text>
-      <Text style={styles.setTextHeader}>Wdh.</Text>
-      {isEditMode && <View style={{ width: 50 }} />}
-    </View>
-
-    {sets.map((set) => {
-      const idx = props.workout.exerciseSets.indexOf(set);
-
-      return (
-        <View key={idx} style={isEditMode ? styles.setEditRow : styles.setRow}>
-          <Text style={styles.setText}>{sets.indexOf(set) + 1}</Text>
-          <Text style={styles.setText}>{set.weight}</Text>
-          <Text style={styles.setText}>{set.reps}</Text>
-
-          {isEditMode && (
-            <View style={{ flexDirection: "row", gap: 15, flexGrow: 0 }}>
-              <Pressable onPress={() => props.onOpenEditSet(idx, set)}>
-                <Ionicons name="pencil" size={22} color={Colors.black} />
-              </Pressable>
-              <Pressable onPress={() => props.onRemoveSet(idx)}>
-                <Ionicons name="trash" size={22} color={Colors.black} />
-              </Pressable>
-            </View>
-          )}
-        </View>
-      );
-    })}
-
-    {isEditMode && (
-      <Pressable
-        onPress={() => props.onOpenAddSet(exerciseId, sets[0].exerciseName || "")}
-        style={styles.addSetButton}
-      >
-        <Text style={styles.addSetButtonText}>Satz hinzufügen +</Text>
-      </Pressable>
-    )}
-  </View>
-);
 
 export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.ReactNode => {
   if (props.activeOverlay === "none") return null;
@@ -464,7 +338,7 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
                   step={0.5}
                 />
               </View>
-              
+
               {/* Wiederholungen */}
               <View style={{ marginBottom: 24 }}>
                 <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Wiederholungen</Text>
@@ -482,50 +356,3 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
     </Modal>
   );
 };
-
-
-export const renderHistoryCard = (
-  exerciseId: string,
-  sets: ExerciseSet[]
-): React.ReactNode => (
-  <View key={exerciseId} style={styles.exerciseCard}>
-    <View style={styles.exerciseCardHeader}>
-      <Text style={{ fontSize: 22, fontWeight: "bold", color: "white", marginRight: 8 }}>
-        Pic
-      </Text>
-
-      <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
-
-      <View style={{ flexDirection: "row", alignItems: "center", padding: 8 }}>
-        <Ionicons name="alarm-outline" size={20} color={Colors.primary} />
-        <Text style={{ color: Colors.primary, marginLeft: 4, fontSize: 12 }}>
-          {sets[0].breaktime || 30}s
-        </Text>
-      </View>
-    </View>
-
-    <View style={styles.setRowHeader}>
-      <Text style={styles.setTextHeader}>Satz</Text>
-      <Text style={styles.setTextHeader}>Gewicht</Text>
-      <Text style={styles.setTextHeader}>Wdh.</Text>
-      <Text style={styles.setTextHeader}>Erledigt</Text>
-    </View>
-
-    {sets.map((set, index) => {
-      return (
-        <View key={index} style={styles.setRow}>
-          <Text style={styles.setText}>{index + 1}</Text>
-          <Text style={styles.setText}>{set.weight}</Text>
-          <Text style={styles.setText}>{set.reps}</Text>
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-            <Ionicons
-              name={set.isDone ? "checkmark-circle" : "ellipse-outline"}
-              size={24}
-              color={set.isDone ? Colors.primary : "#999"}
-            />
-          </View>
-        </View>
-      );
-    })}
-  </View>
-);
