@@ -1,24 +1,22 @@
-import { Text, View, ScrollView } from "react-native";
+import { Text, View, ScrollView, Pressable, Share } from "react-native";
 import { useState, useEffect } from "react";
 import { useLocalSearchParams, router } from "expo-router";
 import { collection, getDocs } from "firebase/firestore";
 import { auth, db } from "@/firebaseConfig";
 import { TopBar } from "@/components/TopBar";
+import { workoutStyles } from "@/styles/workoutStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { renderHistoryCard } from "@/utils/renderWorkout";
 import { exportWorkoutsToPDF } from "@/utils/helper/exportHelper";
 import { ExerciseSet, Workout } from "@/types/workoutTypes";
-import { Exercise } from "@/types/Exercise"
 import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import { formatTimeDynamic } from "@/utils/helper/formatTimeHelper";
-import { ExerciseService } from "@/services/exerciseService";
 
 export default function WorkoutHistoryScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
   const [loading, setLoading] = useState(true);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [exercises, setExercises] = useState<Exercise[]>([]);
 
   useEffect(() => {
     const loadWorkoutHistory = async () => {
@@ -71,23 +69,6 @@ export default function WorkoutHistoryScreen() {
         loadedWorkouts.sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );
-
-        //
-        const allExerciseIds = loadedWorkouts.flatMap(workout =>
-            workout.exerciseSets.map(set => set.exerciseId)
-        );
-
-        const uniqueExerciseIds = [...new Set(allExerciseIds)];
-
-        if (uniqueExerciseIds.length > 0 && auth.currentUser){
-            const uid = auth.currentUser.uid;
-            const exercisePromises = uniqueExerciseIds.map(id =>
-                ExerciseService.fetchExercise(id, uid)
-            );
-            const fetchedExercises = await Promise.all(exercisePromises);
-
-            setExercises(fetchedExercises.filter(ex => ex != null) as Exercise[]);
-        }
 
         setWorkouts(loadedWorkouts);
       } catch (e) {
@@ -296,8 +277,7 @@ export default function WorkoutHistoryScreen() {
 
                 {exerciseIds.map((exerciseId) => {
                   const sets = groupedExercises[exerciseId];
-                  const exerciseDetails = exercises.find(e => e.id === exerciseId);
-                  if (exerciseDetails) return renderHistoryCard(exerciseId, sets, exerciseDetails);
+                  return renderHistoryCard(exerciseId, sets);
                 })}
 
               </View>

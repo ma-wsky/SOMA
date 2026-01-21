@@ -1,24 +1,20 @@
-import React, {useEffect, useState } from "react";
+import React from "react";
 import {
   View,
   Text,
   TextInput,
   Pressable,
   Modal,
-  Image,
 } from "react-native";
 import { ScrollView } from 'react-native-gesture-handler';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ExerciseSet, Workout, OverlayTypes } from "@/types/workoutTypes";
 import { workoutStyles as styles } from "@/styles/workoutStyles";
-import { NumberStepper, newStyles } from "@/components/NumberStepper";
+import { NumberStepper, newStyles, minSecToSeconds } from "@/components/NumberStepper";
 import { Colors } from "@/styles/theme";
 import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import { formatTimeShort } from "@/utils/helper/formatTimeHelper";
 import { TopBar } from "@/components/TopBar";
-import { Exercise } from  "@/types/Exercise"
-import { ExerciseService } from "@/services/exerciseService";
-import { auth } from "@/firebaseConfig";
 
 //TODO Nutzt wirklich RenderBase??
 //TODO RenderOverlay raus holen
@@ -60,14 +56,9 @@ export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.Rea
         {props.workout.name}
       </Text>
 
-        {Object.entries(groupedSets).map(([exerciseId, sets]) => (
-            <ActiveExerciseCardWrapper
-                key={exerciseId}
-                exerciseId={exerciseId}
-                sets={sets}
-                props={props}
-            />
-        ))}
+      {Object.entries(groupedSets).map(([exerciseId, sets]) =>
+        renderActiveExerciseCard(exerciseId, sets, false, props)
+      )}
 
       <View style={{ alignItems: "center" }}>
         <Pressable
@@ -79,43 +70,6 @@ export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.Rea
       </View>
     </ScrollView>
   );
-};
-
-const ActiveExerciseCardWrapper = ({
-                                       exerciseId,
-                                       sets,
-                                       props,
-                                       isEditing = false
-                                   }: {
-    exerciseId: string;
-    sets: ExerciseSet[];
-    props: ActiveWorkoutRenderProps;
-    isEditing?: boolean;
-}) => {
-    const [details, setDetails] = useState<Exercise | null>(null);
-
-    useEffect(() => {
-        let isMounted = true;
-        const load = async () => {
-            const uid = auth.currentUser?.uid;
-            if (!uid) return;
-
-            const data = await ExerciseService.fetchExercise(exerciseId, uid);
-            if (isMounted) setDetails(data);
-        };
-        load();
-        return () => { isMounted = false; };
-    }, [exerciseId]);
-
-    // WICHTIG: Fallback mit Teildaten von Exercise, damit das Casting sicher ist
-    const safeDetails = details || {
-        id: exerciseId,
-        name: sets[0]?.exerciseName || "Laden...",
-        image: undefined,
-        isOwn: false
-    };
-
-    return renderActiveExerciseCard(exerciseId, sets, isEditing, props, safeDetails as Exercise);
 };
 
 export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.ReactNode => {
@@ -140,15 +94,9 @@ export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.Rea
           }}
         />
       </View>
-        {Object.entries(groupedSets).map(([exerciseId, sets]) => (
-            <ActiveExerciseCardWrapper
-                key={exerciseId}
-                exerciseId={exerciseId}
-                sets={sets}
-                props={props}
-                isEditing={true} // Reiche den Modus an den Wrapper weiter
-            />
-        ))}
+      {Object.entries(groupedSets).map(([exerciseId, sets]) =>
+        renderActiveExerciseCard(exerciseId, sets, true, props)
+      )}
 
       <View style={{alignItems:'center'}}>
         <Pressable
@@ -167,23 +115,11 @@ const renderActiveExerciseCard = (
   exerciseId: string,
   sets: ExerciseSet[],
   isEditing: boolean,
-  props: ActiveWorkoutRenderProps,
-  exercise: Exercise
+  props: ActiveWorkoutRenderProps
 ): React.ReactNode => (
   <View key={exerciseId} style={styles.exerciseCard}>
     <View style={styles.exerciseCardHeader}>
-        <View style={styles.picContainer}>
-            <Image
-                source={
-                    exercise.image
-                        ? { uri: exercise.image }
-                        : (exercise.isOwn
-                                ? USER_DEFAULT
-                                : ADMIN_DEFAULT
-                        )}
-                style={styles.itemPicture}
-            />
-        </View>
+      <Text style={{ fontSize: 22, fontWeight: "bold", color: "white", marginRight: 8 }}>Pic</Text>
 
       <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
 
@@ -409,23 +345,13 @@ export const renderSingleCard = (
   exerciseId: string,
   sets: ExerciseSet[],
   isEditMode: boolean,
-  props: SingleWorkoutRenderProps,
-  exercise: Exercise
+  props: SingleWorkoutRenderProps
 ): React.ReactNode => (
   <View key={exerciseId} style={styles.exerciseCard}>
     <View style={styles.exerciseCardHeader}>
-        <View style={styles.picContainer}>
-            <Image
-                source={
-                    exercise.image
-                        ? { uri: exercise.image }
-                        : (exercise.isOwn
-                                ? USER_DEFAULT
-                                : ADMIN_DEFAULT
-                        )}
-                style={styles.itemPicture}
-            />
-        </View>
+      <Text style={{ fontSize: 22, fontWeight: "bold", color: "white", marginRight: 8 }}>
+        Pic
+      </Text>
 
       <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
 
@@ -558,28 +484,15 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
 };
 
 
-const ADMIN_DEFAULT = require("@/assets/default-exercise-picture/admin.png");
-const USER_DEFAULT = require("@/assets/default-exercise-picture/users.png");
-
 export const renderHistoryCard = (
   exerciseId: string,
-  sets: ExerciseSet[],
-  exercise: Exercise
+  sets: ExerciseSet[]
 ): React.ReactNode => (
   <View key={exerciseId} style={styles.exerciseCard}>
     <View style={styles.exerciseCardHeader}>
-        <View style={styles.picContainer}>
-            <Image
-                source={
-                    exercise.image
-                        ? { uri: exercise.image }
-                        : (exercise.isOwn
-                                ? USER_DEFAULT
-                                : ADMIN_DEFAULT
-                        )}
-                style={styles.itemPicture}
-            />
-        </View>
+      <Text style={{ fontSize: 22, fontWeight: "bold", color: "white", marginRight: 8 }}>
+        Pic
+      </Text>
 
       <Text style={styles.exerciseTitle}>{sets[0].exerciseName}</Text>
 

@@ -243,15 +243,5 @@ export const workoutStyles = StyleSheet.create({
     },
 
 
-    //picture
-    picContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingRight: 20,
-    },
-    itemPicture: {
-        width: 60,
-        height: 60,
-        borderRadius: 8,
-    },
+    
 })

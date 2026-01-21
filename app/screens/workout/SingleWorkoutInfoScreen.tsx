@@ -1,13 +1,13 @@
 import { TopBar } from "@/components/TopBar";
 import { View, Text, TextInput, Pressable, ScrollView, BackHandler } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { workoutStyles as styles } from "@/styles/workoutStyles";
 import { Colors } from "@/styles/theme";
 import { minSecToSeconds } from "@/components/NumberStepper";
 
-import { ExerciseSet } from "@/types/workoutTypes";
+import type { Workout, ExerciseSet } from "@/types/workoutTypes";
 import { useOverlayHandlers } from "@/hooks/useOverlayHandlers";
 import { useSingleWorkoutData } from "@/hooks/useSingleWorkoutData";
 import { useSingleWorkoutLoader } from "@/hooks/useWorkoutLoader";
@@ -243,10 +243,9 @@ export default function SingleWorkoutInfoScreen() {
           </View>
         )}
 
-        {Object.entries(groupSetsByExercise(workout.exerciseSets)).map(([exerciseId, sets]) => {
-            const exerciseDetails = exercisesMap.get(exerciseId);
-            if (exerciseDetails) return renderSingleCard(exerciseId, sets, isEditMode, renderProps, exerciseDetails);
-        })}
+        {Object.entries(groupSetsByExercise(workout.exerciseSets)).map(([exerciseId, sets]) =>
+          renderSingleCard(exerciseId, sets, isEditMode, renderProps)
+        )}
 
         {isEditMode && (
           <Pressable onPress={handleAddExercise} style={[styles.addExerciseButton, { marginTop: 20 }]}>
