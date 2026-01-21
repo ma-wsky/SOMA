@@ -50,7 +50,7 @@ export default function TabLayout() {
             </Tabs>
 
             <SafeAreaView style={{backgroundColor: Colors.black}}
-                          edges={["bottom"]}>
+                        edges={["bottom"]}>
             </SafeAreaView>
 
         </View>

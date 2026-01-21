@@ -5,6 +5,7 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import { useGuestLogin } from "@/hooks/useGuestLogin";
 import { AuthButton } from "@/components/auth/authButton"
 import { DividingLine } from "@/components/auth/dividingLine";
+import { Colors } from "@/styles/theme";
 
 
 export default function LoginScreen(){
@@ -13,7 +14,7 @@ export default function LoginScreen(){
     const { handleGuestLogin, isGuestLoading } = useGuestLogin();
 
     return(
-        <ScrollView>
+        <ScrollView style={{backgroundColor:Colors.white}}>
         <View style={authStyles.container}>
 
             {/* Title */}

@@ -8,8 +8,8 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import { useGuestLogin } from "@/hooks/useGuestLogin";
 import { AuthButton } from "@/components/auth/authButton"
 import { DividingLine } from "@/components/auth/dividingLine";
-import { AuthInput } from "@/components/auth/authInput"
-import { getAuthErrorMessage } from "@/utils/auth/authErrors"
+import { AuthInput } from "@/components/auth/authInput";
+import { getAuthErrorMessage } from "@/utils/auth/authErrors";
 
 
 export default function LoginScreen(){
