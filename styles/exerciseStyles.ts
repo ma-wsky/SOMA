@@ -93,15 +93,17 @@ export const exerciseStyles = StyleSheet.create({
     },
     picText: {
         color: Colors.black,
+        borderRadius:5,
         fontWeight: "bold",
+        paddingHorizontal:5,
         fontSize: 16,
+        backgroundColor:Colors.whiteTransparent,
+        alignSelf:'auto'
     },
     textOverlay: {
+        top:65,
+        left:30,
         position: 'absolute',
-        top: 0,
-        left: 32,
-        right: 0,
-        bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
     },

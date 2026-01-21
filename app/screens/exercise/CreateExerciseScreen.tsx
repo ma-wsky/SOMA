@@ -157,7 +157,7 @@ export default function CreateExerciseScreen() {
 
                                 {!hasImage && (
                                     <View style={exerciseStyles.textOverlay}>
-                                        <Text style={exerciseStyles.picText}>klicke zum hinzufügen</Text>
+                                        <Text style={exerciseStyles.picText}>Hinzufügen</Text>
                                     </View>
                                 )}
                             </Pressable>

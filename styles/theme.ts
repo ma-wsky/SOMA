@@ -8,6 +8,8 @@ export const Colors = {
     icon: "#555",
     black: "#101010",
     white: "#F5F5F4",
+    whiteTransparent: "#f5f5f4a9",
+    bottomSheet:'#cacaca',
     gray: "#aaa",
     darkGray:"#555"
 };

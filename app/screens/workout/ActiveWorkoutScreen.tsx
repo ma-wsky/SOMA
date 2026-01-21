@@ -269,7 +269,7 @@ export default function ActiveWorkoutScreen() {
         
           <BottomSheetView style={styles.sheetContainerContent}>
           <TopBar
-            backgroundColor={Colors.gray}
+            backgroundColor={Colors.bottomSheet}
             leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
             titleText={isEditMode ? "Training bearbeiten" : timerString}
             rightButtonText={isEditMode ? "Speichern" : "Fertig"}

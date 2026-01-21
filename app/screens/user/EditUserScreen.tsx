@@ -258,7 +258,7 @@ export default function EditUserScreen() {
 
                                 {!hasImage && (
                                     <View style={userStyles.textOverlay}>
-                                        <Text style={userStyles.picText}>klicken zum bearbeiten</Text>
+                                        <Text style={userStyles.picText}>Bearbeiten</Text>
                                     </View>
                                 )}
                             </Pressable>
