@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   Platform,
   Keyboard,
+  SafeAreaView,
 } from "react-native";
 import { ScrollView } from 'react-native-gesture-handler';
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -148,7 +149,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
             behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={newStyles.overlay}>
+                <SafeAreaView style={newStyles.overlay}>
                     <View style={newStyles.content}>
                         {/* TopBar Style Header */}
                         <TopBar
@@ -230,7 +231,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
                             </View>
                         )}
                     </View>
-                </View>
+                </SafeAreaView>
             </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
     </Modal>
@@ -308,7 +309,7 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
             behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={newStyles.overlay}>
+                <SafeAreaView style={newStyles.overlay}>
                     <View style={newStyles.content}>
                         {/* TopBar Style Header */}
                         <TopBar
@@ -373,7 +374,7 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
                             </View>
                         )}
                     </View>
-                </View>
+                </SafeAreaView>
             </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
     </Modal>
