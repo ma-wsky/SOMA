@@ -1,5 +1,4 @@
 
-//TODO: Kann ich nicht einfach überall die dynamische nutzen?
 
 //Sekunden zu HH.MM.SS
 export const formatTime = (seconds: number): string => {

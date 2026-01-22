@@ -3,7 +3,7 @@ import {collectionGroup, deleteDoc, doc, getDoc, getDocs, query, setDoc, where }
 import { Exercise } from "@/types/Exercise";
 
 export const ExerciseService = {
-    // 1. Übung inkl. Favoriten-Status laden
+    //erste Übung inkl. Favoriten-Status laden
     async fetchExercise(id: string, userId: string): Promise<Exercise | null> {
         // Zuerst Global prüfen
         const globalRef = doc(db, "exercises", id);
@@ -48,7 +48,6 @@ export const ExerciseService = {
 
             const data = (await Promise.all(
                 qSnapshot.docs
-                    // nur quickfix. besser: uid mitspeichern im workout
                     .filter(doc => doc.ref.path.includes(`users/${userId}/`))
                     .map(async (doc) => {
                         const setData = doc.data();

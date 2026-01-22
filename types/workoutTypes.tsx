@@ -1,5 +1,3 @@
-// Type definitions for workout-related features
-// Used across ActiveWorkoutScreen and SingleWorkoutInfoScreen
 
 export type ExerciseSet = {
   id?: string;
