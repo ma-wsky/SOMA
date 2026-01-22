@@ -78,13 +78,25 @@ export default function WorkoutScreen() {
         </Pressable>
       </View>
 
-      <TextInput
-        placeholder={"Training suchen..."}
-        placeholderTextColor={Colors.white}
-        value={filter}
-        onChangeText={setFilter}
-        style={styles.searchbar}
-      />
+        <View style={styles.searchContainer}>
+            {/* lupe */}
+            <Ionicons name="search" size={20} color={Colors.white} style={styles.searchIcon} />
+
+            <TextInput
+                placeholder={"Übung suchen..."}
+                placeholderTextColor='rgba(255,255,255,0.7)'
+                value={filter}
+                onChangeText={setFilter}
+                style={styles.searchInput}
+            />
+
+            {/* delete */}
+            {filter !== "" && (
+                <Pressable onPress={() => setFilter("")} style={styles.deleteButton}>
+                    <Ionicons name="close-circle" size={20} color={Colors.primary} />
+                </Pressable>
+            )}
+        </View>
 
       <WorkoutList
         workouts={workouts}
