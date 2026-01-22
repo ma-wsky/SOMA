@@ -2,14 +2,13 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Workout, ExerciseSet } from '@/types/workoutTypes';
 import { Exercise } from '@/types/Exercise';
+import { Alert } from "react-native";
 
 export const exportWorkoutsToPDF = async (workouts: Workout[], date: string) => {
     if (workouts.length === 0) {
-        alert("Keine Workouts zum Exportieren vorhanden.");
+        Alert.alert("Fehler", "Keine Workouts zum Exportieren vorhanden.");
         return;
     }
-
-
 
     const htmlContent = `
     <html lang="">
@@ -106,7 +105,7 @@ export const exportExerciseStatisticsToPDF = async (
     history: { date: Date; weight: number; reps?: number; timestamp: number }[]
 ) => {
     if (!exercise) {
-        alert("Keine Übung zum Exportieren vorhanden.");
+        Alert.alert("Fehler", "Keine Übung zum Exportieren vorhanden.");
         return;
     }
 
@@ -122,6 +121,11 @@ export const exportExerciseStatisticsToPDF = async (
 
     const sortedHistory = Array.from(bestPerDay.values())
         .sort((a, b) => b.date.getTime() - a.date.getTime());
+
+    if (sortedHistory.length <= 0) {
+        Alert.alert("Fehler", "Keine Daten zum Exportieren vorhanden.");
+        return;
+    }
 
     // Berechne Statistiken
     const maxWeight = history.length > 0 ? Math.max(...history.map(h => h.weight)) : 0;
