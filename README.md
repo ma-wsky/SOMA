@@ -141,7 +141,7 @@ types/                     TypeScript-Typdefinitionen
 ### Schritt 1: Repository klonen
 
 ```bash
-git clone https://github.com/ma-wsky/SOMA
+git clone github.com/ma-wsky/SOMA
 cd soma
 ```
 
@@ -252,10 +252,13 @@ Alle Abhängigkeiten werden über den Befehl `npm install` automatisch installie
 ## Rechtliches
 
 Die App enthält ein Impressum (erreichbar über Einstellungen), welches folgende Informationen bereitstellt:
-- Angaben gemäß § 5 TMG
-- Kontaktinformationen
+- Angaben gemäß § 5 DDG
+- Kontakt
+- Verantwortliche
 - Medien-Credits
-- Datenschutzhinweise
+- Datenschutz
+- Urheberrecht
+- Haftungsausschluss
 
 ---
 
