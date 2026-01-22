@@ -161,7 +161,13 @@ Stellen Sie sicher, dass eine `.env` Datei mit den korrekten Firebase-Keys im Ro
 Da dieses Projekt native Module verwendet (z. B. Sensoren, Haptics), wird ein Android Development Build benötigt. Die Standard "Expo Go" App ist nicht kompatibel.
 
 Vorhandenen Build installieren
-- Laden Sie die bereitgestellte soma-dev-build.apk auf Ihr Android-Gerät herunter.
+- Besuchen Sie diesen Link: https://expo.dev/accounts/hrw-mobilecomputing/projects/fitnessapp/builds/8e83d97d-ad05-428f-b623-8c22cc5c9e3d
+  
+  oder scannen Sie diesen QR-Code:
+  
+  <img width="150" height="150" alt="grafik" src="https://github.com/user-attachments/assets/84306c44-0bfa-403e-a3e3-7bfa60e8e720" />
+
+- Laden Sie die APK von der Website auf Ihr Android-Gerät herunter.
 - Installieren Sie die APK (ggf. "Installation aus unbekannten Quellen" erlauben).
 - Die App erscheint als "SOMA" auf Ihrem Homescreen.
 
