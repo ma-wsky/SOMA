@@ -12,6 +12,7 @@ import { Colors } from "@/styles/theme";
 import { Exercise } from "@/types/Exercise";
 import { ExerciseService } from "@/services/exerciseService";
 import { auth } from "@/firebaseConfig";
+import { router } from "expo-router";
 
 type CardMode = 'active' | 'single' | 'history';
 
@@ -60,7 +61,13 @@ export const ExerciseCard = ({ exerciseId, sets, mode, isEditing, props }: Unive
     return (
         <View style={styles.exerciseCard}>
             {/* header */}
-            <View style={styles.exerciseCardHeader}>
+            <Pressable
+                style={styles.exerciseCardHeader}
+                onPress={() => router.push({
+                    pathname: "/screens/exercise/SingleExerciseInfoScreen",
+                    params: { id: currentExercise.id }
+                })}
+            >
                 <View style={styles.picContainer}>
                     <Image
                         source={currentExercise.image ? { uri: currentExercise.image } :
@@ -81,7 +88,7 @@ export const ExerciseCard = ({ exerciseId, sets, mode, isEditing, props }: Unive
                         </Text>
                     </View>
                 </Pressable>
-            </View>
+            </Pressable>
 
             {/* tabellen header */}
             <View style={[styles.setRowHeader, { flexDirection: 'row', paddingHorizontal: 10 }]}>
