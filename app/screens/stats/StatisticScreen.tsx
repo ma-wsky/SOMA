@@ -1,4 +1,4 @@
-import { View,TextInput,StyleSheet } from "react-native";
+import { View,TextInput,Text, ScrollView, Pressable } from "react-native";
 import { router } from "expo-router";
 import { useState } from 'react';
 import LoadingOverlay from "@/components/LoadingOverlay";
@@ -6,29 +6,63 @@ import ExerciseList from "@/components/ExerciseList"
 import { useLoadExercises } from "@/hooks/useLoadExercises"
 import { Colors } from "@/styles/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { statStyles } from "@/styles/statStyles";
 
+
+const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "Bauch"];
 
 
 export default function StatisticScreen() {
 
     const { exercises, loading } = useLoadExercises();
     const [filter, setFilter] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("Alle");
+
 
     return (
-        <SafeAreaView style={[styles.container]}>
+        <SafeAreaView style={[statStyles.container]}>
 
             {/* Search Bar */}
             <TextInput placeholder={"Übung suchen..."}
                         placeholderTextColor={Colors.white}
                         value={filter}
                         onChangeText={setFilter}
-                        style={styles.search}/>
+                        style={statStyles.search}
+            />
+
+            {/* filter tags */}
+            <View style={{  }}>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={statStyles.filterTagList}
+                >
+                    {CATEGORIES.map((cat) => (
+                        <Pressable
+                            key={cat}
+                            onPress={() => setSelectedCategory(cat)}
+                            style={[
+                                statStyles.filterTag,
+                                selectedCategory === cat && statStyles.filterTagActive
+                            ]}
+                        >
+                            <Text style={[
+                                statStyles.filterTagText,
+                                selectedCategory === cat && statStyles.filterTagTextActive
+                            ]}>
+                                {cat}
+                            </Text>
+                        </Pressable>
+                    ))}
+                </ScrollView>
+            </View>
 
 
             {/* Exercise List with favorites and regular */}
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
+                category={selectedCategory}
                 onItemPress={(exercise) =>
                     router.push({
                         pathname: "/screens/stats/SingleExerciseStatisticScreen",
@@ -43,37 +77,3 @@ export default function StatisticScreen() {
         </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        backgroundColor:Colors.background,
-        flex: 1,
-        justifyContent: 'flex-start',
-    },
-    search:{
-        padding:10,
-        color: Colors.white,
-        fontSize:20,
-        backgroundColor:Colors.black,
-        margin:20,
-        borderRadius: 50,
-    },
-    divider: {
-        marginVertical: 12,
-    },
-    dividerText: {
-        fontWeight: "600",
-        color: Colors.darkGray
-    },
-    line: {
-        flex: 1,
-        borderBottomColor: 'gray',
-        borderBottomWidth: 2,
-        height: 1,
-        backgroundColor: Colors.gray,
-        marginTop: 4
-    },
-    listContent: {
-        marginHorizontal: 16,
-    },
-});

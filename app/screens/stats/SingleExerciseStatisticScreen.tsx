@@ -153,7 +153,7 @@ export default function SingleExerciseStatisticScreen() {
                 </Text>
             </View>
 
-            <View style={statStyles.line}/>
+            <View style={statStyles.singleLine}/>
 
             {/* chart */}
             <View style={statStyles.content}>

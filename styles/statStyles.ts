@@ -67,10 +67,60 @@ export const statStyles = StyleSheet.create({
         fontWeight: "600",
         color: Colors.white,
     },
-    line: {
+    singleLine: {
         borderBottomColor: Colors.gray,
         borderBottomWidth: 1,
         marginHorizontal: 20,
         marginTop: 20,
+    },
+
+    //screen
+    search:{
+        padding:10,
+        color: Colors.white,
+        fontSize:20,
+        backgroundColor:Colors.black,
+        margin:20,
+        borderRadius: 50,
+    },
+    divider: {
+        marginVertical: 12,
+    },
+    dividerText: {
+        fontWeight: "600",
+        color: Colors.darkGray
+    },
+    line: {
+        flex: 1,
+        borderBottomColor: 'gray',
+        borderBottomWidth: 2,
+        height: 1,
+        backgroundColor: Colors.gray,
+        marginTop: 4
+    },
+    listContent: {
+        marginHorizontal: 16,
+    },
+    filterTagList: {
+        paddingHorizontal: 20,
+        marginBottom: 10,
+        alignItems: 'center',
+        gap: 10,
+    },
+    filterTag: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: Colors.black,
+    },
+    filterTagActive: {
+        backgroundColor: Colors.primary,
+    },
+    filterTagText: {
+        color: Colors.white,
+        fontWeight: '500',
+    },
+    filterTagTextActive: {
+        fontWeight: 'bold',
     },
 })
