@@ -148,13 +148,17 @@ export const workoutStyles = StyleSheet.create({
         marginBottom: 20,
     },
     bigButton: {
-        paddingVertical: 16,
+        paddingVertical: 15,
+        paddingHorizontal: 20,
         borderRadius: 10,
+        justifyContent: "center",
     },
     bigButtonTextWrapper: {
         flexDirection: "row",
-        alignItems: "flex-start",
-        marginLeft: 30,
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 20,
+        width: "100%",
     },
     
     //Active Workout
