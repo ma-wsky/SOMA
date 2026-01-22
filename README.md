@@ -17,6 +17,7 @@ SOMA ist eine mobile Fitness-App zur Trainingsplanung und -dokumentation. Die Ap
 - **Workout-Vorlagen erstellen:** Eigene Trainingspläne mit beliebigen Übungen zusammenstellen
 - **Aktives Training:** Live-Tracking mit Timer, Pausenzeiten und Abhaken von Sätzen
 - **Trainingshistorie:** Alle absolvierten Workouts werden in einer Kalenderansicht angezeigt
+- **Trainingserinnerungen:** Push-Benachrichtigungen und Erinnerungen für geplante Trainingseinheiten
 - **PDF-Export:** Trainingsverlauf als PDF-Datei exportieren und teilen
 
 ### Übungen
@@ -34,6 +35,7 @@ SOMA ist eine mobile Fitness-App zur Trainingsplanung und -dokumentation. Die Ap
 - **Ton:** Sound-Feedback kann ein- oder ausgeschaltet werden
 - **Vibration:** Vibration kann ein- oder ausgeschaltet werden
 - **Auto-Helligkeit:** Bildschirmhelligkeit passt sich automatisch per Lichtsensor an
+- **Erinnerungen:** Benachrichtigungen für Trainingseinheiten können konfiguriert werden
 
 ---
 
