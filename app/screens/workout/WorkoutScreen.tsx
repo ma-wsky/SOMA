@@ -16,7 +16,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function WorkoutScreen() {
   const router = useRouter();
   const [filter, setFilter] = useState("");
-  //const [hasActiveWorkout, setHasActiveWorkout] = useState(false);
   const [loading, setLoading] = useState(false);
   const { workouts, loading: workoutsLoading, refetch } = useLoadWorkouts();
 

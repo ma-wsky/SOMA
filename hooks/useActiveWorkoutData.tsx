@@ -13,8 +13,6 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
   const baseData = useBaseWorkoutData(initialWorkout);
   const { 
     workout, 
-    //setWorkout,
-    //isEditMode,
     setIsEditMode,
     setLoading,
     updateWorkoutState 
@@ -41,10 +39,14 @@ export const useActiveWorkoutData = (initialWorkout?: Workout | null) => {
       "Training verwerfen",
       "Möchten Sie dieses Training wirklich verwerfen?",
       () => {
+
         clearActiveWorkout();
+        require("@/utils/store/workoutTimerStore").clearWorkoutTimer();
+        require("@/utils/store/restTimerStore").clearRestTimer();
         if (editIdRef.current) require("@/utils/store/workoutEditingStore").clearEditingWorkout(editIdRef.current);
+
         router.dismissAll();
-        router.replace("/(tabs)/WorkoutScreenProxy");
+        router.navigate("/(tabs)/WorkoutScreenProxy");
       },
       { confirmText: "Verwerfen", cancelText: "Abbrechen" }
     );

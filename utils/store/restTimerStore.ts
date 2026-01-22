@@ -13,13 +13,6 @@ export const subscribeToRestTimer = (listener: (timer: RestTimerState) => void) 
     return () => { listeners.delete(listener); };
 };
 
-/*
-export const setRestTimer = (val: any) => {
-    // Legacy support - nicht mehr in Verwendung
-    console.warn('setRestTimer is deprecated, use startRestTimer instead');
-};
-*/
-
 export const startRestTimer = (seconds: number) => {
   restTimer = { endTime: Date.now() + seconds * 1000 };
   notify();

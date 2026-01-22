@@ -7,8 +7,8 @@ export interface OverlayState {
   targetSetIndex: number | null;
   targetExerciseId: string | null;
   targetExerciseName: string | null;
-  tempSetData: { weight: number; reps: number; isDone?: boolean };
-  tempBreakTime: { mins: number; secs: number };
+  tempSetData: { weight: number | null; reps: number | null; isDone?: boolean };
+  tempBreakTime: { mins: number | null; secs: number | null };
 }
 
 export const useOverlayHandlers = () => {
@@ -16,8 +16,8 @@ export const useOverlayHandlers = () => {
   const [targetSetIndex, setTargetSetIndex] = useState<number | null>(null);
   const [targetExerciseId, setTargetExerciseId] = useState<string | null>(null);
   const [targetExerciseName, setTargetExerciseName] = useState<string | null>(null);
-  const [tempSetData, setTempSetData] = useState({ weight: 0, reps: 0, isDone: false });
-  const [tempBreakTime, setTempBreakTime] = useState({ mins: 0, secs: 0 });
+  const [tempSetData, setTempSetData] = useState<{ weight: number | null; reps: number | null; isDone?: boolean }>({ weight: null, reps: null, isDone: false });
+  const [tempBreakTime, setTempBreakTime] = useState<{ mins: number | null; secs: number | null }>({ mins: null, secs: null });
 
 
   const openBreakTimeOverlay = (exerciseId: string, currentSeconds: number) => {

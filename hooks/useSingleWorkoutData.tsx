@@ -23,8 +23,7 @@ export const useSingleWorkoutData = (initialWorkout?: Workout | null) => {
         if (!nameToCheck || workouts.length === 0) return false;
 
         return workouts.some((w) => {
-            const isSameName = w.name.trim().toLowerCase() === nameToCheck.trim().toLowerCase();
-            // Falls wir editieren, darf er das eigene Workout nicht als "bereits existierend" zählen
+            const isSameName = w.name?.trim().toLowerCase() === nameToCheck.trim().toLowerCase();
             const isDifferentWorkout = w.id !== workout?.id;
             return isSameName && isDifferentWorkout;
         });

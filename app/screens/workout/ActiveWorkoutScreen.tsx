@@ -1,20 +1,16 @@
-import {
-  View,
-  Text,
-  BackHandler
-} from "react-native";
+import { BackHandler, Alert } from "react-native";
 
 import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { workoutStyles as styles } from "@/styles/workoutStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { TopBar } from "@/components/TopBar";
-import BottomSheet, { BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { minSecToSeconds } from "@/components/NumberStepper";
 import { vibrate } from "@/utils/helper/vibrationHelper";
 
-import type { Workout, ExerciseSet } from "@/types/workoutTypes";
+import { ExerciseSet } from "@/types/workoutTypes";
 import { useOverlayHandlers } from "@/hooks/useOverlayHandlers";
 import { useWorkoutTimer, useRestTimer } from "@/hooks/useWorkoutTimer";
 import { useActiveWorkoutData } from "@/hooks/useActiveWorkoutData";
@@ -27,7 +23,6 @@ import {
 } from "@/utils/renderWorkout";
 import { setActiveWorkout } from "@/utils/store/activeWorkoutStore";
 import { formatTime, formatTimeShort } from "@/utils/helper/formatTimeHelper";
-import { Background } from "@react-navigation/elements";
 import { Colors } from "@/styles/theme";
 import { listFilterStore } from "@/utils/store/listFilterStore";
 
@@ -187,10 +182,18 @@ export default function ActiveWorkoutScreen() {
 
   const handleSaveModalChanges = useCallback(() => {
     if (activeOverlay === "breaktime" && targetExerciseId) {
+      if (tempBreakTime.mins === null || tempBreakTime.secs === null) {
+        Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
+        return;
+      }
       const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
       saveBreakTime(targetExerciseId, secs);
     } else {
-      saveSetData(tempSetData, activeOverlay, targetSetIndex, targetExerciseId, targetExerciseName);
+      if (tempSetData.weight === null || tempSetData.reps === null) {
+        Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
+        return;
+      }
+      saveSetData(tempSetData as { weight: number; reps: number; isDone?: boolean }, activeOverlay, targetSetIndex, targetExerciseId, targetExerciseName);
     }
     closeOverlay();
   }, [activeOverlay, targetExerciseId, targetSetIndex, targetExerciseName, tempSetData, tempBreakTime, saveBreakTime, saveSetData, closeOverlay]);
@@ -239,7 +242,6 @@ export default function ActiveWorkoutScreen() {
     onCloseOverlay: closeOverlay,
     onRestTimerClose: stopRestTimer,
     onWorkoutNameChange: (name: string) => setWorkout((prev) => prev ? { ...prev, name } : null),
-    // Neue Setter für Overlay-Daten
     onSetTempSetData: setTempSetData,
     onSetTempBreakTime: setTempBreakTime,
     isFromActiveWorkout: true,

@@ -21,16 +21,14 @@ import { TopBar } from "@/components/TopBar";
 import { ExerciseCard } from "@/components/ExerciseCard"
 import { SafeAreaView } from "react-native-safe-area-context";
 
-//TODO Nutzt wirklich RenderBase??
-//TODO RenderOverlay raus holen
 
 interface ActiveWorkoutRenderProps {
   workout: Workout;
   isEditMode: boolean;
   activeOverlay: OverlayTypes;
   restTimeRemaining: number;
-  tempBreakTime: { mins: number; secs: number };
-  tempSetData: { weight: number; reps: number; isDone: boolean };
+  tempBreakTime: { mins: number | null; secs: number | null };
+  tempSetData: { weight: number | null; reps: number | null; isDone: boolean };
   onOpenBreakTime: (exerciseId: string, currentSeconds: number) => void;
   onOpenEditSet: (index: number, set: ExerciseSet) => void;
   onOpenAddSet: (exerciseId: string, exerciseName: string) => void;
@@ -42,9 +40,8 @@ interface ActiveWorkoutRenderProps {
   onCloseOverlay: () => void;
   onRestTimerClose: () => void;
   onWorkoutNameChange: (name: string) => void;
-  // Neue Setter für Overlay-Daten
-  onSetTempSetData: (data: { weight: number; reps: number; isDone: boolean }) => void;
-  onSetTempBreakTime: (data: { mins: number; secs: number }) => void;
+  onSetTempSetData: (data: { weight: number | null; reps: number | null; isDone: boolean }) => void;
+  onSetTempBreakTime: (data: { mins: number | null; secs: number | null }) => void;
   isFromActiveWorkout?: boolean;
 }
 
@@ -114,7 +111,7 @@ export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.Rea
                 exerciseId={exerciseId}
                 sets={sets}
                 mode="active"
-                isEditing={true} // Hier true für Stift- und Mülleimer-Icon
+                isEditing={true} //true für Stift- und Mülleimer-Icon
                 props={props}
             />
         ))}
@@ -146,7 +143,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
     <Modal visible={true} transparent animationType="fade" onRequestClose={props.onCloseOverlay}>
         <KeyboardAvoidingView
             style={{ flex: 1 }}
-            behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
+            behavior={Platform.OS === "ios" ? "padding" : "height"} //ios verschiebt, Android passt Höhe an
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <SafeAreaView style={newStyles.overlay}>
@@ -171,9 +168,9 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
                                         <TextInput
                                             style={newStyles.timeInput}
                                             keyboardType="numeric"
-                                            value={props.tempBreakTime.mins.toString()}
+                                            value={props.tempBreakTime.mins !== null ? props.tempBreakTime.mins.toString() : ""}
                                             selectTextOnFocus={true}
-                                            onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, mins: Number(v) || 0 })}
+                                            onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, mins: v === "" ? null : Number(v) })}
                                         />
                                     </View>
                                     <Text style={{ fontSize: 24, marginHorizontal: 10, color: Colors.black, marginTop: 20, }}>:</Text>
@@ -183,8 +180,8 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
                                             style={newStyles.timeInput}
                                             keyboardType="numeric"
                                             selectTextOnFocus={true}
-                                            value={props.tempBreakTime.secs.toString()}
-                                            onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, secs: Number(v) || 0 })}
+                                            value={props.tempBreakTime.secs !== null ? props.tempBreakTime.secs.toString() : ""}
+                                            onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, secs: v === "" ? null : Number(v) })}
                                         />
                                     </View>
                                 </View>
@@ -204,7 +201,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
                                 </View>
 
                                 {/* Wiederholungen */}
-                                <View style={{ marginBottom: 24 }}>
+                                <View style={{ marginBottom: 20 }}>
                                     <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Wiederholungen</Text>
                                     <NumberStepper
                                         label=""
@@ -216,7 +213,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
 
                                 {/* Erledigt Checkbox - nur wenn von aktivem Workout */}
                                 {isFromActiveWorkout && (
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                                    <View style={{ flexDirection: 'row',justifyContent:'center',paddingBottom:20, alignItems: 'center', marginTop: 8 }}>
                                         <Text style={{ color: Colors.black, fontSize: 16, marginRight: 16 }}>Erledigt</Text>
                                         <Pressable
                                             onPress={() => props.onSetTempSetData({ ...props.tempSetData, isDone: !props.tempSetData.isDone })}
@@ -247,17 +244,13 @@ export const renderActiveRestTimerBar = (
 
   return (
     <View
-      style={{
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
+      style={{  
         backgroundColor: Colors.primary,
-        padding: 16,
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        zIndex: 10,
+        paddingBottom:30,
+        padding:10,
       }}
     >
       <View>
@@ -283,16 +276,16 @@ interface SingleWorkoutRenderProps {
   workout: Workout;
   isEditMode: boolean;
   activeOverlay: OverlayTypes;
-  tempBreakTime: { mins: number; secs: number };
-  tempSetData: { weight: number; reps: number; isDone?: boolean };
+  tempBreakTime: { mins: number | null; secs: number | null };
+  tempSetData: { weight: number | null; reps: number | null; isDone?: boolean };
   onOpenBreakTime: (exerciseId: string, currentSeconds: number) => void;
   onOpenEditSet: (index: number, set: ExerciseSet) => void;
   onOpenAddSet: (exerciseId: string, exerciseName: string) => void;
   onRemoveSet: (index: number) => void;
   onSaveModalChanges: () => void;
   onCloseOverlay: () => void;
-  onSetTempSetData: (data: { weight: number; reps: number; isDone?: boolean }) => void;
-  onSetTempBreakTime: (data: { mins: number; secs: number }) => void;
+  onSetTempSetData: (data: { weight: number | null; reps: number | null; isDone?: boolean }) => void;
+  onSetTempBreakTime: (data: { mins: number | null; secs: number | null }) => void;
 }
 
 
@@ -307,7 +300,7 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
     <Modal visible={true} transparent animationType="fade" onRequestClose={props.onCloseOverlay}>
         <KeyboardAvoidingView
             style={{ flex: 1 }}
-            behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
+            behavior={Platform.OS === "ios" ? "padding" : "height"} //iOS verschiebt, Android passt Höhe an
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <SafeAreaView style={newStyles.overlay}>
@@ -331,9 +324,9 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
                                         <TextInput
                                             style={newStyles.timeInput}
                                             keyboardType="numeric"
-                                            value={props.tempBreakTime.mins.toString()}
+                                            value={props.tempBreakTime.mins !== null ? props.tempBreakTime.mins.toString() : ""}
                                             selectTextOnFocus={true}
-                                            onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, mins: Number(v) || 0 })}
+                                            onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, mins: v === "" ? null : Number(v) })}
                                         />
                                     </View>
                                     <Text style={{ fontSize: 24, marginHorizontal: 10, color: Colors.black, marginTop: 20, }}>:</Text>
@@ -342,9 +335,9 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
                                         <TextInput
                                             style={newStyles.timeInput}
                                             keyboardType="numeric"
-                                            value={props.tempBreakTime.secs.toString()}
+                                            value={props.tempBreakTime.secs !== null ? props.tempBreakTime.secs.toString() : ""}
                                             selectTextOnFocus={true}
-                                            onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, secs: Number(v) || 0 })}
+                                            onChangeText={(v) => props.onSetTempBreakTime({ ...props.tempBreakTime, secs: v === "" ? null : Number(v) })}
                                         />
                                     </View>
                                 </View>

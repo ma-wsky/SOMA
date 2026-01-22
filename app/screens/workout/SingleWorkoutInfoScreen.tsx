@@ -1,5 +1,5 @@
 import { TopBar } from "@/components/TopBar";
-import { View, Text, TextInput, Pressable, ScrollView, BackHandler } from "react-native";
+import { View, Text, TextInput, Pressable, ScrollView, BackHandler, Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useCallback } from "react";
 import LoadingOverlay from "@/components/LoadingOverlay";
@@ -120,10 +120,18 @@ export default function SingleWorkoutInfoScreen() {
 
   const handleSaveModalChanges = useCallback(() => {
     if (activeOverlay === "breaktime" && targetExerciseId) {
+      if (tempBreakTime.mins === null || tempBreakTime.secs === null) {
+        Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
+        return;
+      }
       const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
       saveBreakTime(targetExerciseId, secs);
     } else {
-      saveSetData(tempSetData, activeOverlay, targetSetIndex, targetExerciseId, targetExerciseName);
+      if (tempSetData.weight === null || tempSetData.reps === null) {
+        Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
+        return;
+      }
+      saveSetData(tempSetData as { weight: number; reps: number; isDone?: boolean }, activeOverlay, targetSetIndex, targetExerciseId, targetExerciseName);
     }
     closeOverlay();
   }, [activeOverlay, targetExerciseId, targetSetIndex, targetExerciseName, tempSetData, tempBreakTime, saveBreakTime, saveSetData, closeOverlay]);
@@ -193,9 +201,7 @@ export default function SingleWorkoutInfoScreen() {
     onRemoveSet: handleRemoveSet,
     onSaveModalChanges: handleSaveModalChanges,
     onCloseOverlay: closeOverlay,
-    // Wrapper für Setter - isDone optional übergeben
-    onSetTempSetData: (data: { weight: number; reps: number; isDone?: boolean }) => 
-      setTempSetData({ weight: data.weight, reps: data.reps, isDone: data.isDone ?? false }),
+    onSetTempSetData: setTempSetData,
     onSetTempBreakTime: setTempBreakTime,
   };
 

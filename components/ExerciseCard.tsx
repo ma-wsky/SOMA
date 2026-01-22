@@ -45,6 +45,7 @@ export const ExerciseCard = ({ exerciseId, sets, mode, isEditing, props }: Unive
         id: exerciseId,
         name: sets[0]?.exerciseName || "Laden...",
         isOwn: false,
+        image: undefined,
     };
 
     const hasAction = (mode === 'history' || mode === 'active' || isEditing);
@@ -70,7 +71,7 @@ export const ExerciseCard = ({ exerciseId, sets, mode, isEditing, props }: Unive
             >
                 <View style={styles.picContainer}>
                     <Image
-                        source={currentExercise.image ? { uri: currentExercise.image } :
+                        source={currentExercise.image? { uri: currentExercise.image } :
                             (currentExercise.isOwn ? USER_DEFAULT : ADMIN_DEFAULT)}
                         style={styles.itemPicture}
                     />
@@ -97,7 +98,7 @@ export const ExerciseCard = ({ exerciseId, sets, mode, isEditing, props }: Unive
                 <Text numberOfLines={1} style={[headerTextStyle, colStyles.reps]}>Wdh.</Text>
                 {hasAction && (
                     <Text numberOfLines={1}
-                          style={[headerTextStyle, colStyles.action, { textAlign: "right", paddingRight: 15 }]}>
+                        style={[headerTextStyle, colStyles.action, { textAlign: "right", paddingRight: 15 }]}>
                         {isEditing ? "Aktion" : "Status"}
                     </Text>
                 )}

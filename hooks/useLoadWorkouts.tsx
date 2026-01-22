@@ -3,7 +3,6 @@ import { auth, db } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import { Workout, Exercise, ExerciseSet } from "@/types/workoutTypes";
 
-// TODO in file
 
 // Loading all template Workouts
 export function useLoadWorkouts() {
@@ -47,7 +46,6 @@ export function useLoadWorkouts() {
           } as ExerciseSet);
         });
 
-        //TODO: Weitere Attribute wie duration, lastUsed etc. hinzufügen wenn benötigt
         userWorkouts.push({
           id: workoutDoc.id,
           date: workoutData.date || "",

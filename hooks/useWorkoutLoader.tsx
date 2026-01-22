@@ -1,23 +1,3 @@
-/**
- * 1. useWorkoutLoader - Für ActiveWorkoutScreen
- *    - Lädt existierende Workouts ODER erstellt neue
- *    - Stellt Entwürfe aus workoutEditingStore wieder her
- *    - Setzt isDone auf false bei templates
- *    - Erhält startTime aus activeWorkoutStore
- *
- * 2. useSingleWorkoutLoader - Für SingleWorkoutInfoScreen
- *    - Lädt existierende Templates zur Bearbeitung
- *    - Erstellt leere Workouts für "Neues Training"
- *    - Stellt Entwürfe wieder her
- *    - Kein startTime-Handling (nicht für aktive Workouts)
- * 
- * TODO: 3 verschiedene Files
- * - Die gemeinsame Logik (Exercise-Loading, Set-Loading)
- *   in separate Utility-Funktionen extrahiert werden. (Alle identischen funktionen in useBaseWorkoutLoader)
- * - useWorkoutLoader -> useActiveWorkoutLoader
- * - useSingleWorkoutLoader -> uSeSingleWorkoutLoader
- */
-
 import { useEffect, useState, Dispatch, SetStateAction } from "react";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db, auth } from "@/firebaseConfig";
@@ -51,7 +31,7 @@ export const useWorkoutLoader = ({
         const user = auth.currentUser;
         if (!user) return;
 
-        // Load all exercises for reference
+        //Load all exercises for ref
         const exercisesMap = new Map<string, Exercise>();
         const exercisesSnapshot = await getDocs(collection(db, "exercises"));
         exercisesSnapshot.forEach((doc) => {
@@ -67,7 +47,7 @@ export const useWorkoutLoader = ({
           setEditIdRef(currentEditId);
         }
 
-        // Case 1: Existing Workout
+        //if existing WO
         if (id != null) {
           const userRef = doc(db, "users", user.uid, "workouts", id as string);
           const userSnap = await getDoc(userRef);
@@ -75,7 +55,7 @@ export const useWorkoutLoader = ({
           if (userSnap.exists()) {
             const workoutData = userSnap.data() as Omit<Workout, "id" | "exerciseSets">;
 
-            // Load exercise sets from subcollection
+            //Load exercise sets from subcollection
             const setsSnapshot = await getDocs(collection(userRef, "exerciseSets"));
             const exerciseSets: ExerciseSet[] = [];
             setsSnapshot.forEach((setDoc) => {
@@ -92,10 +72,10 @@ export const useWorkoutLoader = ({
               });
             });
 
-            // Try to restore draft first
+            //restore draft
             const draft = require("@/utils/store/workoutEditingStore").getEditingWorkout(currentEditId);
             
-            // Try to get active start time
+            //get active start time
             const activeStore = require("@/utils/store/activeWorkoutStore").getActiveWorkout();
             const preservedStartTime = (activeStore?.id === id) ? activeStore.startTime : undefined;
 
@@ -108,13 +88,13 @@ export const useWorkoutLoader = ({
                 startTime: preservedStartTime || draft.startTime || Date.now(),
               });
             } else {
-              // Reset isDone when starting fresh from a template
+              //reset isDone
               const cleanSets = exerciseSets.map(s => ({ ...s, isDone: false }));
               
               const loadedW = {
                 id: userSnap.id,
                 ...workoutData,
-                date: new Date().toISOString(), // Aktuelles Datum beim Start, nicht Template-Datum
+                date: new Date().toISOString(),
                 exerciseSets: cleanSets,
                 startTime: preservedStartTime || Date.now(),
               };
@@ -138,8 +118,8 @@ export const useWorkoutLoader = ({
             return currentWorkout;
           });
           if (setOriginalWorkout) setOriginalWorkout({
-             ...draft,
-             startTime: preservedStartTime || draft.startTime || Date.now(),
+            ...draft,
+            startTime: preservedStartTime || draft.startTime || Date.now(),
           } as Workout);
         } else {
           const newW = {
@@ -196,7 +176,7 @@ export const useSingleWorkoutLoader = ({
           setEditIdRef(editId);
         }
 
-        // New workout, initialize only if no draft exists
+        // New workout- if no draft exists
         if (!id) {
           const emptyWorkout: Workout = {
             date: new Date().toISOString(),
@@ -267,7 +247,7 @@ export const useSingleWorkoutLoader = ({
           // Check if there is a draft overlaying the existing workout
           const draft = editId ? require("@/utils/store/workoutEditingStore").getEditingWorkout(editId) : null;
           if (draft) {
-             setWorkout(draft);
+            setWorkout(draft);
           }
         }
       } catch (e) {
@@ -278,6 +258,5 @@ export const useSingleWorkoutLoader = ({
     };
 
     fetchWorkout();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, workoutEditId]); // Nur id und workoutEditId als Dependencies - Setter sind stabil
+  }, [id, workoutEditId]);
 };
