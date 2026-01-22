@@ -1,4 +1,4 @@
-import { BackHandler} from "react-native";
+import { BackHandler, Alert } from "react-native";
 
 import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -180,10 +180,18 @@ export default function ActiveWorkoutScreen() {
 
   const handleSaveModalChanges = useCallback(() => {
     if (activeOverlay === "breaktime" && targetExerciseId) {
+      if (tempBreakTime.mins === null || tempBreakTime.secs === null) {
+        Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
+        return;
+      }
       const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
       saveBreakTime(targetExerciseId, secs);
     } else {
-      saveSetData(tempSetData, activeOverlay, targetSetIndex, targetExerciseId, targetExerciseName);
+      if (tempSetData.weight === null || tempSetData.reps === null) {
+        Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
+        return;
+      }
+      saveSetData(tempSetData as { weight: number; reps: number; isDone?: boolean }, activeOverlay, targetSetIndex, targetExerciseId, targetExerciseName);
     }
     closeOverlay();
   }, [activeOverlay, targetExerciseId, targetSetIndex, targetExerciseName, tempSetData, tempBreakTime, saveBreakTime, saveSetData, closeOverlay]);

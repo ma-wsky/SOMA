@@ -17,8 +17,8 @@ export const NumberStepper = ({
   label, 
   step = 1 
 }: { 
-  value: number; 
-  onChange: (val: number) => void; 
+  value: number | null; 
+  onChange: (val: number | null) => void; 
   label: string; 
   step?: number 
 }) => {
@@ -27,21 +27,28 @@ export const NumberStepper = ({
       {label ? <Text style={{ color: Colors.gray, marginBottom: 8, fontSize: 14 }}>{label}</Text> : null}
       <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: Colors.black, borderRadius: 8 }}>
         <Pressable 
-          onPress={() => onChange(Math.max(0, value - step))} 
+          onPress={() => onChange(Math.max(0, (value ?? 0) - step))} 
           style={{ padding: 15, borderRightWidth: 1, borderRightColor: Colors.darkGray }}>
           <Ionicons name="remove" size={24} color={Colors.white} />
         </Pressable>
         
         <TextInput
-          value={value.toString()}
-          onChangeText={(text) => onChange(Number(text) || 0)}
+          value={value !== null ? value.toString() : ""}
+          onChangeText={(text) => {
+            if (text === "") {
+              onChange(null);
+            } else {
+              const num = Number(text);
+              onChange(isNaN(num) ? null : num);
+            }
+          }}
           keyboardType="numeric"
           selectTextOnFocus={true}
           style={{ flex: 1, color: Colors.white, textAlign: "center", fontSize: 18, fontWeight: "bold" }}
         />
 
         <Pressable 
-          onPress={() => onChange(value + step)} 
+          onPress={() => onChange((value ?? 0) + step)} 
           style={{ padding: 15, borderLeftWidth: 1, borderLeftColor: Colors.darkGray }}>
           <Ionicons name="add" size={24} color={Colors.white} />
         </Pressable>
