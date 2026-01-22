@@ -54,7 +54,7 @@ export const renderActiveViewMode = (props: ActiveWorkoutRenderProps): React.Rea
   return (
     <ScrollView >
       <Text
-        style={{ color: Colors.black, marginBottom: 10, fontSize: 24, textAlign: 'center' }}
+        style={{ color: Colors.black, marginBottom: 10, fontSize: 30, fontWeight: "bold", textAlign: 'center' }}
         numberOfLines={2}
         ellipsizeMode="tail"
       >
