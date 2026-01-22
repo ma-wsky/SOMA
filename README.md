@@ -88,7 +88,7 @@ types/                     TypeScript-Typdefinitionen
 | Technologie | Version | Beschreibung |
 |-------------|---------|--------------|
 | React Native | 0.81.5 | Framework für mobile App-Entwicklung |
-| Expo | 54.0 | Entwicklungsplattform und Build-Tools |
+| Expo | 54.0 | Entwicklungsplattform mit Development Builds |
 | TypeScript | 5.9 | JavaScript mit Typisierung |
 
 ### Navigation und Benutzeroberfläche
@@ -136,8 +136,7 @@ types/                     TypeScript-Typdefinitionen
 
 - Node.js (Version 18 oder höher empfohlen)
 - npm oder yarn als Paketmanager
-- Expo Go App auf dem Smartphone (iOS oder Android)
-- Alternativ: Android Studio Emulator oder Xcode iOS Simulator
+- Ein Android-Gerät oder einen Emulator
 
 ### Schritt 1: Repository klonen
 
@@ -154,36 +153,30 @@ npm install
 
 ### Schritt 3: Firebase konfigurieren
 
-Im Wurzelverzeichnis muss eine Datei `firebaseConfig.ts` mit den Firebase-Zugangsdaten erstellt werden:
+Stellen Sie sicher, dass eine `.env` Datei mit den korrekten Firebase-Keys im Root-Verzeichnis liegt (orientieren Sie sich an der `.env.example`).
 
-```typescript
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
 
-const firebaseConfig = {
-  //TODO FILL
-};
+### Schritt 4: Development Build installieren
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-```
+Da dieses Projekt native Module verwendet (z. B. Sensoren, Haptics), wird ein Android Development Build benötigt. Die Standard "Expo Go" App ist nicht kompatibel.
 
-**Hinweis:** Die Firebase-Konfiguration ist aus Sicherheitsgründen nicht im Repository enthalten. Ein eigenes Firebase-Projekt kann unter https://console.firebase.google.com erstellt werden.
+Vorhandenen Build installieren
+- Laden Sie die bereitgestellte soma-dev-build.apk auf Ihr Android-Gerät herunter.
+- Installieren Sie die APK (ggf. "Installation aus unbekannten Quellen" erlauben).
+- Die App erscheint als "SOMA" auf Ihrem Homescreen.
 
-### Schritt 4: App starten
+### Schritt 5: Entwicklungs-Server starten
+
+Starten Sie den lokalen Server:
 
 ```bash
 npx expo start
 ```
 
-Nach dem Start gibt es folgende Möglichkeiten:
-- Expo Go App öffnen und den angezeigten QR-Code scannen
-- Taste "a" drücken für den Android Emulator
-- Taste "i" drücken für den iOS Simulator
+Verbindung herstellen:
+
+- Öffnen Sie die installierte SOMA-App auf Ihrem Handy.
+- Stellen Sie sicher, dass sich Handy und PC im selben WLAN befinden.
 
 ---
 
