@@ -213,7 +213,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
 
                                 {/* Erledigt Checkbox - nur wenn von aktivem Workout */}
                                 {isFromActiveWorkout && (
-                                    <View style={{ flexDirection: 'row',justifyContent:'center',paddingBottom:0, alignItems: 'center', marginTop: 8 }}>
+                                    <View style={{ flexDirection: 'row',justifyContent:'center',paddingBottom:20, alignItems: 'center', marginTop: 8 }}>
                                         <Text style={{ color: Colors.black, fontSize: 16, marginRight: 16 }}>Erledigt</Text>
                                         <Pressable
                                             onPress={() => props.onSetTempSetData({ ...props.tempSetData, isDone: !props.tempSetData.isDone })}
