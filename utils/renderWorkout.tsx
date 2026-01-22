@@ -21,8 +21,6 @@ import { TopBar } from "@/components/TopBar";
 import { ExerciseCard } from "@/components/ExerciseCard"
 import { SafeAreaView } from "react-native-safe-area-context";
 
-//TODO Nutzt wirklich RenderBase??
-//TODO RenderOverlay raus holen
 
 interface ActiveWorkoutRenderProps {
   workout: Workout;
@@ -114,7 +112,7 @@ export const renderActiveEditMode = (props: ActiveWorkoutRenderProps): React.Rea
                 exerciseId={exerciseId}
                 sets={sets}
                 mode="active"
-                isEditing={true} // Hier true für Stift- und Mülleimer-Icon
+                isEditing={true} //true für Stift- und Mülleimer-Icon
                 props={props}
             />
         ))}
@@ -146,7 +144,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
     <Modal visible={true} transparent animationType="fade" onRequestClose={props.onCloseOverlay}>
         <KeyboardAvoidingView
             style={{ flex: 1 }}
-            behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
+            behavior={Platform.OS === "ios" ? "padding" : "height"} //ios verschiebt, Android passt Höhe an
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <SafeAreaView style={newStyles.overlay}>
@@ -204,7 +202,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
                                 </View>
 
                                 {/* Wiederholungen */}
-                                <View style={{ marginBottom: 24 }}>
+                                <View style={{ marginBottom: 20 }}>
                                     <Text style={{ color: Colors.black, fontSize: 16, marginBottom: 8 }}>Wiederholungen</Text>
                                     <NumberStepper
                                         label=""
@@ -216,7 +214,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
 
                                 {/* Erledigt Checkbox - nur wenn von aktivem Workout */}
                                 {isFromActiveWorkout && (
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                                    <View style={{ flexDirection: 'row',justifyContent:'center',paddingBottom:20, alignItems: 'center', marginTop: 8 }}>
                                         <Text style={{ color: Colors.black, fontSize: 16, marginRight: 16 }}>Erledigt</Text>
                                         <Pressable
                                             onPress={() => props.onSetTempSetData({ ...props.tempSetData, isDone: !props.tempSetData.isDone })}
@@ -307,7 +305,7 @@ export const renderSingleOverlays = (props: SingleWorkoutRenderProps): React.Rea
     <Modal visible={true} transparent animationType="fade" onRequestClose={props.onCloseOverlay}>
         <KeyboardAvoidingView
             style={{ flex: 1 }}
-            behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
+            behavior={Platform.OS === "ios" ? "padding" : "height"} //iOS verschiebt, Android passt Höhe an
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <SafeAreaView style={newStyles.overlay}>
