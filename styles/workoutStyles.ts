@@ -200,6 +200,7 @@ export const workoutStyles = StyleSheet.create({
         borderWidth: 2,
         borderColor: Colors.primary,
         backgroundColor: Colors.primary,
+        marginBottom: 40,
     },
 
     topBarButton: topBarStyles.button,
