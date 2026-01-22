@@ -8,6 +8,7 @@ import { Colors } from "@/styles/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { statStyles } from "@/styles/statStyles";
 import { listFilterStore } from "@/utils/store/listFilterStore";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 
 const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "Bauch"];
@@ -23,12 +24,25 @@ export default function StatisticScreen() {
         <SafeAreaView style={[statStyles.container]}>
 
             {/* Search Bar */}
-            <TextInput placeholder={"Übung suchen..."}
-                        placeholderTextColor={Colors.white}
-                        value={filter}
-                        onChangeText={setFilter}
-                        style={statStyles.search}
-            />
+            <View style={statStyles.searchContainer}>
+                {/* lupe */}
+                <Ionicons name="search" size={20} color={Colors.white} style={statStyles.searchIcon} />
+
+                <TextInput
+                    placeholder={"Übung suchen..."}
+                    placeholderTextColor='rgba(255,255,255,0.7)'
+                    value={filter}
+                    onChangeText={setFilter}
+                    style={statStyles.searchInput}
+                />
+
+                {/* delete */}
+                {filter !== "" && (
+                    <Pressable onPress={() => setFilter("")} style={statStyles.deleteButton}>
+                        <Ionicons name="close-circle" size={20} color={Colors.primary} />
+                    </Pressable>
+                )}
+            </View>
 
             {/* filter tags */}
             <View style={{  }}>

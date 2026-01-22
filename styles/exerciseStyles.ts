@@ -216,4 +216,29 @@ export const exerciseStyles = StyleSheet.create({
         color: Colors.darkGray,
         marginLeft: 15,
     },
+
+    //searchbar
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1A1A1A',
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        marginHorizontal: 16,
+        height: 50,
+        marginTop: 20,
+        marginBottom: 10,
+    },
+    searchIcon: {
+        marginRight: 10,
+    },
+    searchInput: {
+        flex: 1,
+        color: Colors.white,
+        fontSize: 16,
+        height: '100%',
+    },
+    deleteButton: {
+        padding: 5,
+    },
 })

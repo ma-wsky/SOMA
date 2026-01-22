@@ -8,6 +8,7 @@ import { useLoadExercises } from "@/hooks/useLoadExercises";
 import { Colors } from "@/styles/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { listFilterStore } from "@/utils/store/listFilterStore";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 
 const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "Bauch"];
@@ -33,7 +34,7 @@ export default function AddExerciseToWorkoutScreen() {
             selectedExerciseId: exercise.id,
             selectedExerciseName: exercise.name,
             selectedBreakTime: breakTime,
-            _t: Date.now().toString() //zwingt router param als neu anzusehen
+            _t: Date.now().toString()
         }; 
 
         if (returnTo === 'active'){
@@ -64,13 +65,25 @@ export default function AddExerciseToWorkoutScreen() {
             />
 
             {/* Search Bar */}
-            <TextInput 
-                placeholder={"Übung suchen..."}
-                placeholderTextColor={Colors.white}
-                value={filter}
-                onChangeText={setFilter}
-                style={styles.search}
-            />
+            <View style={styles.searchContainer}>
+                {/* lupe */}
+                <Ionicons name="search" size={20} color={Colors.white} style={styles.searchIcon} />
+
+                <TextInput
+                    placeholder={"Übung suchen..."}
+                    placeholderTextColor='rgba(255,255,255,0.7)'
+                    value={filter}
+                    onChangeText={setFilter}
+                    style={styles.searchInput}
+                />
+
+                {/* delete */}
+                {filter !== "" && (
+                    <Pressable onPress={() => setFilter("")} style={styles.deleteButton}>
+                        <Ionicons name="close-circle" size={20} color={Colors.primary} />
+                    </Pressable>
+                )}
+            </View>
 
             {/* filter tags */}
             <View style={{  }}>
@@ -181,5 +194,30 @@ const styles = StyleSheet.create({
     },
     filterTagTextActive: {
         fontWeight: 'bold',
+    },
+
+    //search bar
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1A1A1A',
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        marginHorizontal: 16,
+        height: 50,
+        marginTop: 20,
+        marginBottom: 10,
+    },
+    searchIcon: {
+        marginRight: 10,
+    },
+    searchInput: {
+        flex: 1,
+        color: 'white',
+        fontSize: 16,
+        height: '100%',
+    },
+    deleteButton: {
+        padding: 5,
     },
 })

@@ -7,6 +7,8 @@ import { useLoadExercises } from "@/hooks/useLoadExercises";
 import { exerciseStyles } from "@/styles/exerciseStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { listFilterStore } from "@/utils/store/listFilterStore";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Colors } from "@/styles/theme";
 
 
 const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "Bauch"];
@@ -30,12 +32,25 @@ export default function ExerciseScreen() {
             ></TopBar>
 
             {/* Search Bar */}
-            <TextInput placeholder={"Übung suchen..."}
-                       placeholderTextColor='white'
-                       value={filter}
-                       onChangeText={setFilter}
-                       style={exerciseStyles.searchBar}
-            />
+            <View style={exerciseStyles.searchContainer}>
+                {/* lupe */}
+                <Ionicons name="search" size={20} color={Colors.white} style={exerciseStyles.searchIcon} />
+
+                <TextInput
+                    placeholder={"Übung suchen..."}
+                    placeholderTextColor='rgba(255,255,255,0.7)'
+                    value={filter}
+                    onChangeText={setFilter}
+                    style={exerciseStyles.searchInput}
+                />
+
+                {/* delete */}
+                {filter !== "" && (
+                    <Pressable onPress={() => setFilter("")} style={exerciseStyles.deleteButton}>
+                        <Ionicons name="close-circle" size={20} color={Colors.primary} />
+                    </Pressable>
+                )}
+            </View>
 
             {/* filter tags */}
             <View style={{  }}>
