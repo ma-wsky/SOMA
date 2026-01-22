@@ -10,6 +10,7 @@ import { doc, getDoc ,getDocs, collection,query,where} from 'firebase/firestore'
 import { Colors } from "@/styles/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { listFilterStore } from "@/utils/store/listFilterStore";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 
 export default function Home(){
@@ -20,9 +21,12 @@ export default function Home(){
     const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
     const [daysWorkedOut, setDaysWorkedOut] = useState<{[key:string]: any}>({});
     const { resetFilters } = listFilterStore();
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
         const loadUserData = async () => {
+            setLoading(true);
+
             const currentUser = auth.currentUser;
             if (!currentUser) return;
 
@@ -38,10 +42,13 @@ export default function Home(){
                     }
                 } catch (e) {
                     console.error("Fehler beim Laden der User-Daten:", e);
+                }finally {
+                    setLoading(false)
                 }
             }
 
             await loadDaysWorkedOut(currentUser.uid);
+            setLoading(false);
         };
         
         loadUserData();
@@ -134,6 +141,9 @@ export default function Home(){
 
                 </Pressable>
             </View>
+
+            {/* Loading Overlay */}
+            <LoadingOverlay visible={loading} />
 
         </SafeAreaView>
 
