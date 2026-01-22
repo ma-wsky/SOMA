@@ -181,8 +181,8 @@ npx expo start
 
 Verbindung herstellen:
 
-- Öffnen Sie die installierte SOMA-App auf Ihrem Handy.
 - Stellen Sie sicher, dass sich Handy und PC im selben WLAN befinden.
+- Scannen Sie den QR-Code, den Sie in der Konsole sehen, um die Anwendung zu starten.
 
 ---
 
