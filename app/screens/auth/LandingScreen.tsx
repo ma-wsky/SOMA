@@ -60,7 +60,10 @@ export default function LoginScreen(){
             {/* Loading Overlay */}
             <LoadingOverlay visible={isGuestLoading} />
 
-            <Pressable style={{alignItems:'center', marginTop:50}} onPress={()=> router.push("/screens/user/ImpressumScreen")}>
+            {/* Impressum */}
+            <Pressable style={{alignItems:'center', marginTop:50, alignSelf: "center"}}
+                       onPress={()=> router.push("/screens/user/ImpressumScreen")}
+            >
                 {({ pressed }) => (
                     <Text style={{color: pressed ? Colors.darkGray : Colors.gray, textDecorationLine:'underline' }} >
                         Impressum
