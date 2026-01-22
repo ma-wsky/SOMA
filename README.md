@@ -7,7 +7,7 @@ HRW - Wintersemester 2025/26
 
 ## Beschreibung
 
-SOMA ist eine mobile Fitness-App zur Trainingsplanung und -dokumentation. Die App ermöglicht es Nutzern, eigene Workouts zu erstellen, durchzuführen und ihren Fortschritt über Zeit zu verfolgen.
+SOMA ist eine mobile Fitness-App zur Trainingsplanung und -dokumentation. Die App ermöglicht es Nutzern, eigene Workouts zu erstellen, durchzuführen und ihren Fortschritt zu verfolgen.
 
 ---
 
