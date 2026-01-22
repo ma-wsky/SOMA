@@ -7,7 +7,7 @@ HRW - Wintersemester 2025/26
 
 ## Beschreibung
 
-SOMA ist eine mobile Fitness-App zur Trainingsplanung und -dokumentation. Die App ermöglicht es Nutzern, eigene Workouts zu erstellen, durchzuführen und ihren Fortschritt zu verfolgen.
+SOMA ist eine mobile Fitness-App zur Trainingsplanung und -dokumentation. Die App ermöglicht es Nutzern, eigene Trainings zu erstellen, durchzuführen und ihren Fortschritt zu verfolgen.
 
 ---
 
@@ -17,7 +17,7 @@ SOMA ist eine mobile Fitness-App zur Trainingsplanung und -dokumentation. Die Ap
 - **Training-Vorlagen erstellen:** Eigene Trainingspläne mit beliebigen Übungen zusammenstellen
 - **Aktives Training:** Live-Tracking mit Timer, Pausenzeiten und Abhaken von Sätzen
 - **Trainingshistorie:** Alle absolvierten Trainings werden in einer Kalenderansicht angezeigt
-- **Trainingserinnerungen:** Push-Benachrichtigungen und Erinnerungen für geplante Trainingstage
+- **Trainingserinnerungen:** Push-Benachrichtigungen als Erinnerung für geplante Trainingstage
 - **PDF-Export:** Trainingsverlauf als PDF-Datei exportieren
 
 ### Übungen
@@ -25,11 +25,12 @@ SOMA ist eine mobile Fitness-App zur Trainingsplanung und -dokumentation. Die Ap
 - **Favoriten:** Häufig genutzte Übungen können als Favoriten markiert werden
 - **Detailansicht:** Anleitungen und Informationen zu jeder Übung
 - **Statistiken:** Gewichtsverlauf pro Übung wird als Diagramm dargestellt
+- **PDF-Export:** Übungsstatistiken können als PDF-Datei exportiert werden
 
 ### Benutzerverwaltung
 - **Registrierung und Login:** Anmeldung über E-Mail und Passwort
 - **Gastmodus:** Die App kann ohne Account genutzt werden (anonyme Anmeldung)
-- **Profilbearbeitung:** Name, Größe, Gewicht und Profilbild können bei angemeldeten Benutzern angepasst werden
+- **Profilbearbeitung:** Name, Größe, Gewicht, etc. können bei angemeldeten Benutzern angepasst und ein Profilbild hochgeladen werden
 
 ### Einstellungen
 - **Ton:** Sound-Feedback kann ein- oder ausgeschaltet werden
@@ -251,7 +252,7 @@ Alle Abhängigkeiten werden über den Befehl `npm install` automatisch installie
 
 ## Rechtliches
 
-Die App enthält ein Impressum (erreichbar über Einstellungen), welches folgende Informationen bereitstellt:
+Die App enthält ein Impressum (erreichbar über Einstellungen und Landing), welches folgende Informationen bereitstellt:
 - Angaben gemäß § 5 DDG
 - Kontakt
 - Verantwortliche
