@@ -16,6 +16,7 @@ import {
 } from "@/utils/renderWorkout";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ExerciseCard } from "@/components/ExerciseCard";
+import { listFilterStore } from "@/utils/store/listFilterStore";
 
 
 export default function SingleWorkoutInfoScreen() {
@@ -70,7 +71,9 @@ export default function SingleWorkoutInfoScreen() {
     isCreateMode,
   });
 
-  // Initialize edit
+    const { resetFilters } = listFilterStore();
+
+    // Initialize edit
   useEffect(() => {
     if (isCreateMode) {
       setIsEditMode(true);
@@ -126,6 +129,7 @@ export default function SingleWorkoutInfoScreen() {
   }, [activeOverlay, targetExerciseId, targetSetIndex, targetExerciseName, tempSetData, tempBreakTime, saveBreakTime, saveSetData, closeOverlay]);
 
   const handleAddExercise = useCallback(() => {
+    resetFilters();
     router.push({
       pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
       params: {

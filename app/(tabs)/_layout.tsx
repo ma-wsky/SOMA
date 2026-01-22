@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View } from "react-native";
 import { StyleSheet } from "react-native";
 import { Colors } from "@/styles/theme";
+import { listFilterStore } from "@/utils/store/listFilterStore";
 
 export default function TabLayout() {
     const iconMap: Record<string, string> = {
@@ -13,6 +14,7 @@ export default function TabLayout() {
         StatisticScreenProxy: "stats-chart-outline",
         UserScreenProxy: "person-outline",
     };
+    const { resetFilters } = listFilterStore();
 
     return (
         <View style={{flex: 1, backgroundColor: Colors.background}}>
@@ -45,7 +47,14 @@ export default function TabLayout() {
             >
                 <Tabs.Screen name="HomeScreenProxy" options={{ title: "Startseite" }} />
                 <Tabs.Screen name="WorkoutScreenProxy" options={{ title: "Training" }} />
-                <Tabs.Screen name="StatisticScreenProxy" options={{ title: "Statistik" }} />
+                <Tabs.Screen name="StatisticScreenProxy"
+                             options={{ title: "Statistik" }}
+                             listeners={{
+                                 tabPress: () => {
+                                     resetFilters();
+                                 }
+                             }}
+                />
                 <Tabs.Screen name="UserScreenProxy" options={{ title: "Benutzer" }} />
             </Tabs>
 

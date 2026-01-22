@@ -9,6 +9,7 @@ import { User } from 'firebase/auth';
 import { doc, getDoc ,getDocs, collection,query,where} from 'firebase/firestore';
 import { Colors } from "@/styles/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { listFilterStore } from "@/utils/store/listFilterStore";
 
 
 export default function Home(){
@@ -18,6 +19,7 @@ export default function Home(){
     const [userData, setUserData] = useState<any>(null);
     const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
     const [daysWorkedOut, setDaysWorkedOut] = useState<{[key:string]: any}>({});
+    const { resetFilters } = listFilterStore();
 
     useEffect(() => {
         const loadUserData = async () => {
@@ -112,7 +114,10 @@ export default function Home(){
 
             <View style={{marginHorizontal: 20, marginTop: 60,}}>
                 <Pressable
-                    onPress={() => {router.push("/screens/exercise/ExerciseScreen")}}
+                    onPress={() => {
+                        resetFilters();
+                        router.push("/screens/exercise/ExerciseScreen");
+                    }}
                     style={({ pressed }) => [
                         styles.bigButton,
                         {backgroundColor: pressed ? Colors.darkGray : Colors.black},

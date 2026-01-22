@@ -1,12 +1,13 @@
 import { View,TextInput,Text, ScrollView, Pressable } from "react-native";
-import { router } from "expo-router";
-import { useState } from 'react';
+import { router, useFocusEffect } from "expo-router";
+import {useCallback, useState } from 'react';
 import LoadingOverlay from "@/components/LoadingOverlay";
 import ExerciseList from "@/components/ExerciseList"
 import { useLoadExercises } from "@/hooks/useLoadExercises"
 import { Colors } from "@/styles/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { statStyles } from "@/styles/statStyles";
+import { listFilterStore } from "@/utils/store/listFilterStore";
 
 
 const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "Bauch"];
@@ -15,8 +16,7 @@ const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "B
 export default function StatisticScreen() {
 
     const { exercises, loading } = useLoadExercises();
-    const [filter, setFilter] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("Alle");
+    const { filter, setFilter, selectedCategory, setSelectedCategory } = listFilterStore();
 
 
     return (

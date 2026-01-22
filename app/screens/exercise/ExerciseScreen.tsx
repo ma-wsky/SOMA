@@ -1,22 +1,21 @@
 import { router } from "expo-router";
 import { View, TextInput, ScrollView, Pressable, Text } from "react-native";
-import { useState } from "react";
 import { TopBar } from "@/components/TopBar"
 import ExerciseList from "@/components/ExerciseList";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { useLoadExercises } from "@/hooks/useLoadExercises";
 import { exerciseStyles } from "@/styles/exerciseStyles";
-import { Colors } from "@/styles/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { listFilterStore } from "@/utils/store/listFilterStore";
 
 
 const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "Bauch"];
 
 export default function ExerciseScreen() {
 
-    const [filter, setFilter] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("Alle");
     const { exercises, loading } = useLoadExercises();
+    const { filter, setFilter, selectedCategory, setSelectedCategory } = listFilterStore();
+
 
     return (
         <SafeAreaView style={[exerciseStyles.container]}>

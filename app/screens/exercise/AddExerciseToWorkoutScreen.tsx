@@ -7,6 +7,7 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import { useLoadExercises } from "@/hooks/useLoadExercises";
 import { Colors } from "@/styles/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { listFilterStore } from "@/utils/store/listFilterStore";
 
 
 const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "Bauch"];
@@ -14,11 +15,10 @@ const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "B
 
 export default function AddExerciseToWorkoutScreen() {
 
-    const [filter, setFilter] = useState("");
     const [breakTime, setBreakTime] = useState("30");
     const { workoutEditId, returnTo } = useLocalSearchParams<{ workoutEditId?: string; returnTo?: "active"|"edit"; }>();  
     const { exercises, loading } = useLoadExercises();
-    const [selectedCategory, setSelectedCategory] = useState("Alle");
+    const { filter, setFilter, selectedCategory, setSelectedCategory } = listFilterStore();
 
 
     const addExercise = (exercise: {id:string; name:string}) => {

@@ -29,6 +29,7 @@ import { setActiveWorkout } from "@/utils/store/activeWorkoutStore";
 import { formatTime, formatTimeShort } from "@/utils/helper/formatTimeHelper";
 import { Background } from "@react-navigation/elements";
 import { Colors } from "@/styles/theme";
+import { listFilterStore } from "@/utils/store/listFilterStore";
 
 export default function ActiveWorkoutScreen() {
   const { id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime } = useLocalSearchParams();
@@ -83,10 +84,11 @@ export default function ActiveWorkoutScreen() {
     setLoading,
     setEditIdRef,
   });
-  
+
+    const { resetFilters } = listFilterStore();
 
 
-  useEffect(() => {
+    useEffect(() => {
     if (workout && isEditMode && workoutEditId) {
       require("@/utils/store/workoutEditingStore").setEditingWorkout(workoutEditId as string, workout);
     }
@@ -204,6 +206,7 @@ export default function ActiveWorkoutScreen() {
     require("@/utils/store/workoutEditingStore").setEditingWorkout(idToUse, workout);
     setEditIdRef(idToUse);
 
+    resetFilters();
     router.push({
       pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
       params: { returnTo: "active", workoutEditId: idToUse },
