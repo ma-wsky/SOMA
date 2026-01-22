@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "scheme": "fitnessapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.soma.app",

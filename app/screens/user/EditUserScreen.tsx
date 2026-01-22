@@ -361,11 +361,6 @@ export default function EditUserScreen() {
                             />
                         )}
                     </View>
-
-
-                    {/* Loading Overlay */}
-                    <LoadingOverlay visible={loading} />
-
                 </ScrollView>
             </TouchableWithoutFeedback>
             </SafeAreaView>

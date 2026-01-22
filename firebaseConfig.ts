@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, initializeFirestore, memoryLocalCache } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import { initializeAuth, getReactNativePersistence, inMemoryPersistence } from "firebase/auth";
 import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 
 //TODO: Add SDKs for Firebase products that you want to use
@@ -20,8 +20,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // export
-export const db = getFirestore(app);
+export const db = initializeFirestore(app, {
+    localCache: memoryLocalCache(),
+});
 export const storage = getStorage(app);
 export const auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+    persistence: inMemoryPersistence
 });
