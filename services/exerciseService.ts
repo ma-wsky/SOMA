@@ -73,6 +73,7 @@ export const ExerciseService = {
                                     reps: setData.reps,
                                     timestamp: dateValue.getTime(),
                                     date: dateValue,
+                                    isDone: setData.isDone,
                                 };
                             }
                         }

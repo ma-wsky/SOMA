@@ -95,14 +95,10 @@ const groupSetsByExercise = (sets: ExerciseSet[]) => {
 };
 
 
-/**
- * Exportiert Übungsstatistiken als PDF
- * @param exercise - Die Übung mit Basisinformationen
- * @param history - Array von Trainingseinträgen mit date, weight, optional reps
- */
+
 export const exportExerciseStatisticsToPDF = async (
     exercise: Exercise,
-    history: { date: Date; weight: number; reps?: number; timestamp: number }[]
+    history: { date: Date; weight: number; reps?: number; timestamp: number; isDone?: boolean }[]
 ) => {
     if (!exercise) {
         Alert.alert("Fehler", "Keine Übung zum Exportieren vorhanden.");
@@ -130,8 +126,9 @@ export const exportExerciseStatisticsToPDF = async (
     // Berechne Statistiken
     const maxWeight = history.length > 0 ? Math.max(...history.map(h => h.weight)) : 0;
     const totalVolume = history.reduce((sum, h) => sum + (h.weight * (h.reps || 0)), 0);
-    const totalReps = history.reduce((sum, h) => sum + (h.reps || 0), 0);
-    history.length > 0
+    const totalReps = history.reduce((sum, h) => {
+        return h.isDone ? sum + (h.reps || 0) : sum;
+    }, 0);    history.length > 0
         ? (history.reduce((sum, h) => sum + h.weight, 0) / history.length).toFixed(1)
         : '0';
     
