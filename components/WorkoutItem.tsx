@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { View,Text, Pressable, Animated, PanResponder } from "react-native";
 import { workoutStyles as styles } from "../styles/workoutStyles"
 import { Colors } from "../styles/theme"
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { showConfirm } from "@/utils/helper/alertHelper";
 import {Workout} from "@/types/workoutTypes";
@@ -15,9 +15,8 @@ interface Props {
 }
 
 
-export default function WorkoutItem({workout, onPress, onDelete}: Props) {
+export default function WorkoutItem({workout, onDelete}: Props) {
     const pan = useRef(new Animated.ValueXY()).current;
-    const [isDeleting, setIsDeleting] = useState(false);
 
     const panResponder = useRef(
         PanResponder.create({
@@ -37,18 +36,18 @@ export default function WorkoutItem({workout, onPress, onDelete}: Props) {
                         toValue: { x: -100, y: 0 },
                         useNativeDriver: false,
                     }).start();
-                    setIsDeleting(true);
                 } else {
                     //Snap back
                     Animated.spring(pan, {
                         toValue: { x: 0, y: 0 },
                         useNativeDriver: false,
                     }).start();
-                    setIsDeleting(false);
                 }
             }
         })
     ).current;
+
+    const exerciseCount = new Set(workout.exerciseSets.map(set => set.exerciseId)).size;
 
     const handleDelete = () => {
         showConfirm(
@@ -83,10 +82,20 @@ export default function WorkoutItem({workout, onPress, onDelete}: Props) {
                 <Pressable
                     onPress={() => {router.push({pathname: "/screens/workout/SingleWorkoutInfoScreen", params: {id: workout.id}})}}
                 >
-                <Text style={styles.itemTitle}>{workout.name}</Text>
-                <Text style={{color: Colors.gray, fontSize: 12, marginTop: 4}}>
-                    {workout.exerciseSets.length} Sets
-                </Text>
+                    <View style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        width: "100%",
+                        marginBottom: 10,
+                    }}>
+                        <Text style={styles.itemTitle}>{workout.name}</Text>
+
+                        <Text style={{color: Colors.white, fontSize: 14}}>
+                            {exerciseCount} {exerciseCount === 1 ? 'Übung' : 'Übungen'}
+                        </Text>
+                    </View>
+
                 </Pressable>
                             
 
