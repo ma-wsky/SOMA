@@ -141,7 +141,7 @@ export const statStyles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        color: 'white',
+        color: Colors.white,
         fontSize: 16,
         height: '100%',
     },
