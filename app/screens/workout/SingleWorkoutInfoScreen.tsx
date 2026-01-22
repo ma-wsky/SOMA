@@ -249,7 +249,7 @@ export default function SingleWorkoutInfoScreen() {
                   key={exerciseId}
                   exerciseId={exerciseId}
                   sets={sets}
-                  mode="single"      // 'single' passt zum SingleWorkoutInfoScreen
+                  mode="single"
                   isEditing={isEditMode}
                   props={renderProps}
               />
