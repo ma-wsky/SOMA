@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { View, TextInput, StyleSheet, Text, Alert } from "react-native";
+import { View, TextInput, StyleSheet, Text, Alert, ScrollView, Pressable } from "react-native";
 import { useState } from "react";
 import { TopBar } from "@/components/TopBar"
 import ExerciseList from "@/components/ExerciseList";
@@ -9,6 +9,8 @@ import { Colors } from "@/styles/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 
+const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "Bauch"];
+
 
 export default function AddExerciseToWorkoutScreen() {
 
@@ -16,7 +18,7 @@ export default function AddExerciseToWorkoutScreen() {
     const [breakTime, setBreakTime] = useState("30");
     const { workoutEditId, returnTo } = useLocalSearchParams<{ workoutEditId?: string; returnTo?: "active"|"edit"; }>();  
     const { exercises, loading } = useLoadExercises();
-
+    const [selectedCategory, setSelectedCategory] = useState("Alle");
 
 
     const addExercise = (exercise: {id:string; name:string}) => {
@@ -70,6 +72,33 @@ export default function AddExerciseToWorkoutScreen() {
                 style={styles.search}
             />
 
+            {/* filter tags */}
+            <View style={{  }}>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.filterTagList}
+                >
+                    {CATEGORIES.map((cat) => (
+                        <Pressable
+                            key={cat}
+                            onPress={() => setSelectedCategory(cat)}
+                            style={[
+                                styles.filterTag,
+                                selectedCategory === cat && styles.filterTagActive
+                            ]}
+                        >
+                            <Text style={[
+                                styles.filterTagText,
+                                selectedCategory === cat && styles.filterTagTextActive
+                            ]}>
+                                {cat}
+                            </Text>
+                        </Pressable>
+                    ))}
+                </ScrollView>
+            </View>
+
             {/* Break Time Input */}
             <View style={styles.breakTimeContainer}>
                 <Text style={styles.breakTimeLabel}>Pausenzeit nach einem Satz (Sekunden)</Text>
@@ -86,6 +115,7 @@ export default function AddExerciseToWorkoutScreen() {
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
+                category={selectedCategory}
                 showAddButton
                 onItemPress={openInfo}
                 onAddToWorkout={addExercise}
@@ -127,5 +157,29 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 8,
         fontSize: 16,
+    },
+
+    // tags
+    filterTagList: {
+        paddingHorizontal: 20,
+        marginBottom: 10,
+        alignItems: 'center',
+        gap: 10,
+    },
+    filterTag: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: Colors.black,
+    },
+    filterTagActive: {
+        backgroundColor: Colors.primary,
+    },
+    filterTagText: {
+        color: Colors.white,
+        fontWeight: '500',
+    },
+    filterTagTextActive: {
+        fontWeight: 'bold',
     },
 })
