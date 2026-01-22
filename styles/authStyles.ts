@@ -33,6 +33,7 @@ export const authStyles = StyleSheet.create({
     authInputText: {
         flex: 1,
         height: 40,
+        color: Colors.black,
     },
     authInputRow: {
         flexDirection: "row",
