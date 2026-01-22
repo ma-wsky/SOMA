@@ -161,7 +161,13 @@ export default function EditUserScreen() {
 
         setLoading(true);
         try {
-            const uid = auth.currentUser!.uid;
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                Alert.alert("Fehler", "Sie müssen angemeldet sein.");
+                return;
+            }
+            
+            const uid = currentUser.uid;
             let finalPhotoUrl = formData.profilePicture;
 
             if (hasImage && image) {
