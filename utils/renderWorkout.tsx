@@ -40,7 +40,6 @@ interface ActiveWorkoutRenderProps {
   onCloseOverlay: () => void;
   onRestTimerClose: () => void;
   onWorkoutNameChange: (name: string) => void;
-  // Neue Setter für Overlay-Daten
   onSetTempSetData: (data: { weight: number; reps: number; isDone: boolean }) => void;
   onSetTempBreakTime: (data: { mins: number; secs: number }) => void;
   isFromActiveWorkout?: boolean;
@@ -214,7 +213,7 @@ export const renderActiveOverlays = (props: ActiveWorkoutRenderProps): React.Rea
 
                                 {/* Erledigt Checkbox - nur wenn von aktivem Workout */}
                                 {isFromActiveWorkout && (
-                                    <View style={{ flexDirection: 'row',justifyContent:'center',paddingBottom:20, alignItems: 'center', marginTop: 8 }}>
+                                    <View style={{ flexDirection: 'row',justifyContent:'center',paddingBottom:0, alignItems: 'center', marginTop: 8 }}>
                                         <Text style={{ color: Colors.black, fontSize: 16, marginRight: 16 }}>Erledigt</Text>
                                         <Pressable
                                             onPress={() => props.onSetTempSetData({ ...props.tempSetData, isDone: !props.tempSetData.isDone })}
@@ -245,17 +244,13 @@ export const renderActiveRestTimerBar = (
 
   return (
     <View
-      style={{
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
+      style={{  
         backgroundColor: Colors.primary,
-        padding: 16,
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        zIndex: 10,
+        paddingBottom:30,
+        padding:10,
       }}
     >
       <View>
