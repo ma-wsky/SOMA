@@ -85,11 +85,12 @@ export const ExerciseCard = ({ exerciseId, sets, mode, isEditing, props }: Unive
 
             {/* tabellen header */}
             <View style={[styles.setRowHeader, { flexDirection: 'row', paddingHorizontal: 10 }]}>
-                <Text numberOfLines={1} style={[headerTextStyle, colStyles.satz]}>Satz</Text>
+                <Text numberOfLines={1} style={[headerTextStyle, colStyles.satz, {textAlign: "left"}]}>Satz</Text>
                 <Text numberOfLines={1} style={[headerTextStyle, colStyles.gewicht]}>Gew.</Text>
                 <Text numberOfLines={1} style={[headerTextStyle, colStyles.reps]}>Wdh.</Text>
                 {hasAction && (
-                    <Text numberOfLines={1} style={[headerTextStyle, colStyles.action]}>
+                    <Text numberOfLines={1}
+                          style={[headerTextStyle, colStyles.action, { textAlign: "right", paddingRight: 15 }]}>
                         {isEditing ? "Aktion" : "Status"}
                     </Text>
                 )}
