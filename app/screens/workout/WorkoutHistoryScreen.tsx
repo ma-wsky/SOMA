@@ -10,7 +10,6 @@ import { exportWorkoutsToPDF } from "@/utils/helper/exportHelper";
 import { ExerciseSet, Workout } from "@/types/workoutTypes";
 import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import { formatTimeDynamic } from "@/utils/helper/formatTimeHelper";
-import { ExerciseService } from "@/services/exerciseService";
 import { Colors } from "@/styles/theme";
 import { ExerciseCard } from "@/components/ExerciseCard";
 
@@ -311,7 +310,7 @@ export default function WorkoutHistoryScreen() {
               textAlign: "center",
             }}
           >
-            Keine Workouts an diesem Tag
+            Keine Trainings an diesem Tag
           </Text>
         </View>
       )}
