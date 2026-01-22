@@ -44,7 +44,7 @@ export default function WorkoutList({workouts, filter = "", onItemPress, onDelet
       ListEmptyComponent={() => (
         <View style={{ marginTop: 20 }}>
           <Text style={{ textAlign: "center", color: Colors.darkGray }}>
-            Keine Workouts gefunden.
+            Keine Trainings gefunden.
           </Text>
         </View>
       )}
