@@ -20,20 +20,28 @@ export default function ImpressumScreen() {
                 showsVerticalScrollIndicator={false}
                 contentInsetAdjustmentBehavior="automatic"
             >
-                <Text style={styles.heading}>Angaben gemäß § 5 DDG (TMG)</Text>
+                <Text style={styles.heading}>Angaben nach § 5 Absatz 1 Digitale-Dienste-Gesetz (DDG)</Text>
                 <Text style={styles.text}>
-                    SOMA App{"\n"}
-                    Unsere Adresse/Anschrift - evtl Hochschule
+                    Angaben zur SOMA App{"\n"}
+                    Hochschulprojekt der Hochschule:{"\n"}{"\n"}
+                    Hochschule Ruhr West{"\n"}
+                    Duisburger Straße 100{"\n"}
+                    45479 Mülheim an der Ruhr
+
                 </Text>
 
-                <Text style={styles.heading}>Kontakt</Text>
+                <Text style={styles.heading}>Kontakt der Hochschule</Text>
                 <Text style={styles.text}>
-                    E-Mail - Telefon eher nicht
+                    Telefon: 0208 882 54 -0{"\n"}
+                    Fax: 0208 882 54 -109{"\n"}
+                    E-Mail: kontakt@hs-ruhrwest.de
                 </Text>
 
                 <Text style={styles.heading}>Verantwortlich für den Inhalt</Text>
                 <Text style={styles.text}>
-                    Wir mit Namen evtl adres/kontakt
+                    Studenten der Hochschule:{"\n"}
+                    - Maximilian Dregewsky{"\n"}
+                    - Matthew Rade
                 </Text>
 
                 <Text style={styles.heading}>Medien der App</Text>
@@ -49,17 +57,30 @@ export default function ImpressumScreen() {
 
                 <Text style={styles.heading}>Datenschutz</Text>
                 <Text style={styles.text}>
-                    Die Nutzung dieser App ist in der Regel ohne Angabe 
-                    personenbezogener Daten möglich. Soweit personenbezogene 
-                    Daten erhoben werden, erfolgt dies stets auf freiwilliger Basis.
-                    Diese Daten werden ohne Ihre ausdrückliche Zustimmung nicht 
-                    an Dritte weitergegeben.
+                    Diese App verwendet Firebase zur Speicherung von Nutzerdaten wie 
+                    Accounts, Workouts und Trainingsstatistiken.
+                    Die Datenverarbeitung erfolgt gemäß der Firebase-Datenschutzerklärung. 
+                    Personenbezogene Daten werden nur zur Bereitstellung der App-Funktionalität 
+                    verwendet und nicht an Dritte weitergegeben.
                 </Text>
 
                 <Text style={styles.heading}>Urheberrecht</Text>
                 <Text style={styles.text}>
-                    Die durch die App-Betreiber erstellten Inhalte und Werke 
-                    unterliegen dem deutschen Urheberrecht.
+                    Die App-Software und deren Design unterliegen dem deutschen
+                    Urheberrecht. Von Nutzern erstellte Inhalte (Workouts, Daten)
+                    verbleiben im Eigentum des jeweiligen Nutzers. Die App-Betreiber
+                    erheben keinen Anspruch auf Nutzerinhalte.
+                </Text>
+
+                <Text style={styles.heading}>Haftungsausschluss</Text>
+                <Text style={styles.text}>
+                    Die Inhalte dieser App dienen ausschließlich der allgemeinen
+                    Information und ersetzen keine professionelle medizinische 
+                    oder technische Beratung. Wir übernehmen keine Gewähr für die Richtigkeit,
+                    Vollständigkeit oder Aktualität der bereitgestellten
+                    Übungsbeschreibungen. Jede Nutzung der App erfolgt auf
+                    eigenes Risiko. Bei gesundheitlichen Problemen konsultieren
+                    Sie bitte einen Arzt.
                 </Text>
 
                 <View style={styles.footer}>

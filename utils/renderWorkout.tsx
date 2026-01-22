@@ -8,7 +8,6 @@ import {
   TouchableWithoutFeedback,
   Platform,
   Keyboard,
-  SafeAreaView,
 } from "react-native";
 import { ScrollView } from 'react-native-gesture-handler';
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -20,6 +19,7 @@ import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
 import { formatTimeShort } from "@/utils/helper/formatTimeHelper";
 import { TopBar } from "@/components/TopBar";
 import { ExerciseCard } from "@/components/ExerciseCard"
+import { SafeAreaView } from "react-native-safe-area-context";
 
 //TODO Nutzt wirklich RenderBase??
 //TODO RenderOverlay raus holen
