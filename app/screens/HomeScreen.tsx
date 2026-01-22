@@ -76,7 +76,7 @@ export default function Home(){
 
     return (
         <SafeAreaView style={{backgroundColor: Colors.background, flex:1, flexDirection: "column",justifyContent: 'flex-start',}}>
-            <View style={{alignItems: "center", marginTop: 100,}}>
+            <View style={{alignItems: "center", marginTop: 100, marginBottom: 40 }}>
                 {!isAnonymous && userData?.name ? (
                     <Text style={{fontSize: 24, fontWeight: "bold",alignSelf: "center"}}>
                         Hallo, {userData.name}!
