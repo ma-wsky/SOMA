@@ -13,12 +13,12 @@ SOMA ist eine mobile Fitness-App zur Trainingsplanung und -dokumentation. Die Ap
 
 ## Kernfunktionalitäten
 
-### Training und Workouts
-- **Workout-Vorlagen erstellen:** Eigene Trainingspläne mit beliebigen Übungen zusammenstellen
+### Training
+- **Training-Vorlagen erstellen:** Eigene Trainingspläne mit beliebigen Übungen zusammenstellen
 - **Aktives Training:** Live-Tracking mit Timer, Pausenzeiten und Abhaken von Sätzen
-- **Trainingshistorie:** Alle absolvierten Workouts werden in einer Kalenderansicht angezeigt
-- **Trainingserinnerungen:** Push-Benachrichtigungen und Erinnerungen für geplante Trainingseinheiten
-- **PDF-Export:** Trainingsverlauf als PDF-Datei exportieren und teilen
+- **Trainingshistorie:** Alle absolvierten Trainings werden in einer Kalenderansicht angezeigt
+- **Trainingserinnerungen:** Push-Benachrichtigungen und Erinnerungen für geplante Trainingstage
+- **PDF-Export:** Trainingsverlauf als PDF-Datei exportieren
 
 ### Übungen
 - **Übungsbibliothek:** Vordefinierte Übungen sowie die Möglichkeit, eigene Übungen zu erstellen
@@ -28,13 +28,13 @@ SOMA ist eine mobile Fitness-App zur Trainingsplanung und -dokumentation. Die Ap
 
 ### Benutzerverwaltung
 - **Registrierung und Login:** Anmeldung über E-Mail und Passwort
-- **Gastmodus:** Die App kann ohne Account getestet werden (anonyme Anmeldung)
-- **Profilbearbeitung:** Name, Größe, Gewicht und Profilbild können angepasst werden
+- **Gastmodus:** Die App kann ohne Account genutzt werden (anonyme Anmeldung)
+- **Profilbearbeitung:** Name, Größe, Gewicht und Profilbild können bei angemeldeten Benutzern angepasst werden
 
 ### Einstellungen
 - **Ton:** Sound-Feedback kann ein- oder ausgeschaltet werden
 - **Vibration:** Vibration kann ein- oder ausgeschaltet werden
-- **Auto-Helligkeit:** Bildschirmhelligkeit passt sich automatisch per Lichtsensor an
+- **Auto-Helligkeit:** Bildschirmhelligkeit passt sich automatisch per Lichtsensor an, kann ein- oder ausgeschaltet werden
 - **Erinnerungen:** Benachrichtigungen für Trainingseinheiten können konfiguriert werden
 
 ---
@@ -45,14 +45,14 @@ Die App folgt einer komponentenbasierten Architektur mit klarer Trennung der Ver
 
 ```
 app/                       Screens und Navigation (Expo Router)
-    (tabs)/                Tab-Navigation (Home, Workout, Stats, User)
+    (tabs)/                Tab-Navigation (Startseite, Training, Statistik, Benutzer)
     screens/               Alle App-Screens, nach Funktion gruppiert
 
 components/                Wiederverwendbare UI-Komponenten
 
 hooks/                     Custom React Hooks zur Auslagerung von Logik
-    useActiveWorkoutData   Verwaltet den Zustand des aktiven Workouts
-    useWorkoutLoader       Lädt Workout-Daten aus der Datenbank
+    useActiveWorkoutData   Verwaltet den Zustand des aktiven Trainings
+    useWorkoutLoader       Lädt Trainings-Daten aus der Datenbank
 
 services/                  Kommunikation mit dem Backend
     exerciseService        Lädt Übungen und Historie aus Firebase
@@ -70,7 +70,7 @@ types/                     TypeScript-Typdefinitionen
 ### Zustandsverwaltung
 
 - **Lokaler Zustand:** React useState für Screen-spezifische Daten
-- **Globaler Zustand:** Eigene Store-Implementierung mit Subscriber-Pattern (siehe utils/store/)
+- **Globaler Zustand:** Eigene Store-Implementierung mit Subscribe-Pattern (siehe utils/store/)
 - **Persistierung:** AsyncStorage für lokale Einstellungen, Firebase für Nutzerdaten
 
 ### Navigation
@@ -97,7 +97,7 @@ types/                     TypeScript-Typdefinitionen
 |------------|--------------|
 | expo-router | Dateibasiertes Routing für die Navigation |
 | @react-navigation | Bibliotheken für Stack- und Tab-Navigation |
-| @gorhom/bottom-sheet | Einblendbare Panels von unten (für aktives Workout) |
+| @gorhom/bottom-sheet | Einblendbare Panels von unten (für aktives Training) |
 | react-native-calendars | Kalender-Komponente für die Trainingshistorie |
 | react-native-chart-kit | Diagramme für die Statistikansicht |
 
@@ -141,7 +141,7 @@ types/                     TypeScript-Typdefinitionen
 ### Schritt 1: Repository klonen
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/ma-wsky/SOMA
 cd soma
 ```
 
