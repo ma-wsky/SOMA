@@ -7,7 +7,6 @@ import { userStyles } from "@/styles/userStyles";
 import { Colors } from "@/styles/theme";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { UserButton } from "@/components/user/userButton";
 import { validateEmail } from "@/utils/user/validateEmail";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { uploadImage } from "@/utils/uploadImage";
@@ -22,7 +21,7 @@ const EditRow = ({ label, value, onChangeText, placeholder, keyboardType = "defa
         <View style={userStyles.EditFieldWrapper}>
             {isPressable ? (
                 <Pressable onPress={onPress} style={userStyles.input}>
-                    <Text style={[userStyles.input, !value && { color: '#999' }, { paddingTop: 12 }]}>
+                    <Text style={[userStyles.input, !value && { color: '#999' }]}>
                         {value || placeholder}
                     </Text>
                 </Pressable>
@@ -30,9 +29,11 @@ const EditRow = ({ label, value, onChangeText, placeholder, keyboardType = "defa
                 <TextInput
                     style={userStyles.input}
                     placeholder={placeholder}
+                    placeholderTextColor={Colors.black}
                     value={value}
                     onChangeText={onChangeText}
                     keyboardType={keyboardType}
+                    selectTextOnFocus={true}
                 />
             )}
         </View>
