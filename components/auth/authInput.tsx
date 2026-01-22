@@ -37,6 +37,7 @@ export const AuthInput = ({
             <TextInput
                 style={authStyles.authInputText}
                 placeholder={placeholder}
+                placeholderTextColor={Colors.black}
                 value={value}
                 onChangeText={onChangeText}
                 keyboardType={keyboardType}
