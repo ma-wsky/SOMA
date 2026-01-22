@@ -175,6 +175,7 @@ export default function CreateExerciseScreen() {
                                     <TextInput
                                         style={exerciseStyles.input}
                                         placeholder={"Name der Übung eingeben"}
+                                        placeholderTextColor={Colors.black}
                                         value={formData.name}
                                         onChangeText={(val) => handleInputChange("name", val)}/>
                                 </View>
@@ -188,6 +189,7 @@ export default function CreateExerciseScreen() {
                                     <TextInput
                                         style={exerciseStyles.input}
                                         placeholder={"welche Muskeln trainiert diese Übung"}
+                                        placeholderTextColor={Colors.black}
                                         value={formData.muscles}
                                         onChangeText={(val) => handleInputChange("muscles", val)}/>
                                 </View>
@@ -201,6 +203,7 @@ export default function CreateExerciseScreen() {
                                     <TextInput
                                         style={exerciseStyles.input}
                                         placeholder={"Ausrüstung angeben"}
+                                        placeholderTextColor={Colors.black}
                                         value={formData.equipment}
                                         onChangeText={(val) => handleInputChange("equipment", val)}/>
                                 </View>
@@ -214,6 +217,7 @@ export default function CreateExerciseScreen() {
                                     <TextInput
                                         style={exerciseStyles.input}
                                         placeholder={"Anleitung angeben"}
+                                        placeholderTextColor={Colors.black}
                                         value={formData.instructions}
                                         onChangeText={(val) => handleInputChange("instructions", val)}
                                         multiline
