@@ -143,15 +143,21 @@ export default function SingleWorkoutInfoScreen() {
     }, [activeOverlay, targetExerciseId, targetSetIndex, targetExerciseName, tempSetData, tempBreakTime, saveBreakTime, saveSetData, closeOverlay]);
 
     const handleAddExercise = useCallback(() => {
+        if (!workout) return;
+
+        const idToUse = (workoutEditId as string) || workout.id || `edit_temp_${Date.now()}`;
+        require("@/utils/store/workoutEditingStore").setEditingWorkout(idToUse, workout);
+        setEditIdRef(idToUse);
+
         resetFilters();
         router.push({
             pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
             params: {
                 returnTo: "edit",
-                workoutEditId: workout?.id || workoutEditId,
+                workoutEditId: idToUse,
             },
         });
-    }, [workoutEditId, workout]);
+    }, [workoutEditId, workout, setEditIdRef, resetFilters]);
 
     const handleSaveWorkoutPressed = useCallback(() => {
         handleSaveWorkout(id, (newId) => {

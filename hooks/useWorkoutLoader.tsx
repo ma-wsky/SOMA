@@ -19,14 +19,14 @@ interface LoadWorkoutParams {
 
 
 export const useWorkoutLoader = ({
-                                     id,
-                                     workoutEditId,
-                                     setWorkout,
-                                     setOriginalWorkout,
-                                     setExercises,
-                                     setLoading,
-                                     setEditIdRef,
-                                 }: LoadWorkoutParams) => {
+                                    id,
+                                    workoutEditId,
+                                    setWorkout,
+                                    setOriginalWorkout,
+                                    setExercises,
+                                    setLoading,
+                                    setEditIdRef,
+                                }: LoadWorkoutParams) => {
     useEffect(() => {
         const loadWorkoutData = async () => {
             setLoading(true);
