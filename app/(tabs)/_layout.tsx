@@ -1,11 +1,10 @@
-import { Tabs } from "expo-router";
+import {Tabs} from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import React from "react";
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { View } from "react-native";
-import { StyleSheet } from "react-native";
-import { Colors } from "@/styles/theme";
-import { listFilterStore } from "@/utils/store/listFilterStore";
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {StyleSheet, View} from "react-native";
+import {Colors} from "@/styles/theme";
+import {listFilterStore} from "@/utils/store/listFilterStore";
 
 export default function TabLayout() {
     const iconMap: Record<string, string> = {
@@ -14,26 +13,27 @@ export default function TabLayout() {
         StatisticScreenProxy: "stats-chart-outline",
         UserScreenProxy: "person-outline",
     };
-    const { resetFilters } = listFilterStore();
+    const {resetFilters} = listFilterStore();
 
     return (
         <View style={{flex: 1, backgroundColor: Colors.background}}>
 
             <View style={styles.backdrop}/>
 
+            {/* Alle Tabs */}
             <Tabs
-                screenOptions={({ route }) => ({
+                screenOptions={({route}) => ({
                     headerShown: false,
                     tabBarActiveTintColor: Colors.primary,
                     tabBarInactiveTintColor: Colors.white,
                     tabBarStyle: styles.tabBar,
                     tabBarItemStyle: styles.tabBarItem,
                     tabBarLabelStyle: styles.tabBarLabel,
-                    tabBarIcon: ({ focused }) => (
+                    tabBarIcon: ({focused}) => (
                         <View
                             style={[
                                 styles.tabBarIconOval,
-                                { backgroundColor: focused ? Colors.primary : "transparent"},
+                                {backgroundColor: focused ? Colors.primary : "transparent"},
                             ]}
                         >
                             <Ionicons
@@ -45,21 +45,22 @@ export default function TabLayout() {
                     ),
                 })}
             >
-                <Tabs.Screen name="HomeScreenProxy" options={{ title: "Startseite" }} />
-                <Tabs.Screen name="WorkoutScreenProxy" options={{ title: "Training" }} />
+                {/* einzeln */}
+                <Tabs.Screen name="HomeScreenProxy" options={{title: "Startseite"}}/>
+                <Tabs.Screen name="WorkoutScreenProxy" options={{title: "Training"}}/>
                 <Tabs.Screen name="StatisticScreenProxy"
-                             options={{ title: "Statistik" }}
+                             options={{title: "Statistik"}}
                              listeners={{
                                  tabPress: () => {
                                      resetFilters();
                                  }
                              }}
                 />
-                <Tabs.Screen name="UserScreenProxy" options={{ title: "Benutzer" }} />
+                <Tabs.Screen name="UserScreenProxy" options={{title: "Benutzer"}}/>
             </Tabs>
 
             <SafeAreaView style={{backgroundColor: Colors.black}}
-                        edges={["bottom"]}>
+                          edges={["bottom"]}>
             </SafeAreaView>
 
         </View>

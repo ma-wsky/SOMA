@@ -1,14 +1,14 @@
 import React from "react";
-import { View, ActivityIndicator, StyleSheet, Modal } from "react-native";
-import { Colors } from "@/styles/theme";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {ActivityIndicator, Modal, StyleSheet, View} from "react-native";
+import {Colors} from "@/styles/theme";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 
 type LoadingOverlayProps = {
     visible: boolean;
 };
 
-export default function LoadingOverlay({ visible }: LoadingOverlayProps) {
+export default function LoadingOverlay({visible}: LoadingOverlayProps) {
     return (
         <Modal
             transparent
@@ -18,7 +18,7 @@ export default function LoadingOverlay({ visible }: LoadingOverlayProps) {
         >
             <SafeAreaView style={styles.overlay}>
                 <View style={styles.spinnerWrapper}>
-                    <ActivityIndicator size="large" color={Colors.primary} />
+                    <ActivityIndicator size="large" color={Colors.primary}/>
                 </View>
             </SafeAreaView>
         </Modal>
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         elevation: 5,
         shadowColor: Colors.black,
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
     },

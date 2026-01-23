@@ -1,5 +1,5 @@
-import { BaseToast, ErrorToast, ToastConfig } from 'react-native-toast-message';
-import { StyleSheet } from 'react-native';
+import {BaseToast, ErrorToast, ToastConfig} from 'react-native-toast-message';
+import {StyleSheet} from 'react-native';
 
 
 export const networkToastConfig: ToastConfig = {
@@ -7,19 +7,19 @@ export const networkToastConfig: ToastConfig = {
     success: (props) => (
         <BaseToast
             {...props}
-            style={ styles.successToast }
-            contentContainerStyle={{ paddingHorizontal: 15 }}
-            text1Style={{ fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' }}
-            text2Style={{ fontSize: 14, color: '#4a4a4a' }}
+            style={styles.successToast}
+            contentContainerStyle={{paddingHorizontal: 15}}
+            text1Style={{fontSize: 16, fontWeight: 'bold', color: '#1a1a1a'}}
+            text2Style={{fontSize: 14, color: '#4a4a4a'}}
         />
     ),
 
     error: (props) => (
         <ErrorToast
             {...props}
-            style={ styles.errorToast }
-            text1Style={{ fontSize: 17 }}
-            text2Style={{ fontSize: 15 }}
+            style={styles.errorToast}
+            text1Style={{fontSize: 17}}
+            text2Style={{fontSize: 15}}
         />
     ),
 };

@@ -1,25 +1,25 @@
-import { View, Text, Pressable, Image, Alert, ScrollView } from "react-native";
-import { router, useLocalSearchParams } from "expo-router"
+import {Alert, Image, Pressable, ScrollView, Text, View} from "react-native";
+import {router, useLocalSearchParams} from "expo-router"
 import {TopBar} from "@/components/TopBar";
-import { useState, useEffect } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import {useEffect, useState} from "react";
+import {doc, getDoc} from "firebase/firestore";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {auth, db} from "@/firebaseConfig";
-import { Exercise } from "@/types/Exercise"
+import {Exercise} from "@/types/Exercise"
 import LoadingOverlay from "@/components/LoadingOverlay";
-import { exerciseStyles } from "@/styles/exerciseStyles"
-import { ExerciseService } from "@/services/exerciseService"
-import { Colors } from "@/styles/theme";
-import { SafeAreaView } from "react-native-safe-area-context";
-
+import {exerciseStyles} from "@/styles/exerciseStyles"
+import {ExerciseService} from "@/services/exerciseService"
+import {Colors} from "@/styles/theme";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 
 export default function SingleExerciseInfoScreen() {
 
     const [loading, setLoading] = useState<boolean>(false);
-    const { id } = useLocalSearchParams<{ id: string }>();
+    const {id} = useLocalSearchParams<{ id: string }>();
     const [exercise, setExercise] = useState<Exercise | null>(null);
 
+    // default pictures
     const ADMIN_DEFAULT = require("@/assets/default-exercise-picture/admin.png");
     const USER_DEFAULT = require("@/assets/default-exercise-picture/users.png");
 
@@ -29,28 +29,32 @@ export default function SingleExerciseInfoScreen() {
         const fetchExercise = async () => {
             setLoading(true);
 
+            // firebase fetch
             try {
                 const user = auth.currentUser;
                 let tempExercise: Exercise | null = null;
                 let isGlobal = false;
                 let isOwn = false;
 
+                // is global
                 const globalRef = doc(db, "exercises", id);
                 const globalSnap = await getDoc(globalRef);
                 if (globalSnap.exists()) {
                     isGlobal = true;
-                    tempExercise = ({ id: globalSnap.id, ...globalSnap.data() } as Exercise);
+                    tempExercise = ({id: globalSnap.id, ...globalSnap.data()} as Exercise);
 
-                }else if (user){
+                } else if (user) {
+                    // is own
                     const userRef = doc(db, "users", user.uid, "exercises", id);
                     const userSnap = await getDoc(userRef);
 
                     if (userSnap.exists()) {
                         isOwn = true;
-                        tempExercise = ({ id: userSnap.id, ...userSnap.data() } as Exercise);
+                        tempExercise = ({id: userSnap.id, ...userSnap.data()} as Exercise);
                     }
                 }
 
+                // put in state
                 if (tempExercise && user) {
                     const favRef = doc(db, "users", user.uid, "favorites", id);
                     const favSnap = await getDoc(favRef);
@@ -82,7 +86,7 @@ export default function SingleExerciseInfoScreen() {
 
         try {
             const isNowFavorite = await ExerciseService.toggleFavorite(exercise, auth.currentUser.uid);
-            setExercise({ ...exercise, isFavorite: isNowFavorite});
+            setExercise({...exercise, isFavorite: isNowFavorite});
         } catch (e) {
             Alert.alert("Fehler", "Favorit konnte nicht gespeichert werden.");
         }
@@ -92,31 +96,35 @@ export default function SingleExerciseInfoScreen() {
     if (!exercise) {
         return (
             <SafeAreaView style={exerciseStyles.container}>
-                <TopBar isSheet={false} leftButtonText="Zurück" titleText="Übung Info" onLeftPress={() => router.back()} />
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <TopBar isSheet={false}
+                        leftButtonText="Zurück"
+                        titleText="Übung Info"
+                        onLeftPress={() => router.back()}
+                />
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                     <Text>Übung nicht gefunden.</Text>
-                    <LoadingOverlay visible={true} />
+                    <LoadingOverlay visible={true}/>
                 </View>
             </SafeAreaView>
         );
     }
+
     return (
         <SafeAreaView style={exerciseStyles.container}>
-
 
             {/* Top Bar */}
             <TopBar isSheet={false}
                     leftButtonText={"Zurück"}
                     titleText={"Übung Info"}
                     onLeftPress={() => router.back()}
-            ></TopBar>
+            />
 
             {/* Exercise Picture */}
             <View style={exerciseStyles.picWrapper}>
                 <Image
                     source={
                         exercise.image
-                            ? { uri: exercise.image }
+                            ? {uri: exercise.image}
                             : (exercise.isOwn
                                 ? USER_DEFAULT
                                 : ADMIN_DEFAULT)
@@ -136,7 +144,6 @@ export default function SingleExerciseInfoScreen() {
                         color={Colors.icon}
                     />
                 </Pressable>
-
             </View>
 
             {/* muscle groups */}
@@ -157,6 +164,7 @@ export default function SingleExerciseInfoScreen() {
                         </Text>
                     </ScrollView>
                 </View>
+
             </View>
         </SafeAreaView>
     );

@@ -1,11 +1,11 @@
-import { StyleSheet } from 'react-native';
-import { Colors } from "./theme";
+import {StyleSheet} from 'react-native';
+import {Colors} from "@/styles/theme";
 
 
 export const authStyles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor:Colors.background,
+        backgroundColor: Colors.background,
         justifyContent: "flex-start",
         marginHorizontal: 40,
         paddingTop: 200,
@@ -63,7 +63,7 @@ export const authStyles = StyleSheet.create({
         borderBottomColor: Colors.gray,
         borderBottomWidth: 1,
         marginVertical: "5%",
-        marginHorizontal:5
+        marginHorizontal: 5
     },
     dividerText: {
         fontSize: 18,

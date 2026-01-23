@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { auth, db } from "../firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
-import { Exercise } from "@/types/Exercise"
+import {useEffect, useState} from "react";
+import {auth, db} from "../firebaseConfig";
+import {collection, getDocs} from "firebase/firestore";
+import {Exercise} from "@/types/Exercise"
 
 
 export function useLoadExercises() {
@@ -53,5 +53,5 @@ export function useLoadExercises() {
         loadExercises();
     }, []);
 
-    return { exercises, setExercises, loading };
+    return {exercises, setExercises, loading};
 }

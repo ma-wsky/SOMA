@@ -1,7 +1,7 @@
 import React from 'react';
-import { Pressable, Text, ViewStyle } from 'react-native';
-import { Colors } from "../../styles/theme";
-import { authStyles } from "../../styles/authStyles";
+import {Pressable, Text, ViewStyle} from 'react-native';
+import {Colors} from "@/styles/theme";
+import {authStyles} from "@/styles/authStyles";
 
 type ButtonVariant = 'primary' | 'secondary';
 
@@ -13,12 +13,12 @@ interface AuthButtonProps {
     style?: ViewStyle;
 }
 
-export const AuthButton = ({ title, onPress, variant = 'primary', disabled, style }: AuthButtonProps) => {
+export const AuthButton = ({title, onPress, variant = 'primary', disabled, style}: AuthButtonProps) => {
     return (
         <Pressable
             onPress={onPress}
             disabled={disabled}
-            style={({ pressed }) => {
+            style={({pressed}) => {
                 const baseStyle = variant === 'secondary'
                     ? authStyles.secondaryBotton
                     : authStyles.button;

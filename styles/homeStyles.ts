@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { Colors } from "./theme";
+import {StyleSheet} from 'react-native';
+import {Colors} from "@/styles/theme";
 
 export const homeStyles = StyleSheet.create({
     bigButton: {

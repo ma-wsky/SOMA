@@ -1,11 +1,11 @@
 import React from "react";
-import { View, Text, Pressable, DimensionValue } from "react-native";
+import {Pressable, Text, View} from "react-native";
 import {Colors} from "@/styles/theme";
-import { topBarStyles as styles } from "@/styles/topBarStyles";
+import {topBarStyles as styles} from "@/styles/topBarStyles";
 
 
 interface TopBarProps {
-    isSheet:boolean,
+    isSheet: boolean,
     backgroundColor?: string,
     leftButtonText?: string,
     titleText?: string,
@@ -14,19 +14,28 @@ interface TopBarProps {
     onRightPress?: () => void,
 }
 
-export function TopBar({ isSheet, backgroundColor, leftButtonText, titleText, rightButtonText, onLeftPress, onRightPress }: TopBarProps){
+export function TopBar({
+                           isSheet,
+                           backgroundColor,
+                           leftButtonText,
+                           titleText,
+                           rightButtonText,
+                           onLeftPress,
+                           onRightPress
+                       }: TopBarProps) {
 
-    return(
+    return (
         <View style={[
             styles.container,
-            isSheet && { marginTop: 0 },
-            { backgroundColor: backgroundColor || Colors.background }
+            isSheet && {marginTop: 0},
+            {backgroundColor: backgroundColor || Colors.background}
         ]}>
 
+            {/* left button */}
             {leftButtonText ? (
                 <Pressable
                     onPress={onLeftPress}
-                    style={({ pressed }) => [
+                    style={({pressed}) => [
                         styles.button,
                         {backgroundColor: pressed ? Colors.secondary : Colors.primary},
                         {borderColor: pressed ? Colors.secondary : Colors.primary}
@@ -38,20 +47,22 @@ export function TopBar({ isSheet, backgroundColor, leftButtonText, titleText, ri
                 <View style={styles.placeholder}></View>
             )}
 
+            {/* middle text */}
             <View style={{flex: 1, paddingHorizontal: 4, justifyContent: 'center', alignItems: 'center'}}>
-                <Text 
-                    style={[styles.text, {textAlign: 'center'}]} 
-                    numberOfLines={2} 
+                <Text
+                    style={[styles.text, {textAlign: 'center'}]}
+                    numberOfLines={2}
                     ellipsizeMode="tail"
                 >
                     {titleText}
                 </Text>
             </View>
 
+            {/* right button */}
             {rightButtonText ? (
                 <Pressable
                     onPress={onRightPress}
-                    style={({ pressed }) => [
+                    style={({pressed}) => [
                         styles.button,
                         {backgroundColor: pressed ? Colors.secondary : Colors.primary},
                         {borderColor: pressed ? Colors.secondary : Colors.primary}

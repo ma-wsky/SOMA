@@ -1,11 +1,11 @@
-import { StyleSheet } from 'react-native';
-import { Colors } from "./theme";
+import {StyleSheet} from 'react-native';
+import {Colors} from "@/styles/theme";
 
 
 export const statStyles = StyleSheet.create({
     //single
     container: {
-        backgroundColor:Colors.background,
+        backgroundColor: Colors.background,
         flex: 1,
         justifyContent: 'flex-start',
     },
@@ -13,7 +13,7 @@ export const statStyles = StyleSheet.create({
         alignItems: 'center',
         paddingTop: 20,
     },
-    graphWrapper:{
+    graphWrapper: {
         marginRight: 40,
     },
     title: {
@@ -34,8 +34,8 @@ export const statStyles = StyleSheet.create({
         alignItems: "center",
     },
     picture: {
-        width:150,
-        height:150,
+        width: 150,
+        height: 150,
         borderRadius: 75,
         borderWidth: 4,
         borderColor: Colors.black,
@@ -75,12 +75,12 @@ export const statStyles = StyleSheet.create({
     },
 
     //screen
-    search:{
-        padding:10,
+    search: {
+        padding: 10,
         color: Colors.white,
-        fontSize:20,
-        backgroundColor:Colors.black,
-        margin:20,
+        fontSize: 20,
+        backgroundColor: Colors.black,
+        margin: 20,
         borderRadius: 50,
     },
     divider: {
@@ -128,7 +128,7 @@ export const statStyles = StyleSheet.create({
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1A1A1A',
+        backgroundColor: Colors.black,
         borderRadius: 12,
         paddingHorizontal: 12,
         marginHorizontal: 16,
@@ -141,7 +141,7 @@ export const statStyles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        color: 'white',
+        color: Colors.white,
         fontSize: 16,
         height: '100%',
     },

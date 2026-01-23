@@ -1,5 +1,7 @@
-import { useState, useRef, useCallback, Dispatch, SetStateAction } from "react";
-import type { Workout, Exercise, ExerciseSet } from "@/types/workoutTypes";
+import {Dispatch, SetStateAction, useCallback, useRef, useState} from "react";
+import type {Exercise, Workout} from "@/types/workoutTypes";
+import {setEditingWorkout} from "@/utils/store/workoutEditingStore"
+
 
 export interface BaseWorkoutState {
     workout: Workout | null;
@@ -25,7 +27,7 @@ export interface BaseWorkoutActions {
         targetSetIndex: number | null,
         targetExerciseId: string | null,
         targetExerciseName: string | null
-        ) => void;
+    ) => void;
     updateWorkoutState: (newWorkout: Workout) => void;
 }
 
@@ -39,9 +41,9 @@ export const useBaseWorkoutData = (initialWorkout?: Workout | null): BaseWorkout
 
     //Syncs EditingStore
     const updateWorkoutState = useCallback((newW: Workout) => {
-    setWorkout(newW);
+        setWorkout(newW);
         if (editIdRef.current) {
-            require("@/utils/store/workoutEditingStore").setEditingWorkout(editIdRef.current, newW);
+            setEditingWorkout(editIdRef.current, newW);
         }
     }, []);
 
@@ -55,10 +57,10 @@ export const useBaseWorkoutData = (initialWorkout?: Workout | null): BaseWorkout
         if (originalWorkout) {
             setWorkout(originalWorkout);
             if (editIdRef.current) {
-                require("@/utils/store/workoutEditingStore").setEditingWorkout(editIdRef.current, originalWorkout);
+                setEditingWorkout(editIdRef.current, originalWorkout);
             }
         }
-    setIsEditMode(false);
+        setIsEditMode(false);
     }, [originalWorkout]);
 
     const handleRemoveSet = useCallback(
@@ -66,16 +68,16 @@ export const useBaseWorkoutData = (initialWorkout?: Workout | null): BaseWorkout
             setWorkout((prev) => {
                 if (!prev) return null;
                 const newSets = prev.exerciseSets.filter((_, i) => i !== index);
-                const newWorkout = { ...prev, exerciseSets: newSets };
-        
+                const newWorkout = {...prev, exerciseSets: newSets};
+
                 //Sync
                 if (editIdRef.current) {
-                    require("@/utils/store/workoutEditingStore").setEditingWorkout(editIdRef.current, newWorkout);
+                    setEditingWorkout(editIdRef.current, newWorkout);
                 }
-            
+
                 return newWorkout;
             });
-        },[]
+        }, []
     );
 
     const saveBreakTime = useCallback(
@@ -83,74 +85,76 @@ export const useBaseWorkoutData = (initialWorkout?: Workout | null): BaseWorkout
             setWorkout((prev) => {
                 if (!prev) return null;
                 const newSets = prev.exerciseSets.map((s) =>
-                    s.exerciseId === exerciseId ? { ...s, breaktime: newSeconds } : s
+                    s.exerciseId === exerciseId ? {...s, breaktime: newSeconds} : s
                 );
-                const newWorkout = { ...prev, exerciseSets: newSets };
-        
+                const newWorkout = {...prev, exerciseSets: newSets};
+
+                //sync
                 if (editIdRef.current) {
-                    require("@/utils/store/workoutEditingStore").setEditingWorkout(editIdRef.current, newWorkout);
+                    setEditingWorkout(editIdRef.current, newWorkout);
                 }
-        
+
                 return newWorkout;
             });
-        },[]
+        }, []
     );
 
 
     const saveSetData = useCallback(
         (tempSetData: { weight: number; reps: number; isDone?: boolean },
-        activeOverlay: string,
-        targetSetIndex: number | null,
-        targetExerciseId: string | null,
-        targetExerciseName: string | null
+         activeOverlay: string,
+         targetSetIndex: number | null,
+         targetExerciseId: string | null,
+         targetExerciseName: string | null
         ) => {
-        setWorkout((prev) => {
-        if (!prev) return null;
-        let newSets = [...prev.exerciseSets];
+            setWorkout((prev) => {
+                if (!prev) return null;
+                let newSets = [...prev.exerciseSets];
 
-        if (activeOverlay === "editSet" && targetSetIndex !== null) {
-            // Bestehender Satz
-            newSets[targetSetIndex] = { ...newSets[targetSetIndex], ...tempSetData };
-        } else if (activeOverlay === "addSet" && targetExerciseId) {
-            // Neuer Satz
-            newSets.push({
-            id: `set_${Date.now()}`,
-            exerciseId: targetExerciseId,
-            exerciseName: targetExerciseName || "Unbekannt",
-            weight: tempSetData.weight,
-            reps: tempSetData.reps,
-            isDone: tempSetData.isDone || false,
-            breaktime: 30,
+                if (activeOverlay === "editSet" && targetSetIndex !== null) {
+                    // Bestehender Satz
+                    newSets[targetSetIndex] = {...newSets[targetSetIndex], ...tempSetData};
+                } else if (activeOverlay === "addSet" && targetExerciseId) {
+                    // Neuer Satz
+                    newSets.push({
+                        id: `set_${Date.now()}`,
+                        exerciseId: targetExerciseId,
+                        exerciseName: targetExerciseName || "Unbekannt",
+                        weight: tempSetData.weight,
+                        reps: tempSetData.reps,
+                        isDone: tempSetData.isDone || false,
+                        breaktime: 30,
+                    });
+                }
+
+                const newWorkout = {...prev, exerciseSets: newSets};
+
+                //sync
+                if (editIdRef.current) {
+                    setEditingWorkout(editIdRef.current, newWorkout);
+                }
+
+                return newWorkout;
             });
-        }
-
-        const newWorkout = { ...prev, exerciseSets: newSets };
-        
-        if (editIdRef.current) {
-            require("@/utils/store/workoutEditingStore").setEditingWorkout(editIdRef.current, newWorkout);
-        }
-        
-        return newWorkout;
-        });
-        },[]
+        }, []
     );
 
     return {
-    workout,
-    originalWorkout,
-    exercises,
-    isEditMode,
-    loading,
-    setWorkout,
-    setOriginalWorkout,
-    setExercises,
-    setIsEditMode,
-    setLoading,
-    setEditIdRef,
-    handleRemoveSet,
-    handleCancel,
-    saveBreakTime,
-    saveSetData,
-    updateWorkoutState,
+        workout,
+        originalWorkout,
+        exercises,
+        isEditMode,
+        loading,
+        setWorkout,
+        setOriginalWorkout,
+        setExercises,
+        setIsEditMode,
+        setLoading,
+        setEditIdRef,
+        handleRemoveSet,
+        handleCancel,
+        saveBreakTime,
+        saveSetData,
+        updateWorkoutState,
     };
 };

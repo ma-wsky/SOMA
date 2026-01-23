@@ -3,11 +3,11 @@ type WorkoutTimer = { startTime: number; elapsedTime: number; workoutId?: string
 let workoutTimer: WorkoutTimer = null;
 
 export const setWorkoutTimer = (val: WorkoutTimer) => {
-  workoutTimer = val;
+    workoutTimer = val;
 };
 
 export const getWorkoutTimer = (): WorkoutTimer => workoutTimer;
 
 export const clearWorkoutTimer = () => {
-  workoutTimer = null;
+    workoutTimer = null;
 };

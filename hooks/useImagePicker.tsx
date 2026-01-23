@@ -1,6 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
-import { Alert } from 'react-native';
+import {useState} from 'react';
+import {Alert} from 'react-native';
 
 export function useImagePicker() {
     const [image, setImage] = useState<string | null>(null);
@@ -59,10 +59,10 @@ export function useImagePicker() {
                         }
                     }
                 ],
-                { cancelable: true }
+                {cancelable: true}
             );
         });
     };
 
-    return { image, setImage, pickImage };
+    return {image, setImage, pickImage};
 }

@@ -1,10 +1,10 @@
-import { router } from "expo-router";
-import { View,Text, Pressable, Animated, PanResponder } from "react-native";
-import { workoutStyles as styles } from "../styles/workoutStyles"
-import { Colors } from "../styles/theme"
-import { useRef } from "react";
+import {router} from "expo-router";
+import {Animated, PanResponder, Pressable, Text, View} from "react-native";
+import {workoutStyles as styles} from "../styles/workoutStyles"
+import {Colors} from "../styles/theme"
+import {useRef} from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { showConfirm } from "@/utils/helper/alertHelper";
+import {showConfirm} from "@/utils/helper/alertHelper";
 import {Workout} from "@/types/workoutTypes";
 
 
@@ -18,28 +18,29 @@ interface Props {
 export default function WorkoutItem({workout, onDelete}: Props) {
     const pan = useRef(new Animated.ValueXY()).current;
 
+    // swiping
     const panResponder = useRef(
         PanResponder.create({
             onStartShouldSetPanResponder: () => true,
             onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 20,
             onPanResponderMove: (_, gestureState) => {
-                //Begrenz Bewegung
+                //begrenzen der bewegung
                 const clampedX = Math.max(-150, Math.min(0, gestureState.dx));
-                pan.setValue({ x: clampedX, y: 0 });
+                pan.setValue({x: clampedX, y: 0});
             },
             onPanResponderRelease: (_, gestureState) => {
                 const clampedX = Math.max(-150, Math.min(0, gestureState.dx));
-                
+
                 if (clampedX < -100) {
-                    //Swipe left - show delete
+                    //links -> delete
                     Animated.spring(pan, {
-                        toValue: { x: -100, y: 0 },
+                        toValue: {x: -100, y: 0},
                         useNativeDriver: false,
                     }).start();
                 } else {
-                    //Snap back
+                    //snap back
                     Animated.spring(pan, {
-                        toValue: { x: 0, y: 0 },
+                        toValue: {x: 0, y: 0},
                         useNativeDriver: false,
                     }).start();
                 }
@@ -58,62 +59,82 @@ export default function WorkoutItem({workout, onDelete}: Props) {
                     onDelete(workout.id);
                 }
             },
-            { confirmText: "Löschen", cancelText: "Abbrechen" }
+            {confirmText: "Löschen", cancelText: "Abbrechen"}
         );
     };
 
     return (
         <View>
+            {/* schaltfläche löschen */}
             <Pressable
                 onPress={handleDelete}
-                style={{position: 'absolute', borderRadius:10, right: 20, top: 5, bottom: 5, width: 100, backgroundColor: '#ff4444', justifyContent: "center", alignItems: "center"}}
+                style={{
+                    position: 'absolute',
+                    borderRadius: 10,
+                    right: 20,
+                    top: 5,
+                    bottom: 5,
+                    width: 100,
+                    backgroundColor: '#ff4444',
+                    justifyContent: "center",
+                    alignItems: "center"
+                }}
             >
-                <Ionicons name="trash" size={28} color={Colors.white}  />
+                <Ionicons name="trash" size={28} color={Colors.white}/>
             </Pressable>
 
-            <Animated.View 
-                style={[{ transform: [{ translateX: pan.x }] }]} 
+            <Animated.View
+                style={[{transform: [{translateX: pan.x}]}]}
                 {...panResponder.panHandlers}
             >
-            <View style={{...styles.itemContainer, overflow: 'hidden', position: 'relative'}}>
+                <View style={{...styles.itemContainer, overflow: 'hidden', position: 'relative'}}>
 
-                <View style={{backgroundColor:Colors.black}}>
+                    <View style={{backgroundColor: Colors.black}}>
 
-                <Pressable
-                    onPress={() => {router.push({pathname: "/screens/workout/SingleWorkoutInfoScreen", params: {id: workout.id}})}}
-                >
-                    <View style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        width: "100%",
-                        marginBottom: 10,
-                    }}>
-                        <Text style={styles.itemTitle}>{workout.name}</Text>
+                        {/* card */}
+                        <Pressable
+                            onPress={() => {
+                                router.push({
+                                    pathname: "/screens/workout/SingleWorkoutInfoScreen",
+                                    params: {id: workout.id}
+                                })
+                            }}
+                        >
+                            <View style={{
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                width: "100%",
+                                marginBottom: 10,
+                            }}>
+                                <Text style={styles.itemTitle}>{workout.name}</Text>
 
-                        <Text style={{color: Colors.white, fontSize: 14}}>
-                            {exerciseCount} {exerciseCount === 1 ? 'Übung' : 'Übungen'}
-                        </Text>
+                                <Text style={{color: Colors.white, fontSize: 14}}>
+                                    {exerciseCount} {exerciseCount === 1 ? 'Übung' : 'Übungen'}
+                                </Text>
+                            </View>
+
+                        </Pressable>
+
+                        {/* workout starten button */}
+                        <Pressable
+                            onPress={() => {
+                                router.push({
+                                    pathname: "/screens/workout/ActiveWorkoutScreen",
+                                    params: {id: workout.id}
+                                })
+                            }}
+                            style={({pressed}) => [
+                                styles.itemButton,
+                                {backgroundColor: pressed ? Colors.secondary : Colors.primary},
+                                {borderColor: pressed ? Colors.secondary : Colors.primary}
+                            ]}
+                        >
+                            <Text style={styles.itemButtonText}>Training starten</Text>
+                        </Pressable>
+
                     </View>
-
-                </Pressable>
-                            
-
-
-                <Pressable
-                    onPress={() => {router.push({pathname: "/screens/workout/ActiveWorkoutScreen", params: {id: workout.id}})}}
-                    style={({ pressed }) => [
-                        styles.itemButton,
-                        {backgroundColor: pressed ? Colors.secondary : Colors.primary},
-                        {borderColor: pressed ? Colors.secondary : Colors.primary}
-                    ]}
-                >
-                <Text style={styles.itemButtonText}>Training starten</Text>
-                </Pressable>
-            
                 </View>
-            
-            </View>
             </Animated.View>
         </View>
     );

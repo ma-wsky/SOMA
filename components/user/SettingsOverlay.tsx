@@ -1,26 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { 
-    View, 
-    Text, 
-    Modal, 
-    Pressable, 
-    StyleSheet, 
-    Switch,
-    Animated,
-    Dimensions
-} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {Animated, Modal, Pressable, Switch, Text, View} from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Colors } from "@/styles/theme";
-import { userStyles } from "@/styles/userStyles";
-import { 
-    getSettings, 
+import {Colors} from "@/styles/theme";
+import {userStyles} from "@/styles/userStyles";
+import {
+    getSettings,
     loadSettings,
-    subscribeToSettings,
+    setAutoBrightnessEnabled,
     setSoundEnabled,
     setVibrationEnabled,
-    setAutoBrightnessEnabled 
+    subscribeToSettings
 } from "@/utils/store/settingsStore";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 
 interface SettingsOverlayProps {
@@ -33,18 +24,18 @@ interface SettingsOverlayProps {
 }
 
 export const SettingsOverlay: React.FC<SettingsOverlayProps> = ({
-    visible,
-    onClose,
-    onEdit,
-    onLogout,
-    onImpressum,
-    isAnonymous = false,
-}) => {
+                                                                    visible,
+                                                                    onClose,
+                                                                    onEdit,
+                                                                    onLogout,
+                                                                    onImpressum,
+                                                                    isAnonymous = false,
+                                                                }) => {
     const [settings, setSettings] = useState(getSettings());
     const slideAnim = useState(new Animated.Value(300))[0];
 
     useEffect(() => {
-        // Settings beim Mount laden
+        // settings beim mount laden
         const loadInitialSettings = async () => {
             const loadedSettings = await loadSettings();
             setSettings(loadedSettings);
@@ -55,6 +46,7 @@ export const SettingsOverlay: React.FC<SettingsOverlayProps> = ({
         return unsubscribe;
     }, []);
 
+    // slide in
     useEffect(() => {
         if (visible) {
             Animated.spring(slideAnim, {
@@ -69,40 +61,40 @@ export const SettingsOverlay: React.FC<SettingsOverlayProps> = ({
     }, [visible]);
 
     const handleToggleSound = async (newValue: boolean) => {
-        setSettings(prev => ({ ...prev, soundEnabled: newValue }));
+        setSettings(prev => ({...prev, soundEnabled: newValue}));
         await setSoundEnabled(newValue);
     };
 
     const handleToggleVibration = async (newValue: boolean) => {
-        setSettings(prev => ({ ...prev, vibrationEnabled: newValue }));
+        setSettings(prev => ({...prev, vibrationEnabled: newValue}));
         await setVibrationEnabled(newValue);
     };
 
     const handleToggleAutoBrightness = async (newValue: boolean) => {
-        setSettings(prev => ({ ...prev, autoBrightnessEnabled: newValue }));
+        setSettings(prev => ({...prev, autoBrightnessEnabled: newValue}));
         await setAutoBrightnessEnabled(newValue);
     };
 
-    const SettingsRow = ({ 
-        icon, 
-        label, 
-        onPress,
-        color = Colors.black 
-    }: { 
-        icon: string; 
-        label: string; 
-        onPress: () => void; 
+    const SettingsRow = ({
+                             icon,
+                             label,
+                             onPress,
+                             color = Colors.black
+                         }: {
+        icon: string;
+        label: string;
+        onPress: () => void;
         color?: string;
     }) => (
-        <Pressable 
-            style={userStyles.settingsRow} 
+        <Pressable
+            style={userStyles.settingsRow}
             onPress={onPress}
         >
             <View style={userStyles.rowWrap}>
-                <Ionicons name={icon as any} size={25} color={color} />
-                <Text style={{fontSize:16, color }}>{label}</Text>
+                <Ionicons name={icon as any} size={25} color={color}/>
+                <Text style={{fontSize: 16, color}}>{label}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
+            <Ionicons name="chevron-forward" size={20} color={Colors.gray}/>
         </Pressable>
     );
 
@@ -113,23 +105,25 @@ export const SettingsOverlay: React.FC<SettingsOverlayProps> = ({
             animationType="fade"
             onRequestClose={onClose}
         >
-            <SafeAreaView style={{flex:1,flexDirection:'row'}}>
-                <Pressable style={{flex: 1,backgroundColor: 'rgba(0, 0, 0, 0.37)',
-                    }} onPress={onClose} />
-                
-                <Animated.View 
+            <SafeAreaView style={{flex: 1, flexDirection: 'row'}}>
+                <Pressable style={{
+                    flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.37)',
+                }} onPress={onClose}/>
+
+                <Animated.View
                     style={[
                         userStyles.menu,
-                        { transform: [{ translateX: slideAnim }] }
+                        {transform: [{translateX: slideAnim}]}
                     ]}
                 >
                     <View style={userStyles.settingsRow}>
                         <Text style={userStyles.text}>Einstellungen</Text>
-                        <Pressable onPress={onClose} style={{padding:5}}>
-                            <Ionicons name="close" size={28} color={Colors.black} />
+                        <Pressable onPress={onClose} style={{padding: 5}}>
+                            <Ionicons name="close" size={28} color={Colors.black}/>
                         </Pressable>
                     </View>
 
+                    {/* settings */}
                     <View style={{padding: 10}}>
                         <SettingsRow
                             icon={isAnonymous ? "person-add-outline" : "create-outline"}
@@ -137,69 +131,74 @@ export const SettingsOverlay: React.FC<SettingsOverlayProps> = ({
                             onPress={onEdit}
                         />
 
-                        <View style={userStyles.line} />
+                        <View style={userStyles.line}/>
 
+                        {/* volume */}
                         <View style={userStyles.settingsRow}>
                             <View style={userStyles.rowWrap}>
-                                <Ionicons 
-                                    name={settings.soundEnabled ? "volume-high-outline" : "volume-mute-outline"} 
-                                    size={24} 
-                                    color={Colors.black} 
+                                <Ionicons
+                                    name={settings.soundEnabled ? "volume-high-outline" : "volume-mute-outline"}
+                                    size={24}
+                                    color={Colors.black}
                                 />
                                 <Text style={{fontSize: 16}}>Ton</Text>
                             </View>
                             <Switch
                                 value={settings.soundEnabled}
                                 onValueChange={handleToggleSound}
-                                trackColor={{ false: Colors.gray, true: Colors.primary }}
+                                trackColor={{false: Colors.gray, true: Colors.primary}}
                                 thumbColor={settings.soundEnabled ? Colors.white : Colors.gray}
                             />
                         </View>
 
+                        {/* vibration */}
                         <View style={userStyles.settingsRow}>
                             <View style={userStyles.rowWrap}>
-                                <Ionicons 
-                                    name="phone-portrait-outline" 
-                                    size={24} 
-                                    color={Colors.black} 
+                                <Ionicons
+                                    name="phone-portrait-outline"
+                                    size={24}
+                                    color={Colors.black}
                                 />
                                 <Text style={{fontSize: 16}}>Vibration</Text>
                             </View>
                             <Switch
                                 value={settings.vibrationEnabled}
                                 onValueChange={handleToggleVibration}
-                                trackColor={{ false: Colors.gray, true: Colors.primary }}
+                                trackColor={{false: Colors.gray, true: Colors.primary}}
                                 thumbColor={settings.vibrationEnabled ? Colors.white : Colors.gray}
                             />
                         </View>
 
+                        {/* auto brightness */}
                         <View style={userStyles.settingsRow}>
                             <View style={userStyles.rowWrap}>
-                                <Ionicons 
-                                    name="sunny-outline" 
-                                    size={24} 
-                                    color={Colors.black} 
+                                <Ionicons
+                                    name="sunny-outline"
+                                    size={24}
+                                    color={Colors.black}
                                 />
                                 <Text style={{fontSize: 16}}>Auto-Helligkeit</Text>
                             </View>
                             <Switch
                                 value={settings.autoBrightnessEnabled}
                                 onValueChange={handleToggleAutoBrightness}
-                                trackColor={{ false: Colors.gray, true: Colors.primary }}
+                                trackColor={{false: Colors.gray, true: Colors.primary}}
                                 thumbColor={settings.autoBrightnessEnabled ? Colors.white : Colors.gray}
                             />
                         </View>
 
-                        <View style={userStyles.line} />
+                        <View style={userStyles.line}/>
 
+                        {/* impressum */}
                         <SettingsRow
                             icon="information-circle-outline"
                             label="Impressum"
                             onPress={onImpressum}
                         />
 
-                        <View style={userStyles.line} />
+                        <View style={userStyles.line}/>
 
+                        {/* logout */}
                         <SettingsRow
                             icon="log-out-outline"
                             label="Abmelden"

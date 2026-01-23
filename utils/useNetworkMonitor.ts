@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import {useEffect, useRef} from 'react';
 import NetInfo from '@react-native-community/netinfo';
 import Toast from 'react-native-toast-message';
 
@@ -6,6 +6,7 @@ export function useNetworkMonitor() {
     const isFirst = useRef(true);
     const wasOffline = useRef(false);
 
+    // offline check
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
             if (isFirst.current) {

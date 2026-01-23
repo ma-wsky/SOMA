@@ -1,19 +1,19 @@
-import { StyleSheet } from 'react-native';
-import { Colors } from "./theme";
+import {StyleSheet} from 'react-native';
+import {Colors} from "@/styles/theme";
 
 
 export const exerciseStyles = StyleSheet.create({
     container: {
-        backgroundColor:Colors.background,
+        backgroundColor: Colors.background,
         flex: 1,
         justifyContent: 'flex-start',
     },
-    searchBar:{
-        padding:10,
+    searchBar: {
+        padding: 10,
         color: Colors.white,
-        fontSize:20,
-        backgroundColor:Colors.black,
-        marginTop:20,
+        fontSize: 20,
+        backgroundColor: Colors.black,
+        marginTop: 20,
         marginHorizontal: 20,
         marginBottom: 10,
         borderRadius: 50,
@@ -84,8 +84,8 @@ export const exerciseStyles = StyleSheet.create({
         alignItems: "center",
     },
     picture: {
-        width:150,
-        height:150,
+        width: 150,
+        height: 150,
         borderRadius: 75,
         borderWidth: 4,
         borderColor: Colors.black,
@@ -93,16 +93,16 @@ export const exerciseStyles = StyleSheet.create({
     },
     picText: {
         color: Colors.black,
-        borderRadius:5,
+        borderRadius: 5,
         fontWeight: "bold",
-        paddingHorizontal:5,
+        paddingHorizontal: 5,
         fontSize: 16,
-        backgroundColor:Colors.whiteTransparent,
-        alignSelf:'auto'
+        backgroundColor: Colors.whiteTransparent,
+        alignSelf: 'auto'
     },
     textOverlay: {
-        top:65,
-        left:30,
+        top: 65,
+        left: 30,
         position: 'absolute',
         justifyContent: 'center',
         alignItems: 'center',
@@ -158,7 +158,7 @@ export const exerciseStyles = StyleSheet.create({
         alignItems: 'center',
         paddingRight: 20,
     },
-    textContainer:{
+    textContainer: {
         flex: 1,
         marginLeft: 20,
     },
@@ -221,7 +221,7 @@ export const exerciseStyles = StyleSheet.create({
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1A1A1A',
+        backgroundColor: Colors.black,
         borderRadius: 12,
         paddingHorizontal: 12,
         marginHorizontal: 16,

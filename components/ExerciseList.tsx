@@ -1,8 +1,8 @@
-import { FlatList, View, Text } from "react-native";
-import { useMemo } from "react";
+import {FlatList, Text, View} from "react-native";
+import {useMemo} from "react";
 import ExerciseItem from "@/components/ExerciseItem";
-import { exerciseStyles } from "@/styles/exerciseStyles";
-import { Exercise } from "@/types/Exercise"
+import {exerciseStyles} from "@/styles/exerciseStyles";
+import {Exercise} from "@/types/Exercise"
 
 interface Props {
     exercises: Exercise[];
@@ -18,10 +18,18 @@ type ListItem =
     | { type: "divider"; title: string }
     | { type: "exercise"; data: Exercise };
 
-export default function ExerciseList({ exercises, filter="",category="Alle", onItemPress, onAddToWorkout, showAddButton = false}: Props) {
+export default function ExerciseList({
+                                         exercises,
+                                         filter = "",
+                                         category = "Alle",
+                                         onItemPress,
+                                         onAddToWorkout,
+                                         showAddButton = false
+                                     }: Props) {
 
     const listData = useMemo(() => {
 
+        // filter data
         const filtered = exercises.filter(ex => {
             const matchesSearch = filter.toLowerCase() === "" ||
                 ex.name.toLowerCase().includes(filter.toLowerCase());
@@ -38,6 +46,7 @@ export default function ExerciseList({ exercises, filter="",category="Alle", onI
         const ownExercises: Exercise[] = [];
         const otherExercises: Exercise[] = [];
 
+        // fill list
         sortedFilter.forEach(ex => {
             if (ex.isFavorite) favoriteExercises.push(ex);
             else if (ex.isOwn) ownExercises.push(ex);
@@ -47,35 +56,35 @@ export default function ExerciseList({ exercises, filter="",category="Alle", onI
         const data: ListItem[] = [];
 
         if (favoriteExercises.length > 0) {
-            data.push({ type: "divider", title: "Favoriten" });
-            favoriteExercises.forEach(ex => data.push({ type: "exercise", data: ex }));
+            data.push({type: "divider", title: "Favoriten"});
+            favoriteExercises.forEach(ex => data.push({type: "exercise", data: ex}));
         }
         if (ownExercises.length > 0) {
-            data.push({ type: "divider", title: "Meine Übungen" });
-            ownExercises.forEach(ex => data.push({ type: "exercise", data: ex }));
+            data.push({type: "divider", title: "Meine Übungen"});
+            ownExercises.forEach(ex => data.push({type: "exercise", data: ex}));
         }
-        if (otherExercises.length > 0){
-            data.push({ type: "divider", title: "Andere Übungen"});
-            otherExercises.forEach(ex => data.push({ type: "exercise", data: ex}));
+        if (otherExercises.length > 0) {
+            data.push({type: "divider", title: "Andere Übungen"});
+            otherExercises.forEach(ex => data.push({type: "exercise", data: ex}));
         }
 
         return data;
     }, [exercises, filter, category]);
 
-    const renderItem = ({ item }: { item: ListItem }) => {
-        if (item.type === "divider"){
+    const renderItem = ({item}: { item: ListItem }) => {
+        if (item.type === "divider") {
             return (
                 // Dividing line with Text
                 <View style={exerciseStyles.divider}>
                     <Text style={exerciseStyles.dividerText}>{item.title}</Text>
-                    <View style={exerciseStyles.line} />
+                    <View style={exerciseStyles.line}/>
                 </View>
             );
         }
         return (
             <ExerciseItem
                 exercise={item.data}
-                onPress={()=> onItemPress && onItemPress(item.data)}
+                onPress={() => onItemPress && onItemPress(item.data)}
                 onAddToWorkout={onAddToWorkout}
                 showAddButton={showAddButton}
             />

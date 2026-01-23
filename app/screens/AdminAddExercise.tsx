@@ -1,8 +1,8 @@
-import { View, TextInput, Button, StyleSheet, Alert } from "react-native";
-import { useState } from "react";
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "@/firebaseConfig";
-import { Colors } from "@/styles/theme";
+import {Alert, Button, StyleSheet, TextInput, View} from "react-native";
+import {useState} from "react";
+import {addDoc, collection} from "firebase/firestore";
+import {db} from "@/firebaseConfig";
+import {Colors} from "@/styles/theme";
 
 export default function AdminAddExerciseScreen() {
     const [name, setName] = useState("");
@@ -60,7 +60,7 @@ export default function AdminAddExerciseScreen() {
                 onChangeText={setInstructions}
                 style={styles.input}
             />
-            <Button title="Hinzufügen" onPress={addExercise} />
+            <Button title="Hinzufügen" onPress={addExercise}/>
         </View>
     );
 }

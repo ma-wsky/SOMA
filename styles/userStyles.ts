@@ -1,8 +1,8 @@
-import { StyleSheet,Dimensions } from 'react-native';
-import { Colors } from "./theme";
+import {Dimensions, StyleSheet} from 'react-native';
+import {Colors} from "@/styles/theme";
 
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
 export const userStyles = StyleSheet.create({
     editUserContainer: {
@@ -51,7 +51,7 @@ export const userStyles = StyleSheet.create({
         flexDirection: "row",
         width: 250,
     },
-    EditFieldWrapper:{
+    EditFieldWrapper: {
         flexDirection: "row",
         width: 250,
         height: 45,
@@ -62,7 +62,7 @@ export const userStyles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     field: {
-        color:Colors.black,
+        color: Colors.black,
         fontSize: 18,
         marginLeft: 20,
     },
@@ -85,8 +85,8 @@ export const userStyles = StyleSheet.create({
         alignItems: "center",
     },
     profilePicture: {
-        width:150,
-        height:150,
+        width: 150,
+        height: 150,
         borderRadius: 75,
         borderWidth: 4,
         borderColor: Colors.black,
@@ -110,7 +110,7 @@ export const userStyles = StyleSheet.create({
         maxWidth: 320,
         backgroundColor: Colors.background,
         shadowColor: Colors.black,
-        shadowOffset: { width: -2, height: 0 },
+        shadowOffset: {width: -2, height: 0},
         shadowOpacity: 0.25,
         shadowRadius: 10,
         elevation: 10,
@@ -118,15 +118,15 @@ export const userStyles = StyleSheet.create({
     //edit user
     picText: {
         color: Colors.black,
-        borderRadius:5,
+        borderRadius: 5,
         fontWeight: "bold",
-        paddingHorizontal:5,
+        paddingHorizontal: 5,
         fontSize: 16,
-        backgroundColor:Colors.whiteTransparent,
-        alignSelf:'auto'
+        backgroundColor: Colors.whiteTransparent,
+        alignSelf: 'auto'
     },
     textOverlay: {
-        top:65,
+        top: 65,
         position: 'absolute',
         justifyContent: 'center',
         alignItems: 'center',

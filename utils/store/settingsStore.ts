@@ -14,16 +14,15 @@ const defaultSettings: AppSettings = {
     autoBrightnessEnabled: false,
 };
 
-let currentSettings: AppSettings = { ...defaultSettings };
+let currentSettings: AppSettings = {...defaultSettings};
 let listeners: ((settings: AppSettings) => void)[] = [];
-
 
 
 export const loadSettings = async (): Promise<AppSettings> => {
     try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
         if (stored) {
-            currentSettings = { ...defaultSettings, ...JSON.parse(stored) };
+            currentSettings = {...defaultSettings, ...JSON.parse(stored)};
         }
     } catch (e) {
         console.error('Fehler beim Laden der Einstellungen:', e);

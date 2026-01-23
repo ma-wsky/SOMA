@@ -1,15 +1,27 @@
-import { router } from "expo-router";
-import { View,Text,TextInput,Platform, TouchableWithoutFeedback,Keyboard, ScrollView, KeyboardAvoidingView, Pressable, Alert, Image } from "react-native";
-import { useState } from "react";
-import { TopBar } from "@/components/TopBar"
-import { auth, db } from "@/firebaseConfig";
-import { collection, addDoc, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
+import {router} from "expo-router";
+import {
+    Alert,
+    Image,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableWithoutFeedback,
+    View
+} from "react-native";
+import {useState} from "react";
+import {TopBar} from "@/components/TopBar"
+import {auth, db} from "@/firebaseConfig";
+import {addDoc, collection, doc, getDocs, query, updateDoc, where} from "firebase/firestore";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import { exerciseStyles } from "@/styles/exerciseStyles";
-import { useImagePicker } from "@/hooks/useImagePicker"
-import { uploadImage } from "@/utils/uploadImage"
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Colors } from "@/styles/theme";
+import {exerciseStyles} from "@/styles/exerciseStyles";
+import {useImagePicker} from "@/hooks/useImagePicker"
+import {uploadImage} from "@/utils/uploadImage"
+import {SafeAreaView} from "react-native-safe-area-context";
+import {Colors} from "@/styles/theme";
 
 export default function CreateExerciseScreen() {
 
@@ -20,7 +32,7 @@ export default function CreateExerciseScreen() {
         equipment: "",
         instructions: ""
     });
-    const { image, pickImage } = useImagePicker();
+    const {image, pickImage} = useImagePicker();
     const [hasImage, setHasImage] = useState<boolean>(false);
 
     const handleTakePhoto = async () => {
@@ -58,7 +70,8 @@ export default function CreateExerciseScreen() {
                 downloadURL = await uploadImage(image, path);
             }
 
-            if(snapshot.empty){
+            // neue übung
+            if (snapshot.empty) {
                 await addDoc(userExerciseCollection, {
                     isGlobal: false,
                     name: formData.name.trim(),
@@ -71,7 +84,7 @@ export default function CreateExerciseScreen() {
 
                 Alert.alert("Erfolg", "Übung wurde erstellt.");
                 router.back();
-            }else{
+            } else {
                 Alert.alert(
                     "Übung ändern",
                     `Es existiert bereits eine Übung mit dem Namen "${formData.name}". Möchten Sie die Übung aktualisieren?`,
@@ -84,6 +97,8 @@ export default function CreateExerciseScreen() {
                             text: "Aktualisieren",
                             style: "destructive",
                             onPress: async () => {
+
+                                // übung bearbeiten
                                 const data = snapshot.docs[0].data();
                                 const docRef = doc(userExerciseCollection, snapshot.docs[0].id);
                                 const updates: any = {};
@@ -97,7 +112,7 @@ export default function CreateExerciseScreen() {
                                     updates.image = downloadURL;
                                 }
 
-                                if(Object.keys(updates).length > 0){
+                                if (Object.keys(updates).length > 0) {
                                     await updateDoc(docRef, updates);
                                 }
 
@@ -106,135 +121,135 @@ export default function CreateExerciseScreen() {
                             },
                         },
                     ],
-                    { cancelable: true }
+                    {cancelable: true}
                 );
             }
         } catch (e) {
             console.error(e);
             Alert.alert("Fehler", "Speichern fehlgeschlagen.");
-        }finally {
+        } finally {
             setLoading(false);
         }
     }
 
     const handleInputChange = (field: string, value: string) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+        setFormData(prev => ({...prev, [field]: value}));
     };
 
     return (
-        
+
         <KeyboardAvoidingView
-            style={{ flex: 1,backgroundColor:Colors.background }}
+            style={{flex: 1, backgroundColor: Colors.background}}
             behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
-        ><SafeAreaView style={{backgroundColor:Colors.background}}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={{backgroundColor:Colors.background}}>
-                <ScrollView
-                    contentContainerStyle={{ flexGrow: 1, backgroundColor:Colors.background }}
-                    keyboardShouldPersistTaps="handled"
-                >
-                    {/* Screen */}
-                    <View style={exerciseStyles.container}>
+        >
+            <SafeAreaView style={{backgroundColor: Colors.background}}>
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={{backgroundColor: Colors.background}}>
+                    <ScrollView
+                        contentContainerStyle={{flexGrow: 1, backgroundColor: Colors.background}}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        {/* Screen */}
+                        <View style={exerciseStyles.container}>
 
-                        {/* Top Bar */}
-                        <TopBar isSheet={false}
-                                leftButtonText={"Zurück"}
-                                titleText={"Erstellen"}
-                                rightButtonText={"Speichern"}
-                                onLeftPress={() => router.back()}
-                                onRightPress={saveChanges}
-                        />
+                            {/* Top Bar */}
+                            <TopBar isSheet={false}
+                                    leftButtonText={"Zurück"}
+                                    titleText={"Erstellen"}
+                                    rightButtonText={"Speichern"}
+                                    onLeftPress={() => router.back()}
+                                    onRightPress={saveChanges}
+                            />
 
-                        {/* Exercise Picture */}
-                        <View style={exerciseStyles.picWrapper}>
-                            <Pressable
-                                onPress={handleTakePhoto}
-                                style={({pressed}) => [
-                                    { opacity: pressed ? 0.7 : 1.0 },
-                                ]}
-                            >
-                                <Image
-                                    source={image ? { uri: image } : require('@/assets/default-exercise-picture/users.png')}
-                                    style={exerciseStyles.picture}/>
+                            {/* Exercise Picture */}
+                            <View style={exerciseStyles.picWrapper}>
+                                <Pressable
+                                    onPress={handleTakePhoto}
+                                    style={({pressed}) => [
+                                        {opacity: pressed ? 0.7 : 1.0},
+                                    ]}
+                                >
+                                    <Image
+                                        source={image ? {uri: image} : require('@/assets/default-exercise-picture/users.png')}
+                                        style={exerciseStyles.picture}/>
 
-                                {!hasImage && (
-                                    <View style={exerciseStyles.textOverlay}>
-                                        <Text style={exerciseStyles.picText}>Hinzufügen</Text>
+                                    {!hasImage && (
+                                        <View style={exerciseStyles.textOverlay}>
+                                            <Text style={exerciseStyles.picText}>Hinzufügen</Text>
+                                        </View>
+                                    )}
+                                </Pressable>
+                            </View>
+
+                            {/* Layout of Infos */}
+                            <View style={exerciseStyles.layout}>
+
+                                {/* Name */}
+                                <View style={exerciseStyles.wrapper}>
+                                    <Text style={exerciseStyles.text}>Name</Text>
+
+                                    <View style={exerciseStyles.fieldWrapper}>
+                                        <TextInput
+                                            style={exerciseStyles.input}
+                                            placeholder={"Name der Übung eingeben"}
+                                            placeholderTextColor={Colors.black}
+                                            value={formData.name}
+                                            onChangeText={(val) => handleInputChange("name", val)}/>
                                     </View>
-                                )}
-                            </Pressable>
-                        </View>
-
-                        {/* Layout of Infos */}
-                        <View style={exerciseStyles.layout}>
-
-                            {/* Name */}
-                            <View style={exerciseStyles.wrapper}>
-                                <Text style={exerciseStyles.text}>Name</Text>
-
-                                <View style={exerciseStyles.fieldWrapper}>
-                                    <TextInput
-                                        style={exerciseStyles.input}
-                                        placeholder={"Name der Übung eingeben"}
-                                        placeholderTextColor={Colors.black}
-                                        value={formData.name}
-                                        onChangeText={(val) => handleInputChange("name", val)}/>
                                 </View>
+
+                                {/* Muskeln */}
+                                <View style={exerciseStyles.wrapper}>
+                                    <Text style={exerciseStyles.text}>Muskeln</Text>
+
+                                    <View style={exerciseStyles.fieldWrapper}>
+                                        <TextInput
+                                            style={exerciseStyles.input}
+                                            placeholder={"welche Muskeln trainiert diese Übung"}
+                                            placeholderTextColor={Colors.black}
+                                            value={formData.muscles}
+                                            onChangeText={(val) => handleInputChange("muscles", val)}/>
+                                    </View>
+                                </View>
+
+                                {/* Equipment */}
+                                <View style={exerciseStyles.wrapper}>
+                                    <Text style={exerciseStyles.text}>Ausrüstung</Text>
+
+                                    <View style={exerciseStyles.fieldWrapper}>
+                                        <TextInput
+                                            style={exerciseStyles.input}
+                                            placeholder={"Ausrüstung angeben"}
+                                            placeholderTextColor={Colors.black}
+                                            value={formData.equipment}
+                                            onChangeText={(val) => handleInputChange("equipment", val)}/>
+                                    </View>
+                                </View>
+
+                                {/* Instructions */}
+                                <View style={exerciseStyles.wrapper}>
+                                    <Text style={exerciseStyles.text}>Anleitung</Text>
+
+                                    <View style={exerciseStyles.fieldWrapper}>
+                                        <TextInput
+                                            style={exerciseStyles.input}
+                                            placeholder={"Anleitung angeben"}
+                                            placeholderTextColor={Colors.black}
+                                            value={formData.instructions}
+                                            onChangeText={(val) => handleInputChange("instructions", val)}
+                                            multiline
+                                        />
+                                    </View>
+                                </View>
+
                             </View>
 
-                            {/* Muskeln */}
-                            <View style={exerciseStyles.wrapper}>
-                                <Text style={exerciseStyles.text}>Muskeln</Text>
-
-                                <View style={exerciseStyles.fieldWrapper}>
-                                    <TextInput
-                                        style={exerciseStyles.input}
-                                        placeholder={"welche Muskeln trainiert diese Übung"}
-                                        placeholderTextColor={Colors.black}
-                                        value={formData.muscles}
-                                        onChangeText={(val) => handleInputChange("muscles", val)}/>
-                                </View>
-                            </View>
-
-                            {/* Equipment */}
-                            <View style={exerciseStyles.wrapper}>
-                                <Text style={exerciseStyles.text}>Ausrüstung</Text>
-
-                                <View style={exerciseStyles.fieldWrapper}>
-                                    <TextInput
-                                        style={exerciseStyles.input}
-                                        placeholder={"Ausrüstung angeben"}
-                                        placeholderTextColor={Colors.black}
-                                        value={formData.equipment}
-                                        onChangeText={(val) => handleInputChange("equipment", val)}/>
-                                </View>
-                            </View>
-
-                            {/* Instructions */}
-                            <View style={exerciseStyles.wrapper}>
-                                <Text style={exerciseStyles.text}>Anleitung</Text>
-
-                                <View style={exerciseStyles.fieldWrapper}>
-                                    <TextInput
-                                        style={exerciseStyles.input}
-                                        placeholder={"Anleitung angeben"}
-                                        placeholderTextColor={Colors.black}
-                                        value={formData.instructions}
-                                        onChangeText={(val) => handleInputChange("instructions", val)}
-                                        multiline
-                                    />
-                                </View>
-                            </View>
+                            {/* Loading Overlay */}
+                            <LoadingOverlay visible={loading}/>
 
                         </View>
-
-                        {/* Loading Overlay */}
-                        <LoadingOverlay visible={loading} />
-
-                    </View>
-                </ScrollView>
-            </TouchableWithoutFeedback>
-        </SafeAreaView>
+                    </ScrollView>
+                </TouchableWithoutFeedback>
+            </SafeAreaView>
         </KeyboardAvoidingView>
-        
     );
 }
