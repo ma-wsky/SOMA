@@ -30,7 +30,7 @@ export const exportWorkoutsToPDF = async (workouts: Workout[], date: string) => 
       </head>
       <body>
         <h1>Workout Verlauf - ${new Date(date).toLocaleDateString("de-DE")}</h1>
-        
+          
         ${workouts.map(workout => `
           <div class="workout">
             <div class="workout-header">

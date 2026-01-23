@@ -118,54 +118,56 @@ export default function SingleExerciseInfoScreen() {
                     titleText={"Übung Info"}
                     onLeftPress={() => router.back()}
             />
+            <ScrollView>
 
-            {/* Exercise Picture */}
-            <View style={exerciseStyles.picWrapper}>
-                <Image
-                    source={
-                        exercise.image
-                            ? {uri: exercise.image}
-                            : (exercise.isOwn
-                                ? USER_DEFAULT
-                                : ADMIN_DEFAULT)
-                    }
-                    style={exerciseStyles.picture}
-                />
-            </View>
-
-            {/* Exercise name and fav toggle */}
-            <View style={exerciseStyles.infoNameFavIconWrapper}>
-                <Text style={exerciseStyles.infoName}>{exercise.name}</Text>
-                <Pressable
-                    onPress={handleToggleFavorite}>
-                    <Ionicons
-                        name={exercise.isFavorite ? "heart" : "heart-outline"}
-                        size={32}
-                        color={Colors.icon}
+                {/* Exercise Picture */}
+                <View style={exerciseStyles.picWrapper}>
+                    <Image
+                        source={
+                            exercise.image
+                                ? {uri: exercise.image}
+                                : (exercise.isOwn
+                                    ? USER_DEFAULT
+                                    : ADMIN_DEFAULT)
+                        }
+                        style={exerciseStyles.picture}
                     />
-                </Pressable>
-            </View>
-
-            {/* muscle groups */}
-            <View style={exerciseStyles.infoMuscleWrapper}>
-                <Text
-                    style={exerciseStyles.infoMuscle}>{exercise.muscleGroup}
-                </Text>
-            </View>
-
-            {/* Instructions */}
-            <View style={exerciseStyles.instructionWrapper}>
-                <Text style={exerciseStyles.instructionTitle}>Anleitung</Text>
-
-                <View style={exerciseStyles.instructionBox}>
-                    <ScrollView showsVerticalScrollIndicator={false}>
-                        <Text style={exerciseStyles.instructionText}>
-                            {exercise.instructions}
-                        </Text>
-                    </ScrollView>
                 </View>
 
-            </View>
+                {/* Exercise name and fav toggle */}
+                <View style={exerciseStyles.infoNameFavIconWrapper}>
+                    <Text style={exerciseStyles.infoName}>{exercise.name}</Text>
+                    <Pressable
+                        onPress={handleToggleFavorite}>
+                        <Ionicons
+                            name={exercise.isFavorite ? "heart" : "heart-outline"}
+                            size={32}
+                            color={Colors.icon}
+                        />
+                    </Pressable>
+                </View>
+
+                {/* muscle groups */}
+                <View style={exerciseStyles.infoMuscleWrapper}>
+                    <Text
+                        style={exerciseStyles.infoMuscle}>{exercise.muscleGroup}
+                    </Text>
+                </View>
+
+                {/* Instructions */}
+                <View style={exerciseStyles.instructionWrapper}>
+                    <Text style={exerciseStyles.instructionTitle}>Anleitung</Text>
+
+                    <View style={exerciseStyles.instructionBox}>
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            <Text style={exerciseStyles.instructionText}>
+                                {exercise.instructions}
+                            </Text>
+                        </ScrollView>
+                    </View>
+
+                </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }

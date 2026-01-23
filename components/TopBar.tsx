@@ -15,14 +15,14 @@ interface TopBarProps {
 }
 
 export function TopBar({
-                           isSheet,
-                           backgroundColor,
-                           leftButtonText,
-                           titleText,
-                           rightButtonText,
-                           onLeftPress,
-                           onRightPress
-                       }: TopBarProps) {
+                            isSheet,
+                            backgroundColor,
+                            leftButtonText,
+                            titleText,
+                            rightButtonText,
+                            onLeftPress,
+                            onRightPress
+                        }: TopBarProps) {
 
     return (
         <View style={[

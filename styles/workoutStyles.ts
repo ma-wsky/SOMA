@@ -115,6 +115,7 @@ export const workoutStyles = StyleSheet.create({
         borderRadius: 10,
     },
     itemTitle: {
+        maxWidth:225,
         fontSize: 22,
         fontWeight: "bold",
         color: Colors.white,

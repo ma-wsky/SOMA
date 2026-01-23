@@ -1,5 +1,5 @@
 import {router, useLocalSearchParams} from "expo-router";
-import {Alert, Dimensions, Image, Pressable, Text, View} from "react-native";
+import {Alert, Dimensions, Image, Pressable, Text, View, ScrollView} from "react-native";
 import {useEffect, useRef, useState} from "react";
 import {TopBar} from "@/components/TopBar"
 import {auth} from "@/firebaseConfig";
@@ -115,85 +115,84 @@ export default function SingleExerciseStatisticScreen() {
                     onLeftPress={() => router.replace("/(tabs)/StatisticScreenProxy")}
                     onRightPress={handleDownload}
             />
+            <ScrollView>
 
-            {/* Exercise Picture */}
-            <View style={statStyles.picWrapper}>
-                <Image
-                    source={
-                        exercise.image
-                            ? {uri: exercise.image}
-                            : (exercise.isOwn
-                                    ? USER_DEFAULT
-                                    : ADMIN_DEFAULT
-                            )
-                    }
-                    style={statStyles.picture}
-                />
-            </View>
-
-            {/* Exercise name and fav toggle */}
-            <View style={statStyles.infoNameFavIconWrapper}>
-                <Text style={statStyles.infoName}>{exercise.name}</Text>
-                <Pressable
-                    onPress={handleToggleFavorite}>
-                    <Ionicons
-                        name={exercise.isFavorite ? "heart" : "heart-outline"}
-                        size={32}
-                        color={Colors.icon}
+                {/* Exercise Picture */}
+                <View style={statStyles.picWrapper}>
+                    <Image
+                        source={
+                            exercise.image
+                                ? {uri: exercise.image}
+                                : (exercise.isOwn
+                                        ? USER_DEFAULT
+                                        : ADMIN_DEFAULT
+                                )
+                        }
+                        style={statStyles.picture}
                     />
-                </Pressable>
+                </View>
 
-            </View>
-
-            {/* muscle groups */}
-            <View style={statStyles.infoMuscleWrapper}>
-                <Text
-                    style={statStyles.infoMuscle}>{exercise.muscleGroup}
-                </Text>
-            </View>
-
-            <View style={statStyles.singleLine}/>
-
-            {/* chart */}
-            <View style={statStyles.content}>
-                {chartData ? (
-                    <View style={statStyles.graphWrapper}>
-                        <LineChart
-                            data={chartData}
-                            width={Dimensions.get("window").width - 60}
-                            height={250}
-                            chartConfig={{
-                                backgroundColor: Colors.background,
-                                backgroundGradientFrom: Colors.background,
-                                backgroundGradientTo: Colors.background,
-                                decimalPlaces: 1,
-
-                                color: (opacity = 1) => `rgba(171, 143, 255, ${opacity})`,
-                                fillShadowGradientFrom: Colors.primary,
-                                fillShadowGradientTo: "#ffffff",
-                                fillShadowGradientOpacity: 0.5,
-
-                                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                                style: {borderRadius: 16,},
-                                propsForDots: {
-                                    r: "5",
-                                    strokeWidth: "2",
-                                    stroke: Colors.primary,
-                                    fill: Colors.white,
-                                },
-                            }}
-                            bezier
-                            style={statStyles.chart}
+                {/* Exercise name and fav toggle */}
+                <View style={statStyles.infoNameFavIconWrapper}>
+                    <Text style={statStyles.infoName}>{exercise.name}</Text>
+                    <Pressable
+                        onPress={handleToggleFavorite}>
+                        <Ionicons
+                            name={exercise.isFavorite ? "heart" : "heart-outline"}
+                            size={32}
+                            color={Colors.icon}
                         />
-                    </View>
-                ) : (
-                    <Text style={statStyles.emptyText}>Keine Trainingsdaten gefunden.</Text>
-                )}
-            </View>
+                    </Pressable>
 
-            {/* Loading Overlay */}
-            <LoadingOverlay visible={loading}/>
+                </View>
 
+                {/* muscle groups */}
+                <View style={statStyles.infoMuscleWrapper}>
+                    <Text
+                        style={statStyles.infoMuscle}>{exercise.muscleGroup}
+                    </Text>
+                </View>
+
+                <View style={statStyles.singleLine}/>
+
+                {/* chart */}
+                <View style={statStyles.content}>
+                    {chartData ? (
+                        <View style={statStyles.graphWrapper}>
+                            <LineChart
+                                data={chartData}
+                                width={Dimensions.get("window").width - 60}
+                                height={250}
+                                chartConfig={{
+                                    backgroundColor: Colors.background,
+                                    backgroundGradientFrom: Colors.background,
+                                    backgroundGradientTo: Colors.background,
+                                    decimalPlaces: 1,
+
+                                    color: (opacity = 1) => `rgba(171, 143, 255, ${opacity})`,
+                                    fillShadowGradientFrom: Colors.primary,
+                                    fillShadowGradientTo: "#ffffff",
+                                    fillShadowGradientOpacity: 0.5,
+
+                                    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                                    style: {borderRadius: 16,},
+                                    propsForDots: {
+                                        r: "5",
+                                        strokeWidth: "2",
+                                        stroke: Colors.primary,
+                                        fill: Colors.white,
+                                    },
+                                }}
+                                bezier
+                                style={statStyles.chart}
+                            />
+                        </View>
+                    ) : (
+                        <Text style={statStyles.emptyText}>Keine Trainingsdaten gefunden.</Text>
+                    )}
+                </View>
+
+            </ScrollView>
         </SafeAreaView>
     );
 }
