@@ -43,8 +43,8 @@ export default function ImpressumScreen() {
                 <Text style={styles.heading}>Verantwortlich für den Inhalt</Text>
                 <Text style={styles.text}>
                     Studenten der Hochschule:{"\n"}
-                    - Maximilian Dregewsky{"\n"}
-                    - Matthew Rade
+                    - maximilian.dregewsky@stud.hs-ruhrwest.de{"\n"}
+                    - matthew.rade@stud.hs-ruhrwest.de
                 </Text>
 
                 {/* medien */}
