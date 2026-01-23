@@ -246,7 +246,6 @@ Alle Abhängigkeiten werden über den Befehl `npm install` automatisch installie
 - eslint und eslint-config-expo
 - prettier
 - typescript
-- react-native-chart-kit
 
 ---
 
