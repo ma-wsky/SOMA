@@ -1,103 +1,103 @@
-import { StyleSheet } from 'react-native';
-import { Colors } from "./theme";
-import { topBarStyles } from './topBarStyles';
+import {StyleSheet} from 'react-native';
+import {Colors} from "@/styles/theme";
+import {topBarStyles} from '@/styles/topBarStyles';
 
 export const workoutStyles = StyleSheet.create({
 
     exerciseCard: {
-    padding: 12,
-    borderRadius: 10,
-    marginHorizontal: 10,
+        padding: 12,
+        borderRadius: 10,
+        marginHorizontal: 10,
     },
-    exerciseCardHeader:{
-    backgroundColor: Colors.black,
-    padding: 12,
-    borderRadius: 10,
-    marginHorizontal: 0,
-    marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    exerciseCardHeader: {
+        backgroundColor: Colors.black,
+        padding: 12,
+        borderRadius: 10,
+        marginHorizontal: 0,
+        marginBottom: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
     },
     exerciseTitle: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: "bold",
-    marginLeft:0,
-    flex:1
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: "bold",
+        marginLeft: 0,
+        flex: 1
     },
 
     setRowHeader: {
-    flexDirection: "row",
-    gap:15,
-    justifyContent: 'flex-start',
-    paddingVertical: 6,
-    marginHorizontal: 10,
+        flexDirection: "row",
+        gap: 15,
+        justifyContent: 'flex-start',
+        paddingVertical: 6,
+        marginHorizontal: 10,
 
     },
-    setTextHeader:{
+    setTextHeader: {
         color: Colors.black,
         fontSize: 18,
         fontWeight: "700",
     },
 
     setRow: {
-    flexDirection: "row",
-    gap:15,
-    justifyContent: 'flex-start',
-    paddingVertical: 6,
-    marginVertical: 4,
-    borderColor: Colors.black,
-    borderWidth: 1,
-    padding: 8,
+        flexDirection: "row",
+        gap: 15,
+        justifyContent: 'flex-start',
+        paddingVertical: 6,
+        marginVertical: 4,
+        borderColor: Colors.black,
+        borderWidth: 1,
+        padding: 8,
 
     },
     setEditRow: {
-    flexDirection: "row",
-    gap:15,
-    justifyContent: 'flex-start',
-    paddingVertical: 6,
-    marginVertical: 4,
-    borderColor: Colors.black,
-    borderWidth: 1,
-    padding:8,
+        flexDirection: "row",
+        gap: 15,
+        justifyContent: 'flex-start',
+        paddingVertical: 6,
+        marginVertical: 4,
+        borderColor: Colors.black,
+        borderWidth: 1,
+        padding: 8,
 
 
     },
     setText: {
-    color: Colors.black,
-    width: 50,
+        color: Colors.black,
+        width: 50,
     },
 
     input: {
-    backgroundColor: Colors.black,
-    color: Colors.white,
-    padding: 6,
-    borderRadius: 6,
-    width: 60,
-    textAlign: "center",
+        backgroundColor: Colors.black,
+        color: Colors.white,
+        padding: 6,
+        borderRadius: 6,
+        width: 60,
+        textAlign: "center",
     },
 
     addSetButton: {
-    marginTop: 8,
-    padding: 8,
-    borderRadius: 6,
-    backgroundColor: Colors.darkGray,
-    alignItems: "center",
+        marginTop: 8,
+        padding: 8,
+        borderRadius: 6,
+        backgroundColor: Colors.darkGray,
+        alignItems: "center",
     },
     addSetButtonText: {
-    color: Colors.white,
-    fontWeight: "600",
+        color: Colors.white,
+        fontWeight: "600",
     },
 
-    addExerciseButton:{
+    addExerciseButton: {
         padding: 8,
         borderRadius: 6,
         backgroundColor: Colors.primary,
         alignItems: "center",
 
     },
-    addExerciseButtonText:{
+    addExerciseButtonText: {
         color: Colors.white,
         fontWeight: "bold",
     },
@@ -108,7 +108,7 @@ export const workoutStyles = StyleSheet.create({
     },
     itemContainer: {
         gap: 10,
-        padding:12,
+        padding: 12,
         backgroundColor: Colors.black,
         marginVertical: 5,
         marginHorizontal: 20,
@@ -130,13 +130,13 @@ export const workoutStyles = StyleSheet.create({
         fontWeight: "bold",
         fontSize: 16,
     },
-    searchbar:{
-        padding:10,
+    searchbar: {
+        padding: 10,
         color: Colors.white,
-        fontSize:20,
-        backgroundColor:Colors.black,
-        marginHorizontal:20,
-        marginTop:20,
+        fontSize: 20,
+        backgroundColor: Colors.black,
+        marginHorizontal: 20,
+        marginTop: 20,
         marginBottom: 20,
         borderRadius: 50,
 
@@ -160,14 +160,14 @@ export const workoutStyles = StyleSheet.create({
         paddingHorizontal: 20,
         width: "100%",
     },
-    
+
     //Active Workout
     workoutName: {
         fontSize: 16,
         fontWeight: "bold",
         color: Colors.black,
     },
-    setTitles:{
+    setTitles: {
         flexDirection: "row",
         alignItems: "center",
         padding: 12,
@@ -180,13 +180,13 @@ export const workoutStyles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 8,
     },
-    setButton:{
+    setButton: {
         backgroundColor: Colors.gray,
         padding: 8,
         borderRadius: 6,
         marginLeft: 8,
     },
-    setButtonText:{
+    setButtonText: {
         color: Colors.black,
         fontWeight: "bold",
     },
@@ -207,7 +207,7 @@ export const workoutStyles = StyleSheet.create({
     topBarButtonText: topBarStyles.buttonText,
 
     topBarText: topBarStyles.text,
-    topBarContainer:topBarStyles.container,
+    topBarContainer: topBarStyles.container,
 
     checkbox: {
         width: 24,
@@ -223,9 +223,9 @@ export const workoutStyles = StyleSheet.create({
         backgroundColor: "#4CAF50",
         borderColor: "#4CAF50",
     },
-    
+
     sheetContainer: {
-        flex:1,
+        flex: 1,
         backgroundColor: Colors.background,
     },
     sheetContainerContent: {

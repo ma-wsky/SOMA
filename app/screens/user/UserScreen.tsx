@@ -1,20 +1,19 @@
-import { useRouter } from "expo-router";
-import { View, Text, ScrollView, Alert, Image, Pressable, StyleSheet } from "react-native";
-import { useState, useEffect } from 'react';
-import { auth, db } from "@/firebaseConfig";
-import { signOut, deleteUser } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { userStyles } from "@/styles/userStyles";
+import {useRouter} from "expo-router";
+import {Alert, Image, Pressable, ScrollView, StyleSheet, Text, View} from "react-native";
+import {useEffect, useState} from 'react';
+import {auth, db} from "@/firebaseConfig";
+import {deleteUser, signOut} from "firebase/auth";
+import {doc, getDoc} from "firebase/firestore";
+import {userStyles} from "@/styles/userStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import { UserButton } from "@/components/user/userButton";
-import { SettingsOverlay } from "@/components/user/SettingsOverlay";
+import {SettingsOverlay} from "@/components/user/SettingsOverlay";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Colors } from "@/styles/theme";
-import { loadSettings } from "@/utils/store/settingsStore";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {Colors} from "@/styles/theme";
+import {loadSettings} from "@/utils/store/settingsStore";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 
-const DataRow = ({ label, value, unit = "" }: { label: string, value?: string | number, unit?: string }) => (
+const DataRow = ({label, value, unit = ""}: { label: string, value?: string | number, unit?: string }) => (
     <View style={userStyles.rowWrapper}>
         <Text style={userStyles.text}>{label}</Text>
         <View style={userStyles.fieldWrapper}>
@@ -37,9 +36,9 @@ export default function UserScreen() {
     const defaultPic = require('@/assets/default-profile-picture/default-profile-picture.jpg');
 
     useEffect(() => {
-        // Lade gespeicherte Einstellungen beim Start
+        // app settings store
         loadSettings();
-        
+
         const loadUserData = async () => {
             setLoading(true);
             const user = auth.currentUser;
@@ -52,6 +51,7 @@ export default function UserScreen() {
 
             setIsAnonymous(user.isAnonymous);
 
+            // firebase fetch userdata
             try {
                 const docRef = doc(db, "users", user.uid);
                 const snapshot = await getDoc(docRef);
@@ -62,7 +62,7 @@ export default function UserScreen() {
             } catch (e) {
                 console.error("Fehler beim Laden der User-Daten:", e);
                 Alert.alert("Fehler", "Daten konnten nicht geladen werden.");
-            }finally {
+            } finally {
                 setLoading(false);
             }
         };
@@ -76,8 +76,9 @@ export default function UserScreen() {
                 ? "Als Gast gehen deine Daten verloren. Wirklich abmelden?"
                 : "Möchtest du dich wirklich abmelden?",
             [
-                { text: "Abbrechen", style: "cancel" },
-                {   text: "Abmelden",
+                {text: "Abbrechen", style: "cancel"},
+                {
+                    text: "Abmelden",
                     style: "destructive",
                     onPress: handleLogout,
                 },
@@ -89,9 +90,11 @@ export default function UserScreen() {
         setLoading(true);
         setSettingsVisible(false);
 
-        try{
+        try {
             const user = auth.currentUser;
-            if(isAnonymous && user){
+
+            // delete anon user data
+            if (isAnonymous && user) {
                 await deleteUser(user);
             } else {
                 await signOut(auth);
@@ -100,24 +103,24 @@ export default function UserScreen() {
             Alert.alert("Abmelden", "Erfolgreich abgemeldet");
             router.replace("/screens/auth/LandingScreen");
 
-        }catch (error: any){
+        } catch (error: any) {
             console.error("Logout fehlgeschlagen:", error);
             Alert.alert("Fehler", "Abmeldung fehlgeschlagen.");
-        }finally {
+        } finally {
             setLoading(false);
         }
     }
 
     return (
         <SafeAreaView style={userStyles.userContainer}>
-            <ScrollView >
-            
+            <ScrollView>
+
                 {/* Settings Gear Icon - oben rechts */}
-                <Pressable 
-                    style={localStyles.settingsIcon} 
+                <Pressable
+                    style={localStyles.settingsIcon}
                     onPress={() => setSettingsVisible(true)}
                 >
-                    <Ionicons name="settings-outline" size={28} color={Colors.black} />
+                    <Ionicons name="settings-outline" size={28} color={Colors.black}/>
                 </Pressable>
 
                 {/* Settings Overlay */}
@@ -140,12 +143,12 @@ export default function UserScreen() {
                     isAnonymous={isAnonymous}
                 />
 
-                
+
                 {/* Profile Picture */}
                 <View style={userStyles.profilePictureWrapper}>
                     <Image
                         source={userData?.profilePicture
-                            ? { uri: userData.profilePicture }
+                            ? {uri: userData.profilePicture}
                             : defaultPic
                         }
                         style={userStyles.profilePicture}/>
@@ -153,46 +156,43 @@ export default function UserScreen() {
 
                 {/* User Data */}
                 <View style={userStyles.layout}>
-                    <DataRow label="Name" value={userData?.name} />
-                    <DataRow label="E-Mail" value={userData?.email} />
+                    <DataRow label="Name" value={userData?.name}/>
+                    <DataRow label="E-Mail" value={userData?.email}/>
 
                     <View style={userStyles.line}/>
 
-                    <DataRow label="Geburtsdatum" value={userData?.birthdate} />
-                    <DataRow label="Gewicht" value={userData?.weight} unit=" kg" />
-                    <DataRow label="Größe" value={userData?.height} unit=" cm" />
+                    <DataRow label="Geburtsdatum" value={userData?.birthdate}/>
+                    <DataRow label="Gewicht" value={userData?.weight} unit=" kg"/>
+                    <DataRow label="Größe" value={userData?.height} unit=" cm"/>
 
                     <View style={userStyles.line}/>
 
-                    <Text style={[userStyles.text, { marginLeft: 30, marginBottom: 5 }]}>Trainingserinnerung</Text>
-                        
-                        <DataRow 
-                            label="Uhrzeit" 
-                            value={
-                                userData?.reminderTime 
-                                    ? `${String(userData.reminderTime.hour).padStart(2, '0')}:${String(userData.reminderTime.minute).padStart(2, '0')}` 
-                                    : "Nicht gesetzt"
-                            } 
-                        />
-                        <DataRow 
-                            label="Tage" 
-                            value={(() => {
-                                if (!userData?.reminderDays || userData.reminderDays.length === 0) return "Keine";
-                                const map: any = { 1: "Mo", 2: "Di", 3: "Mi", 4: "Do", 5: "Fr", 6: "Sa", 7: "So" };
-                                const sorted = [...userData.reminderDays].sort((a, b) => a - b);
-                                return sorted.map(d => map[d]).join(", ");
-                            })()} 
-                        />
+                    <Text style={[userStyles.text, {marginLeft: 30, marginBottom: 5}]}>Trainingserinnerung</Text>
+
+                    <DataRow
+                        label="Uhrzeit"
+                        value={
+                            userData?.reminderTime
+                                ? `${String(userData.reminderTime.hour).padStart(2, '0')}:${String(userData.reminderTime.minute).padStart(2, '0')}`
+                                : "Nicht gesetzt"
+                        }
+                    />
+                    <DataRow
+                        label="Tage"
+                        value={(() => {
+                            if (!userData?.reminderDays || userData.reminderDays.length === 0) return "Keine";
+                            const map: any = {1: "Mo", 2: "Di", 3: "Mi", 4: "Do", 5: "Fr", 6: "Sa", 7: "So"};
+                            const sorted = [...userData.reminderDays].sort((a, b) => a - b);
+                            return sorted.map(d => map[d]).join(", ");
+                        })()}
+                    />
                 </View>
 
-
-        
-
                 {/* Loading Overlay */}
-                <LoadingOverlay visible={loading} />
+                <LoadingOverlay visible={loading}/>
+
             </ScrollView>
         </SafeAreaView>
-        
     );
 }
 

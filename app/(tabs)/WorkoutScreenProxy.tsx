@@ -1,2 +1,3 @@
-import WorkoutScreen from "../screens/workout/WorkoutScreen";
+import WorkoutScreen from "@/app/screens/workout/WorkoutScreen";
+
 export default WorkoutScreen;

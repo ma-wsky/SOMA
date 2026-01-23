@@ -1,9 +1,9 @@
-import { Pressable, Text, Image, View, StyleSheet } from "react-native";
-import { exerciseStyles } from "@/styles/exerciseStyles"
-import { Exercise } from "@/types/Exercise"
+import {Image, Pressable, StyleSheet, Text, View} from "react-native";
+import {exerciseStyles} from "@/styles/exerciseStyles"
+import {Exercise} from "@/types/Exercise"
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { Colors } from "@/styles/theme"
+import {Colors} from "@/styles/theme"
 
 
 interface Props {
@@ -13,17 +13,18 @@ interface Props {
     showAddButton?: boolean;
 }
 
-export default function ExerciseItem({ exercise, onPress, onAddToWorkout, showAddButton = false }: Props) {
+export default function ExerciseItem({exercise, onPress, onAddToWorkout, showAddButton = false}: Props) {
 
+    // default images
     const ADMIN_DEFAULT = require("@/assets/default-exercise-picture/admin.png");
     const USER_DEFAULT = require("@/assets/default-exercise-picture/users.png");
 
     return (
         <Pressable
             onPress={() => onPress?.(exercise)}
-            style={({ pressed }) => [
+            style={({pressed}) => [
                 exerciseStyles.itemButton,
-                { opacity: pressed ? 0.7 : 1.0 }
+                {opacity: pressed ? 0.7 : 1.0}
             ]}
         >
             <View style={exerciseStyles.itemContainer}>
@@ -31,35 +32,36 @@ export default function ExerciseItem({ exercise, onPress, onAddToWorkout, showAd
                 <Image
                     source={
                         exercise.image
-                            ? { uri: exercise.image }
+                            ? {uri: exercise.image}
                             : (exercise.isOwn
-                                ? USER_DEFAULT
-                                : ADMIN_DEFAULT
+                                    ? USER_DEFAULT
+                                    : ADMIN_DEFAULT
                             )}
                     style={exerciseStyles.itemPicture}
                 />
 
+                {/* data */}
                 <View style={exerciseStyles.textContainer}>
                     <Text style={exerciseStyles.name}>{exercise.name}</Text>
 
                     <Text style={exerciseStyles.muscle}>{exercise.muscleGroup || "k.A."}</Text>
                 </View>
                 {showAddButton && onAddToWorkout ? (
-                <Pressable onPress={() => onAddToWorkout?.(exercise)} style={styles.addButton}>
-                  <Ionicons name="add" size={20} color={Colors.primary} />
-                </Pressable>
-              ) : null}
+                    <Pressable onPress={() => onAddToWorkout?.(exercise)} style={styles.addButton}>
+                        <Ionicons name="add" size={20} color={Colors.primary}/>
+                    </Pressable>
+                ) : null}
             </View>
         </Pressable>
     );
 }
 const styles = StyleSheet.create({
-    
+
     addButton: {
-      padding: 8,
-      borderRadius: 8,
-      backgroundColor: Colors.black,
-      alignItems: 'center',
-      justifyContent: 'center'
+        padding: 8,
+        borderRadius: 8,
+        backgroundColor: Colors.black,
+        alignItems: 'center',
+        justifyContent: 'center'
     },
 })

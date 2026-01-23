@@ -1,31 +1,33 @@
-import { db } from "@/firebaseConfig";
-import {collectionGroup, deleteDoc, doc, getDoc, getDocs, query, setDoc, where } from "firebase/firestore";
-import { Exercise } from "@/types/Exercise";
+import {db} from "@/firebaseConfig";
+import {collectionGroup, deleteDoc, doc, getDoc, getDocs, query, setDoc, where} from "firebase/firestore";
+import {Exercise} from "@/types/Exercise";
 
 export const ExerciseService = {
-    //erste Übung inkl. Favoriten-Status laden
+
     async fetchExercise(id: string, userId: string): Promise<Exercise | null> {
-        // Zuerst Global prüfen
+
+        // check global
         const globalRef = doc(db, "exercises", id);
         const globalSnap = await getDoc(globalRef);
 
         let exercise: Exercise | null = null;
 
         if (globalSnap.exists()) {
-            exercise = { id: globalSnap.id, ...globalSnap.data() } as Exercise;
+            exercise = {id: globalSnap.id, ...globalSnap.data()} as Exercise;
             exercise.isGlobal = true;
             exercise.isOwn = false;
         } else {
-            // Dann User-spezifisch prüfen
+            // check in user
             const userRef = doc(db, "users", userId, "exercises", id);
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
-                exercise = { id: userSnap.id, ...userSnap.data() } as Exercise;
+                exercise = {id: userSnap.id, ...userSnap.data()} as Exercise;
                 exercise.isGlobal = false;
                 exercise.isOwn = true;
             }
         }
 
+        // mark fav
         if (exercise) {
             const favRef = doc(db, "users", userId, "favorites", id);
             const favSnap = await getDoc(favRef);
@@ -39,6 +41,7 @@ export const ExerciseService = {
         if (!exerciseId) return [];
 
         try {
+            // look for exercis id in exerciseSets
             const q = query(
                 collectionGroup(db, "exerciseSets"),
                 where("exerciseId", "==", exerciseId)
@@ -53,17 +56,17 @@ export const ExerciseService = {
                         const setData = doc.data();
                         const parentDocRef = doc.ref.parent.parent;
 
-                        if (parentDocRef){
+                        if (parentDocRef) {
                             const parentSnap = await getDoc(parentDocRef);
                             if (parentSnap.exists()) {
                                 const parentData = parentSnap.data();
 
-                                if (parentData.type === "template"){
+                                if (parentData.type === "template") {
                                     return null;
                                 }
 
-                                let dateValue = new Date(); // Fallback
-                                if (parentData.date){
+                                let dateValue = new Date();
+                                if (parentData.date) {
                                     dateValue = new Date(parentData.date);
                                 }
 

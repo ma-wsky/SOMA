@@ -25,6 +25,3 @@
     "node_modules"
   ]
 }
-
-//    "skipLibCheck": true &   "exclude": "node_modules" -> wegen errors in node_modules\expo audio/notification
-

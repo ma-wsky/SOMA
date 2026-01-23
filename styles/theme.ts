@@ -9,7 +9,7 @@ export const Colors = {
     black: "#101010",
     white: "#F5F5F4",
     whiteTransparent: "#f5f5f4a9",
-    bottomSheet:'#cacaca',
+    bottomSheet: '#cacaca',
     gray: "#aaa",
-    darkGray:"#555"
+    darkGray: "#555"
 };

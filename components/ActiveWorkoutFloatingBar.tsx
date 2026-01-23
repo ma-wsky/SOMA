@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useRouter, usePathname } from 'expo-router';
-import { subscribeToActiveWorkout, getActiveWorkout } from "@/utils/store/activeWorkoutStore";
-import { subscribeToRestTimer } from "@/utils/store/restTimerStore";
-import { playSound } from "@/utils/helper/soundHelper";
-import { vibrate } from "@/utils/helper/vibrationHelper";
-import { Colors } from "@/styles/theme";
-import { formatTimeShort } from "@/utils/helper/formatTimeHelper";
+import React, {useEffect, useRef, useState} from 'react';
+import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {usePathname, useRouter} from 'expo-router';
+import {getActiveWorkout, subscribeToActiveWorkout} from "@/utils/store/activeWorkoutStore";
+import {subscribeToRestTimer} from "@/utils/store/restTimerStore";
+import {playSound} from "@/utils/helper/soundHelper";
+import {vibrate} from "@/utils/helper/vibrationHelper";
+import {Colors} from "@/styles/theme";
+import {formatTimeShort} from "@/utils/helper/formatTimeHelper";
 
 export const ActiveWorkoutFloatingBar = () => {
     const router = useRouter();
@@ -31,7 +31,7 @@ export const ActiveWorkoutFloatingBar = () => {
         return unsubscribe;
     }, []);
 
-    // Workout Timer Tick
+    // workout timer tick
     useEffect(() => {
         if (!activeWorkout?.startTime) {
             setElapsedTime(0);
@@ -44,13 +44,12 @@ export const ActiveWorkoutFloatingBar = () => {
             setElapsedTime(Math.floor((now - start) / 1000));
         }, 1000);
 
-        // Initial update
         setElapsedTime(Math.floor((Date.now() - (activeWorkout.startTime || Date.now())) / 1000));
 
         return () => clearInterval(interval);
     }, [activeWorkout]);
 
-    // Rest Timer Tick & Sound
+    // pause timer tick + sound
     useEffect(() => {
         if (!restTimer) {
             setRestTimeRemaining(0);
@@ -62,14 +61,13 @@ export const ActiveWorkoutFloatingBar = () => {
             const remain = Math.max(0, Math.ceil((restTimer.endTime - now) / 1000));
             setRestTimeRemaining(remain);
 
-            // Handle Finish (Sound/Vibration)
-            // ONLY if not on ActiveScreen
             if (remain <= 0 && lastRestTimeRef.current > 0) {
                 if (!pathname.includes('ActiveWorkoutScreen')) {
                     vibrate([0, 200, 100, 200]);
                     try {
                         playSound(require('@/assets/sounds/timer.mp3'));
-                    } catch (e) {}
+                    } catch (e) {
+                    }
                     require("@/utils/store/restTimerStore").clearRestTimer();
                 }
             }
@@ -79,7 +77,6 @@ export const ActiveWorkoutFloatingBar = () => {
         return () => clearInterval(interval);
     }, [restTimer, pathname]);
 
-    // Hide if..
     if (!activeWorkout || pathname.includes('ActiveWorkoutScreen') || pathname.includes('AddExerciseToWorkoutScreen')) {
         return null;
     }
@@ -88,7 +85,7 @@ export const ActiveWorkoutFloatingBar = () => {
         if (!activeWorkout?.id) return;
         router.push({
             pathname: "/screens/workout/ActiveWorkoutScreen",
-            params: { id: activeWorkout.id }
+            params: {id: activeWorkout.id}
         });
     };
 
@@ -98,12 +95,13 @@ export const ActiveWorkoutFloatingBar = () => {
         <Pressable onPress={handlePress} style={[styles.container, showRestTimer && styles.restContainer]}>
             <View style={styles.content}>
                 <View>
+                    {/* pause timer */}
                     <Text style={[styles.label, showRestTimer && styles.restLabel]}>
                         {showRestTimer ? "Pause läuft" : "Aktives Training"}
                     </Text>
                     <Text style={[styles.timer, showRestTimer && styles.restTimerText]}>
-                        {showRestTimer 
-                            ? `${formatTimeShort(restTimeRemaining)} Pause` 
+                        {showRestTimer
+                            ? `${formatTimeShort(restTimeRemaining)} Pause`
                             : `${formatTimeShort(elapsedTime)} min • ${activeWorkout.setsCount || 0} Sätze`
                         }
                     </Text>
@@ -119,14 +117,14 @@ export const ActiveWorkoutFloatingBar = () => {
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        bottom: 110, 
+        bottom: 110,
         left: 20,
         right: 20,
         backgroundColor: Colors.primary,
         borderRadius: 12,
         padding: 12,
         shadowColor: Colors.black,
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
@@ -146,7 +144,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     restLabel: {
-        color: Colors.white, 
+        color: Colors.white,
     },
     timer: {
         color: Colors.background,

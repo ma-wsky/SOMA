@@ -1,17 +1,26 @@
 import {useRouter} from "expo-router";
-import { Text, View, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { useState } from "react";
-import { db, auth } from "@/firebaseConfig";
-import { createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { authStyles } from "@/styles/authStyles";
+import {
+    Alert,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TouchableWithoutFeedback,
+    View
+} from 'react-native';
+import {useState} from "react";
+import {auth, db} from "@/firebaseConfig";
+import {createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential} from "firebase/auth";
+import {doc, serverTimestamp, setDoc} from "firebase/firestore";
+import {authStyles} from "@/styles/authStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import { useGuestLogin } from "@/hooks/useGuestLogin";
-import { AuthButton } from "@/components/auth/authButton"
-import { DividingLine } from "@/components/auth/dividingLine";
-import { AuthInput } from "@/components/auth/authInput"
-import { getAuthErrorMessage } from "@/utils/auth/authErrors"
-import { Colors } from "@/styles/theme";
+import {useGuestLogin} from "@/hooks/useGuestLogin";
+import {AuthButton} from "@/components/auth/authButton"
+import {DividingLine} from "@/components/auth/dividingLine";
+import {AuthInput} from "@/components/auth/authInput"
+import {getAuthErrorMessage} from "@/utils/auth/authErrors"
+import {Colors} from "@/styles/theme";
 
 
 export default function RegisterScreen() {
@@ -22,34 +31,36 @@ export default function RegisterScreen() {
     const [password, setPassword] = useState("");
     const [passwordAgain, setPasswordAgain] = useState("");
     const [loading, setLoading] = useState(false);
-    const { isGuestLoading } = useGuestLogin();
+    const {isGuestLoading} = useGuestLogin();
 
     const handleRegister = async () => {
         if (!email || !password) {
             Alert.alert("Fehler", "Bitte fülle alle Felder aus.");
             return;
         }
-        if (password !== passwordAgain){
+        if (password !== passwordAgain) {
             Alert.alert("Fehler", "Die Passwörter müssen gleich sein.");
             return;
         }
         setLoading(true);
 
+        // firebase register
         try {
             const currentUser = auth.currentUser;
             let finalUser;
 
-            if (currentUser && currentUser.isAnonymous){
+            if (currentUser && currentUser.isAnonymous) {
                 // gast upgrade
                 const credential = EmailAuthProvider.credential(email.trim(), password.trim());
                 const userCredential = await linkWithCredential(currentUser, credential);
                 finalUser = userCredential.user;
-            } else{
+            } else {
                 // neuer user
                 const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password.trim());
                 finalUser = userCredential.user;
             }
 
+            // user doc anlegen mit initial werten
             await setDoc(doc(db, "users", finalUser.uid), {
                 name: "",
                 email: email.trim().toLowerCase(),
@@ -60,7 +71,7 @@ export default function RegisterScreen() {
                 createdAt: serverTimestamp(),
                 reminderTime: "",
                 reminderDays: [],
-            }, { merge: true });
+            }, {merge: true});
 
             Alert.alert("Geschafft!", "Registrierung erfolgreich.");
             router.replace("/(tabs)/HomeScreenProxy");
@@ -68,18 +79,18 @@ export default function RegisterScreen() {
         } catch (error: any) {
             const message = getAuthErrorMessage(error.code);
             Alert.alert("Fehler", message);
-        }finally {
+        } finally {
             setLoading(false);
         }
     };
 
-    return(
+    return (
         <KeyboardAvoidingView
-            style={{ flex: 1 }}
+            style={{flex: 1}}
             behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS verschiebt, Android passt Höhe an
         >
             <ScrollView style={{backgroundColor: Colors.background}}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <View style={authStyles.container}>
 
                         {/* Title */}
@@ -127,7 +138,7 @@ export default function RegisterScreen() {
                         {/* Bereits ein Konto */}
                         <View style={{marginTop: 40,}}>
 
-                            <DividingLine text="Bereits ein Konto?" />
+                            <DividingLine text="Bereits ein Konto?"/>
 
                             {/* to LoginScreen */}
                             <AuthButton title="Einloggen"
@@ -137,10 +148,10 @@ export default function RegisterScreen() {
                         </View>
 
                         {/* Loading Overlay */}
-                        <LoadingOverlay visible={loading || isGuestLoading} />
+                        <LoadingOverlay visible={loading || isGuestLoading}/>
 
                     </View>
-            </TouchableWithoutFeedback>
+                </TouchableWithoutFeedback>
             </ScrollView>
         </KeyboardAvoidingView>
     );

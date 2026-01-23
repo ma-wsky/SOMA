@@ -1,25 +1,26 @@
-import { View, Text, ScrollView, StyleSheet } from "react-native";
-import { router } from "expo-router";
-import { TopBar } from "@/components/TopBar";
-import { Colors } from "@/styles/theme";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {ScrollView, StyleSheet, Text, View} from "react-native";
+import {router} from "expo-router";
+import {TopBar} from "@/components/TopBar";
+import {Colors} from "@/styles/theme";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 
 export default function ImpressumScreen() {
     return (
         <SafeAreaView style={styles.container}>
-            <TopBar 
+            <TopBar
                 isSheet={false}
                 leftButtonText="Zurück"
                 titleText="Impressum"
                 onLeftPress={() => router.back()}
             />
-            
-            <ScrollView 
+
+            <ScrollView
                 style={styles.content}
                 showsVerticalScrollIndicator={false}
                 contentInsetAdjustmentBehavior="automatic"
             >
+                {/* DDG */}
                 <Text style={styles.heading}>Angaben nach § 5 Absatz 1 Digitale-Dienste-Gesetz (DDG)</Text>
                 <Text style={styles.text}>
                     Angaben zur SOMA App{"\n"}
@@ -30,6 +31,7 @@ export default function ImpressumScreen() {
 
                 </Text>
 
+                {/* Kontakt */}
                 <Text style={styles.heading}>Kontakt der Hochschule</Text>
                 <Text style={styles.text}>
                     Telefon: 0208 882 54 -0{"\n"}
@@ -37,6 +39,7 @@ export default function ImpressumScreen() {
                     E-Mail: kontakt@hs-ruhrwest.de
                 </Text>
 
+                {/* verantwortlich */}
                 <Text style={styles.heading}>Verantwortlich für den Inhalt</Text>
                 <Text style={styles.text}>
                     Studenten der Hochschule:{"\n"}
@@ -44,6 +47,7 @@ export default function ImpressumScreen() {
                     - Matthew Rade
                 </Text>
 
+                {/* medien */}
                 <Text style={styles.heading}>Medien der App</Text>
                 <Text style={styles.text}>
                     Sound-Assets von Pixabay.com, Usern : {"\n"}
@@ -55,15 +59,17 @@ export default function ImpressumScreen() {
                     - Media Illustraion
                 </Text>
 
+                {/* datenschutz */}
                 <Text style={styles.heading}>Datenschutz</Text>
                 <Text style={styles.text}>
-                    Diese App verwendet Firebase zur Speicherung von Nutzerdaten wie 
+                    Diese App verwendet Firebase zur Speicherung von Nutzerdaten wie
                     Accounts, Workouts und Trainingsstatistiken.
-                    Die Datenverarbeitung erfolgt gemäß der Firebase-Datenschutzerklärung. 
-                    Personenbezogene Daten werden nur zur Bereitstellung der App-Funktionalität 
+                    Die Datenverarbeitung erfolgt gemäß der Firebase-Datenschutzerklärung.
+                    Personenbezogene Daten werden nur zur Bereitstellung der App-Funktionalität
                     verwendet und nicht an Dritte weitergegeben.
                 </Text>
 
+                {/* urheberrecht */}
                 <Text style={styles.heading}>Urheberrecht</Text>
                 <Text style={styles.text}>
                     Die App-Software und deren Design unterliegen dem deutschen
@@ -72,10 +78,11 @@ export default function ImpressumScreen() {
                     erheben keinen Anspruch auf Nutzerinhalte.
                 </Text>
 
+                {/* haftungsausschluss */}
                 <Text style={styles.heading}>Haftungsausschluss</Text>
                 <Text style={styles.text}>
                     Die Inhalte dieser App dienen ausschließlich der allgemeinen
-                    Information und ersetzen keine professionelle medizinische 
+                    Information und ersetzen keine professionelle medizinische
                     oder technische Beratung. Wir übernehmen keine Gewähr für die Richtigkeit,
                     Vollständigkeit oder Aktualität der bereitgestellten
                     Übungsbeschreibungen. Jede Nutzung der App erfolgt auf
@@ -83,6 +90,7 @@ export default function ImpressumScreen() {
                     Sie bitte einen Arzt.
                 </Text>
 
+                {/* footer */}
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>
                         © {new Date().getFullYear()} SOMA
@@ -119,7 +127,7 @@ const styles = StyleSheet.create({
         marginTop: 40,
         alignItems: 'center',
         paddingTop: 20,
-        paddingBottom:20,
+        paddingBottom: 20,
         borderTopWidth: 1,
         borderTopColor: Colors.gray,
     },

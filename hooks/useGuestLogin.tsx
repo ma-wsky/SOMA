@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { signInAnonymously } from 'firebase/auth';
-import { auth } from '../firebaseConfig'; // Pfad anpassen
-import { useRouter } from 'expo-router';
-import { Alert } from 'react-native';
+import {useState} from 'react';
+import {signInAnonymously} from 'firebase/auth';
+import {auth} from '@/firebaseConfig';
+import {useRouter} from 'expo-router';
+import {Alert} from 'react-native';
 
 export const useGuestLogin = () => {
     const [isGuestLoading, setIsGuestLoading] = useState<boolean>(false);
@@ -22,6 +22,6 @@ export const useGuestLogin = () => {
         }
     };
 
-    return { handleGuestLogin, isGuestLoading };
+    return {handleGuestLogin, isGuestLoading};
 };
 

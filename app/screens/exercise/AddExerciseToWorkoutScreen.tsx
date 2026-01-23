@@ -1,13 +1,13 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { View, TextInput, StyleSheet, Text, Alert, ScrollView, Pressable } from "react-native";
-import { useState } from "react";
-import { TopBar } from "@/components/TopBar"
+import {router, useLocalSearchParams} from "expo-router";
+import {Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View} from "react-native";
+import {useState} from "react";
+import {TopBar} from "@/components/TopBar"
 import ExerciseList from "@/components/ExerciseList";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import { useLoadExercises } from "@/hooks/useLoadExercises";
-import { Colors } from "@/styles/theme";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { listFilterStore } from "@/utils/store/listFilterStore";
+import {useLoadExercises} from "@/hooks/useLoadExercises";
+import {Colors} from "@/styles/theme";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {listFilterStore} from "@/utils/store/listFilterStore";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 
@@ -17,12 +17,12 @@ const CATEGORIES = ["Alle", "Brust", "Rücken", "Beine", "Schultern", "Arme", "B
 export default function AddExerciseToWorkoutScreen() {
 
     const [breakTime, setBreakTime] = useState("30");
-    const { workoutEditId, returnTo } = useLocalSearchParams<{ workoutEditId?: string; returnTo?: "active"|"edit"; }>();  
-    const { exercises, loading } = useLoadExercises();
-    const { filter, setFilter, selectedCategory, setSelectedCategory } = listFilterStore();
+    const {workoutEditId, returnTo} = useLocalSearchParams<{ workoutEditId?: string; returnTo?: "active" | "edit"; }>();
+    const {exercises, loading} = useLoadExercises();
+    const {filter, setFilter, selectedCategory, setSelectedCategory} = listFilterStore();
 
 
-    const addExercise = (exercise: {id:string; name:string}) => {
+    const addExercise = (exercise: { id: string; name: string }) => {
         if (!workoutEditId) {
             console.error("workoutEditId ist null");
             Alert.alert("Fehler", "Es konnte kein Trainings-Kontext gefunden werden.");
@@ -35,29 +35,33 @@ export default function AddExerciseToWorkoutScreen() {
             selectedExerciseName: exercise.name,
             selectedBreakTime: breakTime,
             _t: Date.now().toString()
-        }; 
+        };
 
-        if (returnTo === 'active'){
-            router.navigate({ pathname: "/screens/workout/ActiveWorkoutScreen", 
+        if (returnTo === 'active') {
+            router.navigate({
+                pathname: "/screens/workout/ActiveWorkoutScreen",
                 params
             });
-        } else if (returnTo === 'edit'){
-            router.navigate({ pathname: "/screens/workout/SingleWorkoutInfoScreen", 
+        } else if (returnTo === 'edit') {
+            router.navigate({
+                pathname: "/screens/workout/SingleWorkoutInfoScreen",
                 params
             });
         }
     };
 
-    const openInfo = (exercise: {id: string}) => {
-        router.push({ pathname: "/screens/exercise/SingleExerciseInfoScreen", 
-            params: { id: exercise.id } });
+    const openInfo = (exercise: { id: string }) => {
+        router.push({
+            pathname: "/screens/exercise/SingleExerciseInfoScreen",
+            params: {id: exercise.id}
+        });
     };
 
     return (
         <SafeAreaView style={styles.container}>
 
             {/* Top Bar */}
-            <TopBar 
+            <TopBar
                 isSheet={false}
                 leftButtonText={"Zurück"}
                 titleText={"Übung hinzufügen"}
@@ -67,7 +71,7 @@ export default function AddExerciseToWorkoutScreen() {
             {/* Search Bar */}
             <View style={styles.searchContainer}>
                 {/* lupe */}
-                <Ionicons name="search" size={20} color={Colors.white} style={styles.searchIcon} />
+                <Ionicons name="search" size={20} color={Colors.white} style={styles.searchIcon}/>
 
                 <TextInput
                     placeholder={"Übung suchen..."}
@@ -80,19 +84,20 @@ export default function AddExerciseToWorkoutScreen() {
                 {/* delete */}
                 {filter !== "" && (
                     <Pressable onPress={() => setFilter("")} style={styles.deleteButton}>
-                        <Ionicons name="close-circle" size={20} color={Colors.primary} />
+                        <Ionicons name="close-circle" size={20} color={Colors.primary}/>
                     </Pressable>
                 )}
             </View>
 
-            {/* filter tags */}
-            <View style={{  }}>
+            {/* filter tags list*/}
+            <View style={{}}>
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.filterTagList}
                 >
                     {CATEGORIES.map((cat) => (
+                        // tags
                         <Pressable
                             key={cat}
                             onPress={() => setSelectedCategory(cat)}
@@ -125,6 +130,7 @@ export default function AddExerciseToWorkoutScreen() {
                 />
             </View>
 
+            {/* übungen */}
             <ExerciseList
                 exercises={exercises}
                 filter={filter}
@@ -135,7 +141,7 @@ export default function AddExerciseToWorkoutScreen() {
             />
 
             {/* Loading Overlay */}
-            <LoadingOverlay visible={loading} />
+            <LoadingOverlay visible={loading}/>
 
         </SafeAreaView>
     );
@@ -148,11 +154,11 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.background,
         justifyContent: 'flex-start',
     },
-    search:{
-        padding:10,
-        fontSize:20,
-        backgroundColor:Colors.black,
-        margin:20,
+    search: {
+        padding: 10,
+        fontSize: 20,
+        backgroundColor: Colors.black,
+        margin: 20,
         borderRadius: 50,
     },
     breakTimeContainer: {

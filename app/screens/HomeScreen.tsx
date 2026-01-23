@@ -1,28 +1,29 @@
-import { useRouter } from "expo-router";
-import { View, Pressable, Text } from 'react-native';
-import { Calendar } from "react-native-calendars";
-import { homeStyles as styles } from "@/styles/homeStyles";
+import {useRouter} from "expo-router";
+import {Pressable, Text, View} from 'react-native';
+import {Calendar} from "react-native-calendars";
+import {homeStyles as styles} from "@/styles/homeStyles";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useState, useEffect } from 'react';
-import { auth, db } from '@/firebaseConfig';
-import { User } from 'firebase/auth';
-import { doc, getDoc ,getDocs, collection,query,where} from 'firebase/firestore';
-import { Colors } from "@/styles/theme";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { listFilterStore } from "@/utils/store/listFilterStore";
+import {useEffect, useState} from 'react';
+import {auth, db} from '@/firebaseConfig';
+import {User} from 'firebase/auth';
+import {collection, doc, getDoc, getDocs} from 'firebase/firestore';
+import {Colors} from "@/styles/theme";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {listFilterStore} from "@/utils/store/listFilterStore";
 import LoadingOverlay from "@/components/LoadingOverlay";
 
 
-export default function Home(){
+export default function Home() {
 
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
     const [userData, setUserData] = useState<any>(null);
     const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
-    const [daysWorkedOut, setDaysWorkedOut] = useState<{[key:string]: any}>({});
-    const { resetFilters } = listFilterStore();
+    const [daysWorkedOut, setDaysWorkedOut] = useState<{ [key: string]: any }>({});
+    const {resetFilters} = listFilterStore();
     const [loading, setLoading] = useState<boolean>(false);
 
+    // firebase fetch user data
     useEffect(() => {
         const loadUserData = async () => {
             setLoading(true);
@@ -42,7 +43,7 @@ export default function Home(){
                     }
                 } catch (e) {
                     console.error("Fehler beim Laden der User-Daten:", e);
-                }finally {
+                } finally {
                     setLoading(false)
                 }
             }
@@ -50,57 +51,65 @@ export default function Home(){
             await loadDaysWorkedOut(currentUser.uid);
             setLoading(false);
         };
-        
+
         loadUserData();
     }, []);
 
 
+    // firebase fetch workout history
     const loadDaysWorkedOut = async (userId: string) => {
-        try{
+        try {
             const workoutsRef = collection(db, "users", userId, "workouts");
             const qSnapshot = await getDocs(workoutsRef);
 
-            const days: {[key:string]: any} ={};
+            const days: { [key: string]: any } = {};
             qSnapshot.forEach((doc) => {
                 const workoutData = doc.data();
-                
-                if(workoutData.date && workoutData.type !== "template") {
+
+                if (workoutData.date && workoutData.type !== "template") {
                     const dateOnly = workoutData.date.split('T')[0];
-                    
-                    days[dateOnly] ={
+
+                    days[dateOnly] = {
                         marked: true,
                         dotColor: Colors.primary,
                     };
                 }
-                
+
             });
-            
+
             setDaysWorkedOut(days);
-        } catch(e){
-            console.error("Fehler beim Laden der Workout-Daten:",e);
+        } catch (e) {
+            console.error("Fehler beim Laden der Workout-Daten:", e);
         }
     };
 
     return (
-        <SafeAreaView style={{backgroundColor: Colors.background, flex:1, flexDirection: "column",justifyContent: 'flex-start',}}>
-            <View style={{alignItems: "center", marginTop: 100, marginBottom: 40 }}>
+        <SafeAreaView style={{
+            backgroundColor: Colors.background,
+            flex: 1,
+            flexDirection: "column",
+            justifyContent: 'flex-start',
+        }}>
+            {/* greeting */}
+            <View style={{alignItems: "center", marginTop: 100, marginBottom: 40}}>
                 {!isAnonymous && userData?.name ? (
-                    <Text style={{fontSize: 24, fontWeight: "bold",alignSelf: "center"}}>
+                    <Text style={{fontSize: 24, fontWeight: "bold", alignSelf: "center"}}>
                         Hallo, {userData.name}!
                     </Text>
                 ) : (
-                    <Text style={{fontSize: 24, fontWeight: "bold",alignSelf: "center"}}>
+                    <Text style={{fontSize: 24, fontWeight: "bold", alignSelf: "center"}}>
                         Hallo!
                     </Text>
                 )}
             </View>
 
+            {/* calendar */}
             <View style={{marginHorizontal: 40,}}>
                 <Calendar
                     onDayPress={(day) => {
                         router.push({
                             pathname: "/screens/workout/WorkoutHistoryScreen",
-                            params: { date: day.dateString }
+                            params: {date: day.dateString}
                         });
                     }}
                     markedDates={daysWorkedOut}
@@ -118,14 +127,14 @@ export default function Home(){
                 />
             </View>
 
-
+            {/* exercises button */}
             <View style={{marginHorizontal: 20, marginTop: 60,}}>
                 <Pressable
                     onPress={() => {
                         resetFilters();
                         router.push("/screens/exercise/ExerciseScreen");
                     }}
-                    style={({ pressed }) => [
+                    style={({pressed}) => [
                         styles.bigButton,
                         {backgroundColor: pressed ? Colors.darkGray : Colors.black},
                     ]}
@@ -143,9 +152,8 @@ export default function Home(){
             </View>
 
             {/* Loading Overlay */}
-            <LoadingOverlay visible={loading} />
+            <LoadingOverlay visible={loading}/>
 
         </SafeAreaView>
-
     );
 }

@@ -1,314 +1,323 @@
-import { BackHandler, Alert } from "react-native";
+import {Alert, BackHandler} from "react-native";
 
-import { useLocalSearchParams, router } from "expo-router";
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { workoutStyles as styles } from "@/styles/workoutStyles";
+import {router, useLocalSearchParams} from "expo-router";
+import {useCallback, useEffect, useMemo, useState} from "react";
+import {workoutStyles as styles} from "@/styles/workoutStyles";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import { TopBar } from "@/components/TopBar";
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { minSecToSeconds } from "@/components/NumberStepper";
-import { vibrate } from "@/utils/helper/vibrationHelper";
+import {TopBar} from "@/components/TopBar";
+import BottomSheet, {BottomSheetView} from '@gorhom/bottom-sheet';
+import {GestureHandlerRootView} from "react-native-gesture-handler";
+import {minSecToSeconds} from "@/components/NumberStepper";
+import {vibrate} from "@/utils/helper/vibrationHelper";
 
-import { ExerciseSet } from "@/types/workoutTypes";
-import { useOverlayHandlers } from "@/hooks/useOverlayHandlers";
-import { useWorkoutTimer, useRestTimer } from "@/hooks/useWorkoutTimer";
-import { useActiveWorkoutData } from "@/hooks/useActiveWorkoutData";
-import { useWorkoutLoader } from "@/hooks/useWorkoutLoader";
+import {ExerciseSet} from "@/types/workoutTypes";
+import {useOverlayHandlers} from "@/hooks/useOverlayHandlers";
+import {useRestTimer, useWorkoutTimer} from "@/hooks/useWorkoutTimer";
+import {useActiveWorkoutData} from "@/hooks/useActiveWorkoutData";
+import {useWorkoutLoader} from "@/hooks/useWorkoutLoader";
 import {
-  renderActiveViewMode,
-  renderActiveEditMode,
-  renderActiveOverlays,
-  renderActiveRestTimerBar,
+    renderActiveEditMode,
+    renderActiveOverlays,
+    renderActiveRestTimerBar,
+    renderActiveViewMode,
 } from "@/utils/renderWorkout";
-import { setActiveWorkout } from "@/utils/store/activeWorkoutStore";
-import { formatTime, formatTimeShort } from "@/utils/helper/formatTimeHelper";
-import { Colors } from "@/styles/theme";
-import { listFilterStore } from "@/utils/store/listFilterStore";
+import {setActiveWorkout} from "@/utils/store/activeWorkoutStore";
+import {formatTime, formatTimeShort} from "@/utils/helper/formatTimeHelper";
+import {Colors} from "@/styles/theme";
+import {listFilterStore} from "@/utils/store/listFilterStore";
+
 
 export default function ActiveWorkoutScreen() {
-  const { id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime } = useLocalSearchParams();
-  
-  const {
-    workout,
-    exercises,
-    isEditMode,
-    loading,
-    setWorkout,
-    setOriginalWorkout,
-    setExercises,
-    setIsEditMode,
-    setLoading,
-    setEditIdRef,
-    handleSetCheck,
-    handleRemoveSet,
-    handleDiscardWorkout,
-    handleFinishWorkout,
-    saveWorkoutToDatabase,
-    handleSaveChanges,
-    saveBreakTime,
-    saveSetData,
-    handleCancel,
-  } = useActiveWorkoutData();
+    const {id, selectedExerciseId, selectedExerciseName, workoutEditId, selectedBreakTime} = useLocalSearchParams();
 
-  const { elapsedTime, timerRef } = useWorkoutTimer(workout?.id);
-  const { restTimeRemaining, restTimerRef, startRestTimer, stopRestTimer } = useRestTimer();
-  
-  const {
-    activeOverlay,
-    targetSetIndex,
-    targetExerciseId,
-    targetExerciseName,
-    tempSetData,
-    tempBreakTime,
-    setActiveOverlay,
-    setTempSetData,
-    setTempBreakTime,
-    openBreakTimeOverlay,
-    openEditSetOverlay,
-    openAddSetOverlay,
-    closeOverlay,
-  } = useOverlayHandlers();
+    // active workout data from hook
+    const {
+        workout,
+        exercises,
+        isEditMode,
+        loading,
+        setWorkout,
+        setOriginalWorkout,
+        setExercises,
+        setIsEditMode,
+        setLoading,
+        setEditIdRef,
+        handleSetCheck,
+        handleRemoveSet,
+        handleDiscardWorkout,
+        handleFinishWorkout,
+        saveWorkoutToDatabase,
+        handleSaveChanges,
+        saveBreakTime,
+        saveSetData,
+        handleCancel,
+    } = useActiveWorkoutData();
 
-  useWorkoutLoader({
-    id: id as string,
-    workoutEditId: workoutEditId as string,
-    setWorkout,
-    setOriginalWorkout,
-    setExercises,
-    setLoading,
-    setEditIdRef,
-  });
+    // overlays from hook
+    const {
+        activeOverlay,
+        targetSetIndex,
+        targetExerciseId,
+        targetExerciseName,
+        tempSetData,
+        tempBreakTime,
+        setActiveOverlay,
+        setTempSetData,
+        setTempBreakTime,
+        openBreakTimeOverlay,
+        openEditSetOverlay,
+        openAddSetOverlay,
+        closeOverlay,
+    } = useOverlayHandlers();
 
-    const { resetFilters } = listFilterStore();
+    // time hooks
+    const {elapsedTime, timerRef} = useWorkoutTimer(workout?.id);
+    const {restTimeRemaining, restTimerRef, startRestTimer, stopRestTimer} = useRestTimer();
+
+    // workout loader hook
+    useWorkoutLoader({
+        id: id as string,
+        workoutEditId: workoutEditId as string,
+        setWorkout,
+        setOriginalWorkout,
+        setExercises,
+        setLoading,
+        setEditIdRef,
+    });
+
+    const {resetFilters} = listFilterStore();
 
 
     useEffect(() => {
-    if (workout && isEditMode && workoutEditId) {
-      require("@/utils/store/workoutEditingStore").setEditingWorkout(workoutEditId as string, workout);
-    }
-  }, [workout, isEditMode, workoutEditId]);
-
-  // Handle Return (AddExercise)
-  useEffect(() => {
-    if (selectedExerciseId && workout) {
-      const foundName = selectedExerciseName || exercises.get(selectedExerciseId as string)?.name || "Unbekannte Übung";
-
-      const newSet: ExerciseSet = {
-        id: `set_${Date.now()}`,
-        exerciseId: selectedExerciseId as string,
-        exerciseName: foundName as string,
-        weight: 20,
-        reps: 10,
-        breaktime: Number(selectedBreakTime) || 30,
-        isDone: false,
-      };
-
-      const newWorkout = { ...workout, exerciseSets: [...workout.exerciseSets, newSet] };
-      setWorkout(newWorkout);
-      setIsEditMode(true);
-
-      router.setParams({
-        selectedExerciseId: undefined,
-        selectedExerciseName: undefined,
-        selectedBreakTime: undefined,
-      });
-    }
-  }, [selectedExerciseId, workout, exercises, setWorkout, setIsEditMode]);
-
-
-
-  // Back Handler
-  useEffect(() => {
-    const onBackPress = () => {
-      router.navigate("/(tabs)/HomeScreenProxy");
-      
-      setActiveWorkout({
-          id: workout?.id ?? null,
-          startTime: workout?.startTime ?? Date.now(),
-          setsCount: workout?.exerciseSets.length ?? 0,
-      });
-
-      return true;
-    };
-
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      onBackPress
-    );
-
-    return () => backHandler.remove();
-  }, [workout]);
-
-
-
-  const [isMinimized, setIsMinimized] = useState(false);
-  // Memoize snapPoints to prevent re-renders
-  const snapPoints = useMemo(() => ["95%"], []);
-  
-
-  const handleSheetChanges = useCallback(
-    (index: number) => {
-      if (index === -1) {
-        setIsMinimized(true);
-        try {
-          router.navigate("/(tabs)/HomeScreenProxy");
-        } catch (e) {
-          console.warn('Navigation failed', e);
+        if (workout && isEditMode && workoutEditId) {
+            require("@/utils/store/workoutEditingStore").setEditingWorkout(workoutEditId as string, workout);
         }
-        
-        setActiveWorkout({
-          id: workout?.id ?? null,
-          startTime: workout?.startTime ?? Date.now(),
-          setsCount: workout?.exerciseSets.length ?? 0,
-        });
-      } else {
-        setIsMinimized(false);
-      }
-    },
-    [workout]
-  );
+    }, [workout, isEditMode, workoutEditId]);
 
-  const handleSetCheckWithTimer = useCallback(
-    (setIndex: number, breaktime: number) => {
-      vibrate(50);
-      handleSetCheck(setIndex);
-      if (workout?.exerciseSets[setIndex].isDone === false && breaktime > 0) {
-        startRestTimer(breaktime);
-      }
-    },
-    [workout, handleSetCheck, startRestTimer]
-  );
+    // Handle Return from AddExercise
+    useEffect(() => {
+        if (selectedExerciseId && workout) {
+            const foundName = selectedExerciseName || exercises.get(selectedExerciseId as string)?.name || "Unbekannte Übung";
 
-  const handleSaveModalChanges = useCallback(() => {
-    if (activeOverlay === "breaktime" && targetExerciseId) {
-      if (tempBreakTime.mins === null || tempBreakTime.secs === null) {
-        Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
-        return;
-      }
-      const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
-      saveBreakTime(targetExerciseId, secs);
-    } else {
-      if (tempSetData.weight === null || tempSetData.reps === null) {
-        Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
-        return;
-      }
-      saveSetData(tempSetData as { weight: number; reps: number; isDone?: boolean }, activeOverlay, targetSetIndex, targetExerciseId, targetExerciseName);
-    }
-    closeOverlay();
-  }, [activeOverlay, targetExerciseId, targetSetIndex, targetExerciseName, tempSetData, tempBreakTime, saveBreakTime, saveSetData, closeOverlay]);
+            const newSet: ExerciseSet = {
+                id: `set_${Date.now()}`,
+                exerciseId: selectedExerciseId as string,
+                exerciseName: foundName as string,
+                weight: 20,
+                reps: 10,
+                breaktime: Number(selectedBreakTime) || 30,
+                isDone: false,
+            };
 
-  const handleSaveChangesWithTimer = useCallback(() => {
-    handleSaveChanges(elapsedTime);
-  }, [elapsedTime, handleSaveChanges]);
+            const newWorkout = {...workout, exerciseSets: [...workout.exerciseSets, newSet]};
+            setWorkout(newWorkout);
+            setIsEditMode(true);
 
-  const handleAddExercise = useCallback(() => {
-    if (!workout) return;
-    
-    const idToUse = (workoutEditId as string) || workout.id || `active_temp_${Date.now()}`;
-    require("@/utils/store/workoutEditingStore").setEditingWorkout(idToUse, workout);
-    setEditIdRef(idToUse);
-
-    resetFilters();
-    router.push({
-      pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
-      params: { returnTo: "active", workoutEditId: idToUse },
-    });
-  }, [workout, workoutEditId, setEditIdRef]);
-
-  
-  const timerString = activeOverlay === 'restTimer'
-    ? `  Pausenzeit\n${formatTimeShort(restTimeRemaining)}`
-    : `  Dauer\n${formatTime(elapsedTime)}`;
-
-  const renderProps = useMemo(() => ({
-    workout,
-    isEditMode,
-    activeOverlay,
-    restTimeRemaining,
-    tempBreakTime,
-    tempSetData,
-    onOpenBreakTime: openBreakTimeOverlay,
-    onOpenEditSet: openEditSetOverlay,
-    onOpenAddSet: openAddSetOverlay,
-    onSetCheck: handleSetCheckWithTimer,
-    onRemoveSet: handleRemoveSet,
-    onEditModeToggle: (enabled: boolean) => {
-      if (enabled && workout) setOriginalWorkout(workout);
-      setIsEditMode(enabled);
-    },
-    onAddExercise: handleAddExercise,
-    onSaveModalChanges: handleSaveModalChanges,
-    onCloseOverlay: closeOverlay,
-    onRestTimerClose: stopRestTimer,
-    onWorkoutNameChange: (name: string) => setWorkout((prev) => prev ? { ...prev, name } : null),
-    onSetTempSetData: setTempSetData,
-    onSetTempBreakTime: setTempBreakTime,
-    isFromActiveWorkout: true,
-  }), [workout, isEditMode, activeOverlay, restTimeRemaining, tempBreakTime, tempSetData, 
-    openBreakTimeOverlay, openEditSetOverlay, openAddSetOverlay, 
-    handleSetCheckWithTimer, handleRemoveSet, handleAddExercise, handleSaveModalChanges, 
-    closeOverlay, stopRestTimer, setOriginalWorkout, setWorkout, setTempSetData, setTempBreakTime]);
+            router.setParams({
+                selectedExerciseId: undefined,
+                selectedExerciseName: undefined,
+                selectedBreakTime: undefined,
+            });
+        }
+    }, [selectedExerciseId, workout, exercises, setWorkout, setIsEditMode]);
 
 
-  if (!workout) {
-    return (
-      <GestureHandlerRootView style={styles.sheetContainer}>
-        <BottomSheet 
-          snapPoints={snapPoints} 
-          enablePanDownToClose={true}
-          backgroundStyle={{ 
-            backgroundColor: Colors.bottomSheet || Colors.background,
-          }}
-        >
-          <BottomSheetView style={[styles.sheetContainerContent]}>
-            <LoadingOverlay visible={loading} />
-          </BottomSheetView>
-        </BottomSheet>
-      </GestureHandlerRootView>
+    // handle back
+    useEffect(() => {
+        const onBackPress = () => {
+            router.navigate("/(tabs)/HomeScreenProxy");
+
+            setActiveWorkout({
+                id: workout?.id ?? null,
+                startTime: workout?.startTime ?? Date.now(),
+                setsCount: workout?.exerciseSets.length ?? 0,
+            });
+
+            return true;
+        };
+
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            onBackPress
+        );
+
+        return () => backHandler.remove();
+    }, [workout]);
+
+
+    const [isMinimized, setIsMinimized] = useState(false);
+    const snapPoints = useMemo(() => ["95%"], []);
+
+
+    // bottom sheet size changes
+    const handleSheetChanges = useCallback(
+        (index: number) => {
+            if (index === -1) {
+                setIsMinimized(true);
+                try {
+                    router.navigate("/(tabs)/HomeScreenProxy");
+                } catch (e) {
+                    console.warn('Navigation failed', e);
+                }
+
+                setActiveWorkout({
+                    id: workout?.id ?? null,
+                    startTime: workout?.startTime ?? Date.now(),
+                    setsCount: workout?.exerciseSets.length ?? 0,
+                });
+            } else {
+                setIsMinimized(false);
+            }
+        },
+        [workout]
     );
-  }
 
-  return (
-    <GestureHandlerRootView style={styles.sheetContainer}>
-      <BottomSheet
-        index={0}
-        snapPoints={snapPoints}
-        onChange={handleSheetChanges}
-        enablePanDownToClose={true}
-        backgroundStyle={{ 
-          backgroundColor: Colors.bottomSheet || Colors.background,
-          borderRadius:30,
-        }}
-        handleIndicatorStyle={{ backgroundColor: Colors.primary }}
-        handleStyle={{ backgroundColor: Colors.bottomSheet || Colors.background,
-          height:45,
-          paddingTop:30,
-          borderRadius:30, }}
-      >
-        
-          <BottomSheetView style={[
-            styles.sheetContainerContent]}>
-          <TopBar
-            isSheet={true}
-            backgroundColor={Colors.bottomSheet}
-            leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
-            titleText={isEditMode ? "Training bearbeiten" : timerString}
-            rightButtonText={isEditMode ? "Speichern" : "Fertig"}
-            onLeftPress={() => (isEditMode ? handleCancel() : handleDiscardWorkout())}
-            onRightPress={() => (isEditMode ? handleSaveChangesWithTimer() : handleFinishWorkout())}
-          />
-          
+    const handleSetCheckWithTimer = useCallback(
+        (setIndex: number, breaktime: number) => {
+            vibrate(50);
+            handleSetCheck(setIndex);
+            if (workout?.exerciseSets[setIndex].isDone === false && breaktime > 0) {
+                startRestTimer(breaktime);
+            }
+        },
+        [workout, handleSetCheck, startRestTimer]
+    );
 
-          {isEditMode ? renderActiveEditMode(renderProps as any) : renderActiveViewMode(renderProps as any)}
-          <LoadingOverlay visible={loading} />
-          {renderActiveOverlays(renderProps as any)}
-          {renderActiveRestTimerBar(restTimeRemaining, stopRestTimer)}
+    const handleSaveModalChanges = useCallback(() => {
+        if (activeOverlay === "breaktime" && targetExerciseId) {
+            // pause time
+            if (tempBreakTime.mins === null || tempBreakTime.secs === null) {
+                Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
+                return;
+            }
+            const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
+            saveBreakTime(targetExerciseId, secs);
+        } else {
+            // set edit
+            if (tempSetData.weight === null || tempSetData.reps === null) {
+                Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
+                return;
+            }
+            saveSetData(tempSetData as {
+                weight: number;
+                reps: number;
+                isDone?: boolean
+            }, activeOverlay, targetSetIndex, targetExerciseId, targetExerciseName);
+        }
+        closeOverlay();
+    }, [activeOverlay, targetExerciseId, targetSetIndex, targetExerciseName, tempSetData, tempBreakTime, saveBreakTime, saveSetData, closeOverlay]);
+
+    const handleSaveChangesWithTimer = useCallback(() => {
+        handleSaveChanges(elapsedTime);
+    }, [elapsedTime, handleSaveChanges]);
+
+    // add exercise
+    const handleAddExercise = useCallback(() => {
+        if (!workout) return;
+
+        const idToUse = (workoutEditId as string) || workout.id || `active_temp_${Date.now()}`;
+        require("@/utils/store/workoutEditingStore").setEditingWorkout(idToUse, workout);
+        setEditIdRef(idToUse);
+
+        resetFilters();
+        router.push({
+            pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
+            params: {returnTo: "active", workoutEditId: idToUse},
+        });
+    }, [workout, workoutEditId, setEditIdRef]);
 
 
-        </BottomSheetView>
-          
-      </BottomSheet>
-    </GestureHandlerRootView>
-  );
+    const timerString = activeOverlay === 'restTimer'
+        ? `  Pausenzeit\n${formatTimeShort(restTimeRemaining)}`
+        : `  Dauer\n${formatTime(elapsedTime)}`;
+
+    // rendering
+    const renderProps = useMemo(() => ({
+        workout,
+        isEditMode,
+        activeOverlay,
+        restTimeRemaining,
+        tempBreakTime,
+        tempSetData,
+        onOpenBreakTime: openBreakTimeOverlay,
+        onOpenEditSet: openEditSetOverlay,
+        onOpenAddSet: openAddSetOverlay,
+        onSetCheck: handleSetCheckWithTimer,
+        onRemoveSet: handleRemoveSet,
+        onEditModeToggle: (enabled: boolean) => {
+            if (enabled && workout) setOriginalWorkout(workout);
+            setIsEditMode(enabled);
+        },
+        onAddExercise: handleAddExercise,
+        onSaveModalChanges: handleSaveModalChanges,
+        onCloseOverlay: closeOverlay,
+        onRestTimerClose: stopRestTimer,
+        onWorkoutNameChange: (name: string) => setWorkout((prev) => prev ? {...prev, name} : null),
+        onSetTempSetData: setTempSetData,
+        onSetTempBreakTime: setTempBreakTime,
+        isFromActiveWorkout: true,
+    }), [workout, isEditMode, activeOverlay, restTimeRemaining, tempBreakTime, tempSetData,
+        openBreakTimeOverlay, openEditSetOverlay, openAddSetOverlay,
+        handleSetCheckWithTimer, handleRemoveSet, handleAddExercise, handleSaveModalChanges,
+        closeOverlay, stopRestTimer, setOriginalWorkout, setWorkout, setTempSetData, setTempBreakTime]);
+
+
+    if (!workout) {
+        return (
+            <GestureHandlerRootView style={styles.sheetContainer}>
+                <BottomSheet
+                    snapPoints={snapPoints}
+                    enablePanDownToClose={true}
+                    backgroundStyle={{
+                        backgroundColor: Colors.bottomSheet || Colors.background,
+                    }}
+                >
+                    <BottomSheetView style={[styles.sheetContainerContent]}>
+                        <LoadingOverlay visible={loading}/>
+                    </BottomSheetView>
+                </BottomSheet>
+            </GestureHandlerRootView>
+        );
+    }
+
+    return (
+        <GestureHandlerRootView style={styles.sheetContainer}>
+            <BottomSheet
+                index={0}
+                snapPoints={snapPoints}
+                onChange={handleSheetChanges}
+                enablePanDownToClose={true}
+                backgroundStyle={{
+                    backgroundColor: Colors.bottomSheet || Colors.background,
+                    borderRadius: 30,
+                }}
+                handleIndicatorStyle={{backgroundColor: Colors.primary}}
+                handleStyle={{
+                    backgroundColor: Colors.bottomSheet || Colors.background,
+                    height: 45,
+                    paddingTop: 30,
+                    borderRadius: 30,
+                }}
+            >
+
+                <BottomSheetView style={styles.sheetContainerContent}>
+                    <TopBar
+                        isSheet={true}
+                        backgroundColor={Colors.bottomSheet}
+                        leftButtonText={isEditMode ? "Abbrechen" : "Verwerfen"}
+                        titleText={isEditMode ? "Training bearbeiten" : timerString}
+                        rightButtonText={isEditMode ? "Speichern" : "Fertig"}
+                        onLeftPress={() => (isEditMode ? handleCancel() : handleDiscardWorkout())}
+                        onRightPress={() => (isEditMode ? handleSaveChangesWithTimer() : handleFinishWorkout())}
+                    />
+
+                    {isEditMode ? renderActiveEditMode(renderProps as any) : renderActiveViewMode(renderProps as any)}
+                    <LoadingOverlay visible={loading}/>
+                    {renderActiveOverlays(renderProps as any)}
+                    {renderActiveRestTimerBar(restTimeRemaining, stopRestTimer)}
+
+                </BottomSheetView>
+            </BottomSheet>
+        </GestureHandlerRootView>
+    );
 }

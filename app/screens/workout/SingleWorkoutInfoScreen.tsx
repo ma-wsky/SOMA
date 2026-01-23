@@ -1,279 +1,294 @@
-import { TopBar } from "@/components/TopBar";
-import { View, Text, TextInput, Pressable, ScrollView, BackHandler, Alert } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useCallback } from "react";
+import {TopBar} from "@/components/TopBar";
+import {Alert, BackHandler, Pressable, ScrollView, Text, TextInput, View} from "react-native";
+import {router, useLocalSearchParams} from "expo-router";
+import {useCallback, useEffect} from "react";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import { workoutStyles as styles } from "@/styles/workoutStyles";
-import { Colors } from "@/styles/theme";
-import { minSecToSeconds } from "@/components/NumberStepper";
-import type { ExerciseSet } from "@/types/workoutTypes";
-import { useOverlayHandlers } from "@/hooks/useOverlayHandlers";
-import { useSingleWorkoutData } from "@/hooks/useSingleWorkoutData";
-import { useSingleWorkoutLoader } from "@/hooks/useWorkoutLoader";
-import { groupSetsByExercise } from "@/utils/helper/workoutExerciseHelper";
-import {
-  renderSingleOverlays,
-} from "@/utils/renderWorkout";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { ExerciseCard } from "@/components/ExerciseCard";
-import { listFilterStore } from "@/utils/store/listFilterStore";
+import {workoutStyles as styles} from "@/styles/workoutStyles";
+import {Colors} from "@/styles/theme";
+import {minSecToSeconds} from "@/components/NumberStepper";
+import type {ExerciseSet} from "@/types/workoutTypes";
+import {useOverlayHandlers} from "@/hooks/useOverlayHandlers";
+import {useSingleWorkoutData} from "@/hooks/useSingleWorkoutData";
+import {useSingleWorkoutLoader} from "@/hooks/useWorkoutLoader";
+import {groupSetsByExercise} from "@/utils/helper/workoutExerciseHelper";
+import {renderSingleOverlays,} from "@/utils/renderWorkout";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {ExerciseCard} from "@/components/ExerciseCard";
+import {listFilterStore} from "@/utils/store/listFilterStore";
 
 
 export default function SingleWorkoutInfoScreen() {
-  const params = useLocalSearchParams();
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const workoutEditId = Array.isArray(params.workoutEditId) ? params.workoutEditId[0] : params.workoutEditId;
-  const { selectedExerciseId, selectedExerciseName, selectedBreakTime } = params;
+    const params = useLocalSearchParams();
+    const id = Array.isArray(params.id) ? params.id[0] : params.id;
+    const workoutEditId = Array.isArray(params.workoutEditId) ? params.workoutEditId[0] : params.workoutEditId;
+    const {selectedExerciseId, selectedExerciseName, selectedBreakTime} = params;
 
-  const {
-    workout,
-    exercisesMap,
-    isEditMode,
-    loading,
-    setWorkout,
-    setOriginalWorkout,
-    setExercisesMap,
-    setIsEditMode,
-    setLoading,
-    setEditIdRef,
-    handleRemoveSet,
-    handleSaveWorkout,
-    saveBreakTime,
-    saveSetData,
-    handleCancel,
-  } = useSingleWorkoutData();
+    // workout data hook
+    const {
+        workout,
+        exercisesMap,
+        isEditMode,
+        loading,
+        setWorkout,
+        setOriginalWorkout,
+        setExercisesMap,
+        setIsEditMode,
+        setLoading,
+        setEditIdRef,
+        handleRemoveSet,
+        handleSaveWorkout,
+        saveBreakTime,
+        saveSetData,
+        handleCancel,
+    } = useSingleWorkoutData();
 
-  const isCreateMode = !id && !!workoutEditId;
+    // overlay hook
+    const {
+        activeOverlay,
+        targetSetIndex,
+        targetExerciseId,
+        targetExerciseName,
+        tempSetData,
+        tempBreakTime,
+        setTempSetData,
+        setTempBreakTime,
+        openBreakTimeOverlay,
+        openEditSetOverlay,
+        openAddSetOverlay,
+        closeOverlay,
+    } = useOverlayHandlers();
 
-  const {
-    activeOverlay,
-    targetSetIndex,
-    targetExerciseId,
-    targetExerciseName,
-    tempSetData,
-    tempBreakTime,
-    setTempSetData,
-    setTempBreakTime,
-    openBreakTimeOverlay,
-    openEditSetOverlay,
-    openAddSetOverlay,
-    closeOverlay,
-  } = useOverlayHandlers();
+    const isCreateMode = !id && !!workoutEditId;
 
-  useSingleWorkoutLoader({
-    id: id as string,
-    workoutEditId: workoutEditId as string,
-    setWorkout,
-    setOriginalWorkout,
-    setExercises: setExercisesMap,
-    setLoading,
-    setEditIdRef,
-    isCreateMode,
-  });
+    // workout loader hook
+    useSingleWorkoutLoader({
+        id: id as string,
+        workoutEditId: workoutEditId as string,
+        setWorkout,
+        setOriginalWorkout,
+        setExercises: setExercisesMap,
+        setLoading,
+        setEditIdRef,
+        isCreateMode,
+    });
 
-    const { resetFilters } = listFilterStore();
+    const {resetFilters} = listFilterStore();
 
     // Initialize edit
-  useEffect(() => {
-    if (isCreateMode) {
-      setIsEditMode(true);
+    useEffect(() => {
+        if (isCreateMode) {
+            setIsEditMode(true);
+        }
+    }, [isCreateMode, setIsEditMode]);
+
+    // Workout to draft
+    useEffect(() => {
+        if (workout && isEditMode && workoutEditId) {
+            const editId = Array.isArray(workoutEditId) ? workoutEditId[0] : workoutEditId;
+            require("@/utils/store/workoutEditingStore").setEditingWorkout(editId, workout);
+        }
+    }, [workout, isEditMode, workoutEditId]);
+
+    // Handle Return from AddExercise
+    useEffect(() => {
+        if (selectedExerciseId && workout) {
+            const foundName = selectedExerciseName || exercisesMap.get(selectedExerciseId as string)?.name || "Unbekannte Übung";
+
+            const newSet: ExerciseSet = {
+                id: `set_${Date.now()}`,
+                exerciseId: selectedExerciseId as string,
+                exerciseName: foundName as string,
+                weight: 20,
+                reps: 10,
+                breaktime: Number(selectedBreakTime) || 30,
+                isDone: false,
+            };
+
+            const newWorkout = {...workout, exerciseSets: [...workout.exerciseSets, newSet]};
+            setWorkout(newWorkout);
+            setIsEditMode(true);
+
+            router.setParams({
+                selectedExerciseId: undefined,
+                selectedExerciseName: undefined,
+                selectedBreakTime: undefined,
+                _t: undefined,
+            });
+        }
+    }, [selectedExerciseId, workout, exercisesMap, setWorkout, setIsEditMode]);
+
+
+    const handleSaveModalChanges = useCallback(() => {
+        if (activeOverlay === "breaktime" && targetExerciseId) {
+            // pause time
+            if (tempBreakTime.mins === null || tempBreakTime.secs === null) {
+                Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
+                return;
+            }
+            const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
+            saveBreakTime(targetExerciseId, secs);
+        } else {
+            // set edit
+            if (tempSetData.weight === null || tempSetData.reps === null) {
+                Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
+                return;
+            }
+            saveSetData(tempSetData as {
+                weight: number;
+                reps: number;
+                isDone?: boolean
+            }, activeOverlay, targetSetIndex, targetExerciseId, targetExerciseName);
+        }
+        closeOverlay();
+    }, [activeOverlay, targetExerciseId, targetSetIndex, targetExerciseName, tempSetData, tempBreakTime, saveBreakTime, saveSetData, closeOverlay]);
+
+    const handleAddExercise = useCallback(() => {
+        resetFilters();
+        router.push({
+            pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
+            params: {
+                returnTo: "edit",
+                workoutEditId: workout?.id || workoutEditId,
+            },
+        });
+    }, [workoutEditId, workout]);
+
+    const handleSaveWorkoutPressed = useCallback(() => {
+        handleSaveWorkout(id, (newId) => {
+            setIsEditMode(false);
+            if (!id && newId) {
+                router.setParams({id: newId});
+            }
+        });
+    }, [id, handleSaveWorkout, setIsEditMode]);
+
+    const handleCancelPressed = useCallback(() => {
+        handleCancel();
+        if (!id) {
+            router.navigate("/(tabs)/WorkoutScreenProxy")
+        } else {
+            setIsEditMode(false);
+        }
+    }, [id, handleCancel, setIsEditMode]);
+
+    // handle back
+    useEffect(() => {
+        const onBackPress = () => {
+            if (isEditMode) {
+                handleCancelPressed();
+            } else {
+                router.navigate("/(tabs)/WorkoutScreenProxy");
+            }
+            return true;
+        };
+
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+        return () => backHandler.remove();
+    }, [isEditMode, handleCancelPressed]);
+
+    if (!workout) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <TopBar isSheet={false} leftButtonText="Zurück" onLeftPress={() => router.back()}/>
+                <LoadingOverlay visible={true}/>
+            </SafeAreaView>
+        );
     }
-  }, [isCreateMode, setIsEditMode]);
 
-  // Workout to draft
-  useEffect(() => {
-    if (workout && isEditMode && workoutEditId) {
-      const editId = Array.isArray(workoutEditId) ? workoutEditId[0] : workoutEditId;
-      require("@/utils/store/workoutEditingStore").setEditingWorkout(editId, workout);
-    }
-  }, [workout, isEditMode, workoutEditId]);
-
-  // Handle Return (AddExercise)
-  useEffect(() => {
-    if (selectedExerciseId && workout) {
-      const foundName = selectedExerciseName || exercisesMap.get(selectedExerciseId as string)?.name || "Unbekannte Übung";
-
-      const newSet: ExerciseSet = {
-        id: `set_${Date.now()}`,
-        exerciseId: selectedExerciseId as string,
-        exerciseName: foundName as string,
-        weight: 20,
-        reps: 10,
-        breaktime: Number(selectedBreakTime) || 30,
-        isDone: false,
-      };
-
-      const newWorkout = { ...workout, exerciseSets: [...workout.exerciseSets, newSet] };
-      setWorkout(newWorkout);
-      setIsEditMode(true);
-
-      router.setParams({
-        selectedExerciseId: undefined,
-        selectedExerciseName: undefined,
-        selectedBreakTime: undefined,
-        _t: undefined,
-      });
-    }
-  }, [selectedExerciseId, workout, exercisesMap, setWorkout, setIsEditMode]);
-
-
-
-  const handleSaveModalChanges = useCallback(() => {
-    if (activeOverlay === "breaktime" && targetExerciseId) {
-      if (tempBreakTime.mins === null || tempBreakTime.secs === null) {
-        Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
-        return;
-      }
-      const secs = minSecToSeconds(tempBreakTime.mins, tempBreakTime.secs);
-      saveBreakTime(targetExerciseId, secs);
-    } else {
-      if (tempSetData.weight === null || tempSetData.reps === null) {
-        Alert.alert("Fehlende Eingabe", "Bitte alle Felder ausfüllen.");
-        return;
-      }
-      saveSetData(tempSetData as { weight: number; reps: number; isDone?: boolean }, activeOverlay, targetSetIndex, targetExerciseId, targetExerciseName);
-    }
-    closeOverlay();
-  }, [activeOverlay, targetExerciseId, targetSetIndex, targetExerciseName, tempSetData, tempBreakTime, saveBreakTime, saveSetData, closeOverlay]);
-
-  const handleAddExercise = useCallback(() => {
-    resetFilters();
-    router.push({
-      pathname: "/screens/exercise/AddExerciseToWorkoutScreen",
-      params: {
-        returnTo: "edit",
-        workoutEditId: workout?.id || workoutEditId,
-      },
-    });
-  }, [workoutEditId, workout]);
-
-  const handleSaveWorkoutPressed = useCallback(() => {
-    handleSaveWorkout(id, (newId) => {
-      setIsEditMode(false);
-      if (!id && newId) {
-        router.setParams({ id: newId });
-      }
-    });
-  }, [id, handleSaveWorkout, setIsEditMode]);
-
-  const handleCancelPressed = useCallback(() => {
-    handleCancel();
-    if (!id) {
-        router.navigate("/(tabs)/WorkoutScreenProxy")
-      } else {
-      setIsEditMode(false);
-    }
-  }, [id, handleCancel, setIsEditMode]);
-
-  // Back Handler
-  useEffect(() => {
-    const onBackPress = () => {
-      if (isEditMode) {
-        handleCancelPressed();
-      } else {
-        router.navigate("/(tabs)/WorkoutScreenProxy");
-      }
-      return true;
+    // rendering
+    const renderProps = {
+        workout,
+        isEditMode,
+        activeOverlay,
+        tempBreakTime,
+        tempSetData,
+        onOpenBreakTime: openBreakTimeOverlay,
+        onOpenEditSet: openEditSetOverlay,
+        onOpenAddSet: openAddSetOverlay,
+        onRemoveSet: handleRemoveSet,
+        onSaveModalChanges: handleSaveModalChanges,
+        onCloseOverlay: closeOverlay,
+        onSetTempSetData: setTempSetData,
+        onSetTempBreakTime: setTempBreakTime,
     };
 
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => backHandler.remove();
-  }, [isEditMode, handleCancelPressed]);
-
-  if (!workout) {
     return (
-      <SafeAreaView style={styles.container}>
-        <TopBar isSheet={false} leftButtonText="Zurück" onLeftPress={() => router.back()} />
-        <LoadingOverlay visible={true} />
-      </SafeAreaView>
-    );
-  }
-
-  const renderProps = {
-    workout,
-    isEditMode,
-    activeOverlay,
-    tempBreakTime,
-    tempSetData,
-    onOpenBreakTime: openBreakTimeOverlay,
-    onOpenEditSet: openEditSetOverlay,
-    onOpenAddSet: openAddSetOverlay,
-    onRemoveSet: handleRemoveSet,
-    onSaveModalChanges: handleSaveModalChanges,
-    onCloseOverlay: closeOverlay,
-    onSetTempSetData: setTempSetData,
-    onSetTempBreakTime: setTempBreakTime,
-  };
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <TopBar
-        isSheet={false}
-        leftButtonText={isEditMode ? "Abbrechen" : "Zurück"}
-        titleText={workout.name || "Training Info"}
-        rightButtonText={isEditMode ? "Speichern" : "Bearbeiten"}
-        onLeftPress={() => (isEditMode ? handleCancelPressed() : router.navigate("/(tabs)/WorkoutScreenProxy"))}
-        onRightPress={() => (isEditMode ? handleSaveWorkoutPressed() : setIsEditMode(true))}
-      />
-
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
-        {isEditMode && (
-          <View style={{ padding: 16 }}>
-            <Text style={{ color: Colors.black, width: 800, marginBottom: 4, fontSize: 24 }}>
-              Trainingsname:
-            </Text>
-            <TextInput
-              value={workout.name || ""}
-              onChangeText={(t) => setWorkout((prev) => (prev ? { ...prev, name: t } : null))}
-              style={{
-                backgroundColor: Colors.background,
-                color: Colors.black,
-                padding: 10,
-                borderRadius: 8,
-                borderColor: Colors.black,
-                borderWidth: 1,
-              }}
+        <SafeAreaView style={styles.container}>
+            {/* top bar */}
+            <TopBar
+                isSheet={false}
+                leftButtonText={isEditMode ? "Abbrechen" : "Zurück"}
+                titleText={workout.name || "Training Info"}
+                rightButtonText={isEditMode ? "Speichern" : "Bearbeiten"}
+                onLeftPress={() => (isEditMode ? handleCancelPressed() : router.navigate("/(tabs)/WorkoutScreenProxy"))}
+                onRightPress={() => (isEditMode ? handleSaveWorkoutPressed() : setIsEditMode(true))}
             />
-          </View>
-        )}
 
-        {!isEditMode && workout.duration && (
-          <View style={{ padding: 12, marginBottom: 16, backgroundColor: Colors.black, borderRadius: 8 }}>
-            <Text style={{ color: Colors.white, fontSize: 14, marginBottom: 4 }}>Letzte Dauer:</Text>
-            <Text style={{ color: Colors.primary, fontSize: 18, fontWeight: "bold" }}>
-              {Math.floor((workout.duration || 0) / 3600)
-                .toString()
-                .padStart(2, "0")}
-              :{Math.floor(((workout.duration || 0) % 3600) / 60)
-                .toString()
-                .padStart(2, "0")}
-              :{((workout.duration || 0) % 60)
-                .toString()
-                .padStart(2, "0")}
-            </Text>
-          </View>
-        )}
+            {/* content */}
+            <ScrollView contentContainerStyle={{padding: 16, paddingBottom: 100}}>
+                {/* in edit */}
+                {isEditMode && (
+                    <View style={{padding: 16}}>
+                        <Text style={{color: Colors.black, width: 800, marginBottom: 4, fontSize: 24}}>
+                            Trainingsname:
+                        </Text>
+                        <TextInput
+                            value={workout.name || ""}
+                            onChangeText={(t) => setWorkout((prev) => (prev ? {...prev, name: t} : null))}
+                            style={{
+                                backgroundColor: Colors.background,
+                                color: Colors.black,
+                                padding: 10,
+                                borderRadius: 8,
+                                borderColor: Colors.black,
+                                borderWidth: 1,
+                            }}
+                        />
+                    </View>
+                )}
 
-          {Object.entries(groupSetsByExercise(workout.exerciseSets)).map(([exerciseId, sets]) => (
-              <ExerciseCard
-                  key={exerciseId}
-                  exerciseId={exerciseId}
-                  sets={sets}
-                  mode="single"
-                  isEditing={isEditMode}
-                  props={renderProps}
-              />
-          ))}
+                {/* not in edit */}
+                {!isEditMode && workout.duration && (
+                    <View style={{padding: 12, marginBottom: 16, backgroundColor: Colors.black, borderRadius: 8}}>
+                        <Text style={{color: Colors.white, fontSize: 14, marginBottom: 4}}>Letzte Dauer:</Text>
+                        <Text style={{color: Colors.primary, fontSize: 18, fontWeight: "bold"}}>
+                            {Math.floor((workout.duration || 0) / 3600)
+                                .toString()
+                                .padStart(2, "0")}
+                            :{Math.floor(((workout.duration || 0) % 3600) / 60)
+                            .toString()
+                            .padStart(2, "0")}
+                            :{((workout.duration || 0) % 60)
+                            .toString()
+                            .padStart(2, "0")}
+                        </Text>
+                    </View>
+                )}
 
-        {isEditMode && (
-          <Pressable onPress={handleAddExercise} style={[styles.addExerciseButton, { marginTop: 20 }]}>
-            <Text style={styles.addExerciseButtonText}>Übung hinzufügen +</Text>
-          </Pressable>
-        )}
-      </ScrollView>
+                {/* exercises with sets */}
+                {Object.entries(groupSetsByExercise(workout.exerciseSets)).map(([exerciseId, sets]) => (
+                    <ExerciseCard
+                        key={exerciseId}
+                        exerciseId={exerciseId}
+                        sets={sets}
+                        mode="single"
+                        isEditing={isEditMode}
+                        props={renderProps}
+                    />
+                ))}
 
-      {renderSingleOverlays(renderProps)}
-      <LoadingOverlay visible={loading} />
-    </SafeAreaView>
-  );
+                {isEditMode && (
+                    <Pressable onPress={handleAddExercise} style={[styles.addExerciseButton, {marginTop: 20}]}>
+                        <Text style={styles.addExerciseButtonText}>Übung hinzufügen +</Text>
+                    </Pressable>
+                )}
+            </ScrollView>
+
+            {renderSingleOverlays(renderProps)}
+
+            {/* loading overlay */}
+            <LoadingOverlay visible={loading}/>
+
+        </SafeAreaView>
+    );
 }

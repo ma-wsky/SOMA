@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import {create} from 'zustand';
 
 
 interface ExerciseState {
@@ -13,8 +13,8 @@ export const listFilterStore = create<ExerciseState>((set) => ({
     filter: "",
     selectedCategory: "Alle",
 
-    setFilter: (text) => set({ filter: text }),
-    setSelectedCategory: (cat) => set({ selectedCategory: cat }),
+    setFilter: (text) => set({filter: text}),
+    setSelectedCategory: (cat) => set({selectedCategory: cat}),
 
-    resetFilters: () => set({ filter: "", selectedCategory: "Alle" }),
+    resetFilters: () => set({filter: "", selectedCategory: "Alle"}),
 }));

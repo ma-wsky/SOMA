@@ -1,10 +1,8 @@
-
 interface MyChartData {
     labels: string[];
     datasets: [
         {
             data: number[];
-            // Hier können später noch optionale Felder wie 'color' stehen
         }
     ];
 }
@@ -32,6 +30,6 @@ export const transformHistoryToChartData = (history: any[]): MyChartData | null 
 
     return {
         labels: sorted.map(d => d.label),
-        datasets: [{ data: sorted.map(d => d.weight) }]
+        datasets: [{data: sorted.map(d => d.weight)}]
     };
 };

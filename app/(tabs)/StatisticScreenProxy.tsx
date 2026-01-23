@@ -1,2 +1,3 @@
-import StatisticScreen from "../screens/stats/StatisticScreen";
+import StatisticScreen from "@/app/screens/stats/StatisticScreen";
+
 export default StatisticScreen;

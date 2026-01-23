@@ -1,8 +1,8 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import { Workout, ExerciseSet } from '@/types/workoutTypes';
-import { Exercise } from '@/types/Exercise';
-import { Alert } from "react-native";
+import {ExerciseSet, Workout} from '@/types/workoutTypes';
+import {Exercise} from '@/types/Exercise';
+import {Alert} from "react-native";
 
 export const exportWorkoutsToPDF = async (workouts: Workout[], date: string) => {
     if (workouts.length === 0) {
@@ -35,7 +35,7 @@ export const exportWorkoutsToPDF = async (workouts: Workout[], date: string) => 
             <div class="workout-header">
               ${workout.name || "Unbenanntes Workout"} 
               <span style="font-size: 14px; font-weight: normal; float: right;">
-                ${new Date(workout.date).toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' })}
+                ${new Date(workout.date).toLocaleTimeString("de-DE", {hour: '2-digit', minute: '2-digit'})}
               </span>
             </div>
             
@@ -71,10 +71,9 @@ export const exportWorkoutsToPDF = async (workouts: Workout[], date: string) => 
   `;
 
 
-
     try {
-        const { uri } = await Print.printToFileAsync({ html: htmlContent });
-        await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+        const {uri} = await Print.printToFileAsync({html: htmlContent});
+        await Sharing.shareAsync(uri, {UTI: '.pdf', mimeType: 'application/pdf'});
     } catch (error) {
         console.error("Fehler beim PDF Export:", error);
         alert("Export fehlgeschlagen.");
@@ -87,13 +86,12 @@ const groupSetsByExercise = (sets: ExerciseSet[]) => {
     sets.forEach((set) => {
         const id = set.exerciseId;
         if (!grouped[id]) {
-            grouped[id] = { exerciseName: set.exerciseName || "Unbekannt", sets: [] };
+            grouped[id] = {exerciseName: set.exerciseName || "Unbekannt", sets: []};
         }
         grouped[id].sets.push(set);
     });
     return grouped;
 };
-
 
 
 export const exportExerciseStatisticsToPDF = async (
@@ -111,7 +109,7 @@ export const exportExerciseStatisticsToPDF = async (
         const dayKey = entry.date.toISOString().split('T')[0];
         const existing = bestPerDay.get(dayKey);
         if (!existing || entry.weight > existing.weight) {
-            bestPerDay.set(dayKey, { date: entry.date, weight: entry.weight, reps: entry.reps });
+            bestPerDay.set(dayKey, {date: entry.date, weight: entry.weight, reps: entry.reps});
         }
     });
 
@@ -128,10 +126,11 @@ export const exportExerciseStatisticsToPDF = async (
     const totalVolume = history.reduce((sum, h) => sum + (h.weight * (h.reps || 0)), 0);
     const totalReps = history.reduce((sum, h) => {
         return h.isDone ? sum + (h.reps || 0) : sum;
-    }, 0);    history.length > 0
+    }, 0);
+    history.length > 0
         ? (history.reduce((sum, h) => sum + h.weight, 0) / history.length).toFixed(1)
         : '0';
-    
+
     const htmlContent = `
     <html lang="">
       <head>
@@ -208,8 +207,8 @@ export const exportExerciseStatisticsToPDF = async (
   `;
 
     try {
-        const { uri } = await Print.printToFileAsync({ html: htmlContent });
-        await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+        const {uri} = await Print.printToFileAsync({html: htmlContent});
+        await Sharing.shareAsync(uri, {UTI: '.pdf', mimeType: 'application/pdf'});
     } catch (error) {
         console.error("Fehler beim PDF Export:", error);
         alert("Export fehlgeschlagen.");

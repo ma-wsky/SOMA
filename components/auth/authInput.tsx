@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, KeyboardTypeOptions } from 'react-native';
+import React, {useState} from 'react';
+import {KeyboardTypeOptions, TextInput, TouchableOpacity, View} from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Colors } from "../../styles/theme";
-import { authStyles } from "../../styles/authStyles";
+import {Colors} from "@/styles/theme";
+import {authStyles} from "@/styles/authStyles";
 
 interface AuthInputProps {
     placeholder: string;
@@ -46,6 +46,7 @@ export const AuthInput = ({
                 autoCorrect={false}
             />
 
+            {/* eye toggle */}
             {isPassword && (
                 <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
                     <Ionicons

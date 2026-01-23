@@ -9,6 +9,7 @@ export default function Index() {
     const [initializing, setInitializing] = useState(true);
     const [user, setUser] = useState<User | null>(null);
 
+    // firebase user change
     useEffect(() => {
         return onAuthStateChanged(auth, (user) => {
             setUser(user);
@@ -18,9 +19,10 @@ export default function Index() {
 
     if (initializing) return <LoadingOverlay visible={true}/>
 
+    // is logged in or not
     if (user) {
-        return <Redirect href="/(tabs)/HomeScreenProxy" />;
+        return <Redirect href="/(tabs)/HomeScreenProxy"/>;
     } else {
-        return <Redirect href="/screens/auth/LandingScreen" />;
+        return <Redirect href="/screens/auth/LandingScreen"/>;
     }
 }

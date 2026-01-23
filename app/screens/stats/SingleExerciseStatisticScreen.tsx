@@ -1,20 +1,18 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { View, Text, Image, Pressable, Alert } from "react-native";
-import { useState, useEffect, useRef } from "react";
-import { TopBar } from "@/components/TopBar"
-import { auth } from "@/firebaseConfig";
+import {router, useLocalSearchParams} from "expo-router";
+import {Alert, Dimensions, Image, Pressable, Text, View} from "react-native";
+import {useEffect, useRef, useState} from "react";
+import {TopBar} from "@/components/TopBar"
+import {auth} from "@/firebaseConfig";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import { Exercise } from "@/types/Exercise"
-import { LineChart } from "react-native-chart-kit";
-import { Dimensions } from "react-native";
-import { statStyles } from "@/styles/statStyles"
+import {Exercise} from "@/types/Exercise"
+import {LineChart} from "react-native-chart-kit";
+import {statStyles} from "@/styles/statStyles"
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { transformHistoryToChartData } from "@/utils/transformHistoryToChartData"
-import { ExerciseService } from "@/services/exerciseService"
-import { exportExerciseStatisticsToPDF } from "@/utils/helper/exportHelper"
-import { Colors } from "@/styles/theme";
-import { SafeAreaView } from "react-native-safe-area-context";
-
+import {transformHistoryToChartData} from "@/utils/transformHistoryToChartData"
+import {ExerciseService} from "@/services/exerciseService"
+import {exportExerciseStatisticsToPDF} from "@/utils/helper/exportHelper"
+import {Colors} from "@/styles/theme";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 
 interface MyChartData {
@@ -35,12 +33,13 @@ interface HistoryEntry {
 
 export default function SingleExerciseStatisticScreen() {
 
-    const [loading,setLoading] = useState<boolean>(false);
-    const { id } = useLocalSearchParams<{ id: string }>();
+    const [loading, setLoading] = useState<boolean>(false);
+    const {id} = useLocalSearchParams<{ id: string }>();
     const [exercise, setExercise] = useState<Exercise | null>(null);
     const [chartData, setChartData] = useState<MyChartData | null>(null);
     const historyRef = useRef<HistoryEntry[]>([]);
 
+    // default images
     const ADMIN_DEFAULT = require("@/assets/default-exercise-picture/admin.png");
     const USER_DEFAULT = require("@/assets/default-exercise-picture/users.png");
 
@@ -48,17 +47,18 @@ export default function SingleExerciseStatisticScreen() {
     useEffect(() => {
         const loadData = async () => {
             const user = auth.currentUser;
-            if (!id || !user) return ;
+            if (!id || !user) return;
 
             setLoading(true);
 
+            // firebase fetch + put in state
             try {
                 const exercise = await ExerciseService.fetchExercise(id, user.uid);
                 setExercise(exercise);
 
-                if (exercise){
+                if (exercise) {
                     const history = await ExerciseService.fetchHistory(id, user.uid);
-                    if(history && history.length > 0) {
+                    if (history && history.length > 0) {
                         historyRef.current = history;
                         const formattedData = transformHistoryToChartData(history);
                         setChartData(formattedData);
@@ -84,48 +84,47 @@ export default function SingleExerciseStatisticScreen() {
 
         try {
             const isNowFavorite = await ExerciseService.toggleFavorite(exercise, auth.currentUser.uid);
-            setExercise({ ...exercise, isFavorite: isNowFavorite});
+            setExercise({...exercise, isFavorite: isNowFavorite});
         } catch (e) {
             Alert.alert("Fehler", "Favorit konnte nicht gespeichert werden.");
         }
     }
 
     async function handleDownload() {
-        if (!exercise) return ;
+        if (!exercise) return;
         await exportExerciseStatisticsToPDF(exercise, historyRef.current);
     }
 
     if (!exercise) {
         return (
-          <View style={statStyles.container}>
-            <TopBar isSheet={false} leftButtonText="Zurück" onLeftPress={() => router.back()} />
-            <LoadingOverlay visible={true} />
-          </View>
+            <View style={statStyles.container}>
+                <TopBar isSheet={false} leftButtonText="Zurück" onLeftPress={() => router.back()}/>
+                <LoadingOverlay visible={true}/>
+            </View>
         );
-      }
+    }
 
     return (
         <SafeAreaView style={[statStyles.container]}>
 
             {/* Top Bar */}
-            <TopBar 
-                    isSheet={false}
+            <TopBar isSheet={false}
                     leftButtonText={"Zurück"}
                     titleText={"Statistik"}
                     rightButtonText={"Export"}
                     onLeftPress={() => router.replace("/(tabs)/StatisticScreenProxy")}
                     onRightPress={handleDownload}
-            ></TopBar>
+            />
 
             {/* Exercise Picture */}
             <View style={statStyles.picWrapper}>
                 <Image
                     source={
                         exercise.image
-                            ? { uri: exercise.image }
+                            ? {uri: exercise.image}
                             : (exercise.isOwn
-                                ? USER_DEFAULT
-                                : ADMIN_DEFAULT
+                                    ? USER_DEFAULT
+                                    : ADMIN_DEFAULT
                             )
                     }
                     style={statStyles.picture}
@@ -157,12 +156,11 @@ export default function SingleExerciseStatisticScreen() {
 
             {/* chart */}
             <View style={statStyles.content}>
-
                 {chartData ? (
                     <View style={statStyles.graphWrapper}>
                         <LineChart
                             data={chartData}
-                            width={Dimensions.get("window").width - 60} // Breite des Bildschirms minus Padding
+                            width={Dimensions.get("window").width - 60}
                             height={250}
                             chartConfig={{
                                 backgroundColor: Colors.background,
@@ -176,7 +174,7 @@ export default function SingleExerciseStatisticScreen() {
                                 fillShadowGradientOpacity: 0.5,
 
                                 labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                                style: { borderRadius: 16, },
+                                style: {borderRadius: 16,},
                                 propsForDots: {
                                     r: "5",
                                     strokeWidth: "2",
@@ -191,11 +189,10 @@ export default function SingleExerciseStatisticScreen() {
                 ) : (
                     <Text style={statStyles.emptyText}>Keine Trainingsdaten gefunden.</Text>
                 )}
-
             </View>
 
             {/* Loading Overlay */}
-            <LoadingOverlay visible={loading} />
+            <LoadingOverlay visible={loading}/>
 
         </SafeAreaView>
     );

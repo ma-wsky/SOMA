@@ -1,9 +1,9 @@
-import { StyleSheet } from 'react-native';
-import { Colors } from "./theme";
+import {StyleSheet} from 'react-native';
+import {Colors} from "@/styles/theme";
 
 export const topBarStyles = StyleSheet.create({
     container: {
-        flexDirection:"row",
+        flexDirection: "row",
         justifyContent: "space-around",
         alignItems: "center",
         marginTop: 40,
@@ -22,7 +22,7 @@ export const topBarStyles = StyleSheet.create({
         fontWeight: "bold",
         fontSize: 16,
     },
-    text:{
+    text: {
         fontWeight: "bold",
         fontSize: 24,
     },
