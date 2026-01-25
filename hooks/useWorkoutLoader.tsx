@@ -83,11 +83,13 @@ export const useWorkoutLoader = ({
                         const preservedStartTime = (activeStore?.id === id) ? activeStore.startTime : undefined;
 
                         if (draft) {
+                            const cleanSets = exerciseSets.map(s => ({...s, isDone: false}));
+
                             setWorkout(draft);
                             if (setOriginalWorkout) setOriginalWorkout({
                                 id: userSnap.id,
                                 ...workoutData,
-                                exerciseSets,
+                                exerciseSets:cleanSets,
                                 startTime: preservedStartTime || draft.startTime || Date.now(),
                             });
                         } else {
