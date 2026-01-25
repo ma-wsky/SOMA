@@ -181,7 +181,7 @@ export const exerciseStyles = StyleSheet.create({
         alignSelf: "flex-start",
         paddingVertical: 6,
         paddingHorizontal: 10,
-        marginLeft: 30,
+        marginHorizontal: 30,
         borderRadius: 20,
         backgroundColor: Colors.black,
     },
