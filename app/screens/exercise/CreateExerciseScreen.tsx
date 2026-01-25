@@ -204,7 +204,7 @@ export default function CreateExerciseScreen() {
                                     <View style={exerciseStyles.fieldWrapper}>
                                         <TextInput
                                             style={exerciseStyles.input}
-                                            placeholder={"welche Muskeln trainiert diese Übung"}
+                                            placeholder={"Zielmuskel(n) angeben"}
                                             placeholderTextColor={Colors.black}
                                             value={formData.muscles}
                                             onChangeText={(val) => handleInputChange("muscles", val)}/>
