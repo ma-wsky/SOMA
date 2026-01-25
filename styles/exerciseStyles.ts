@@ -190,6 +190,11 @@ export const exerciseStyles = StyleSheet.create({
         fontWeight: "600",
         color: Colors.white,
     },
+    equipWrapper: {
+        flex: 1,
+        marginTop: 25,
+        paddingHorizontal: 30,
+    },
     instructionWrapper: {
         flex: 1,
         marginTop: 25,

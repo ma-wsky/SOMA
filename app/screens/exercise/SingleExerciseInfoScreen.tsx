@@ -154,6 +154,15 @@ export default function SingleExerciseInfoScreen() {
                     </Text>
                 </View>
 
+                {/* Equipment */}
+                <View style={exerciseStyles.equipWrapper}>
+                    <Text style={exerciseStyles.instructionTitle}>Ausrüstung</Text>
+
+                    <Text
+                        style={{fontSize: 16, marginLeft: 10,}}>{exercise.equipment}
+                    </Text>
+                </View>
+
                 {/* Instructions */}
                 <View style={exerciseStyles.instructionWrapper}>
                     <Text style={exerciseStyles.instructionTitle}>Anleitung</Text>
