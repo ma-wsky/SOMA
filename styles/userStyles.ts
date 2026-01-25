@@ -49,7 +49,7 @@ export const userStyles = StyleSheet.create({
     },
     fieldWrapper: {
         flexDirection: "row",
-        width: 250,
+        width: 270,
     },
     EditFieldWrapper: {
         flexDirection: "row",

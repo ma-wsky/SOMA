@@ -18,7 +18,7 @@ const DataRow = ({label, value, unit = ""}: { label: string, value?: string | nu
         <Text style={userStyles.text}>{label}</Text>
         <View style={userStyles.fieldWrapper}>
             <Text style={userStyles.field}>
-                {value && value !== "" ? `${value}${unit}` : "Nicht gesetzt"}
+                {value && value !== "" ? `${value}${unit}` : "Registrieren zum Eintragen"}
             </Text>
         </View>
     </View>
