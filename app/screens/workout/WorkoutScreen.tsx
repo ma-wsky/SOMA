@@ -72,7 +72,7 @@ export default function WorkoutScreen() {
                     ]}
                 >
                     <View style={styles.bigButtonTextWrapper}>
-                        <Text style={styles.itemTitle}>Leeres Training starten</Text>
+                        <Text style={styles.buttonTitle}>Leeres Training starten</Text>
                         <Ionicons name={"add-outline"}
                                 size={styles.itemTitle.fontSize}
                                 color={styles.itemTitle.color}/>
@@ -129,7 +129,7 @@ export default function WorkoutScreen() {
                     ]}
                 >
                     <View style={styles.bigButtonTextWrapper}>
-                        <Text style={styles.itemTitle}>Training erstellen</Text>
+                        <Text style={styles.buttonTitle}>Training erstellen</Text>
                         <Ionicons name={"add-outline"}
                                 size={styles.itemTitle.fontSize}
                                 color={styles.itemTitle.color}

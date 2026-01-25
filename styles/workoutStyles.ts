@@ -120,6 +120,12 @@ export const workoutStyles = StyleSheet.create({
         fontWeight: "bold",
         color: Colors.white,
     },
+    buttonTitle: {
+        //maxWidth:240,
+        fontSize: 22,
+        fontWeight: "bold",
+        color: Colors.white,
+    },
     itemButton: {
         paddingVertical: 8,
         marginHorizontal: 30,
@@ -158,7 +164,7 @@ export const workoutStyles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingHorizontal: 20,
+        paddingHorizontal: 10,
         width: "100%",
     },
 
