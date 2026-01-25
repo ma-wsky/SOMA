@@ -91,7 +91,7 @@ export default function Home() {
             justifyContent: 'flex-start',
         }}>
             {/* greeting */}
-            <View style={{alignItems: "center", marginTop: 60,padding:10 }}>
+            <View style={{alignItems: "center", marginTop: 100,padding:10 }}>
                 {!isAnonymous && userData?.name ? (
                     <Text style={{fontSize: 24, fontWeight: "bold", alignSelf: "center",}}
                     numberOfLines={2}
