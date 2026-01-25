@@ -1,6 +1,6 @@
 import {Slot, usePathname} from "expo-router";
 import React, {useEffect} from "react";
-import {Platform} from "react-native";
+import {Platform, View} from "react-native";
 import Toast from 'react-native-toast-message'
 import {useNetworkMonitor} from "@/utils/useNetworkMonitor";
 import {setAudioModeAsync} from 'expo-audio';
@@ -18,7 +18,7 @@ export default function Layout() {
     usePathname();
     useNetworkMonitor();
     useAutoBrightness();
-    useFonts({"SomaLogo": Righteous_400Regular});
+    const [fontsLoaded] = useFonts({"SomaLogo": Righteous_400Regular});
 
     // audio and notification
     useEffect(() => {
@@ -31,8 +31,11 @@ export default function Layout() {
         requestNotificationPermissions();
     }, []);
 
+    // SOM bug
+    if (!fontsLoaded) return null;
+
     return (
-        <>
+        <View style={{flex: 1}} >
             <StatusBar
                 style="dark"
                 {...(Platform.OS === 'android' && {
@@ -43,6 +46,6 @@ export default function Layout() {
             <Slot/>
             <ActiveWorkoutFloatingBar/>
             <Toast config={networkToastConfig}/>
-        </>
+        </View>
     );
 }
