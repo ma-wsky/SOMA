@@ -174,11 +174,9 @@ export default function UserScreen() {
 
                     <DataRow
                         label="Uhrzeit"
-                        value={
-                            userData?.reminderTime
+                        value={userData?.reminderTime
                                 ? `${String(userData.reminderTime.hour).padStart(2, '0')}:${String(userData.reminderTime.minute).padStart(2, '0')}`
-                                : "Nicht gesetzt"
-                        }
+                                : (auth.currentUser?.isAnonymous ? "Registrieren zum Eintragen" : "Nicht eingetragen")}
                     />
                     <DataRow
                         label="Tage"
