@@ -19,7 +19,13 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/appIcon/SOMA.png",
         "backgroundColor": "#AB8FFF"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "output": "static"
@@ -37,6 +43,12 @@
         "projectId": "c2152bc1-d414-4a73-a71f-1ffb7e30a65d"
       }
     },
-    "owner": "hrw-mobilecomputing"
+    "owner": "hrw-mobilecomputing",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c2152bc1-d414-4a73-a71f-1ffb7e30a65d"
+    }
   }
 }
