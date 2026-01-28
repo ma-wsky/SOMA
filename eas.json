@@ -14,6 +14,14 @@
       "channel": "preview",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "DEIN_API_KEY",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "DEINE_DOMAIN",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "DEINE_PROJECT_ID",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "DEIN_BUCKET",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "DEINE_ID",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "DEINE_APP_ID"
       }
     },
     "production": {
